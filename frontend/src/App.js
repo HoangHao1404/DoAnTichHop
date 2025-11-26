@@ -1,10 +1,11 @@
 import "./App.css";
 import Register from "./pages/Register";
-import Login from "./pages/Login"
+import SignIn from "./pages/SignIn"
+import Report from "./components/Report"
 function App() {
   return (
     <div>
-      <Login/>
+      <Report/>
     </div>
   );
 }
