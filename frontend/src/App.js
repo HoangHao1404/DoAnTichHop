@@ -1,11 +1,9 @@
 import "./App.css";
-import Register from "./pages/Register";
-import SignIn from "./pages/SignIn"
-import Report from "./components/Report"
+import Dashboard from "./pages/Dashboard"
 function App() {
   return (
     <div>
-      <Report/>
+      <Dashboard/>
     </div>
   );
 }
