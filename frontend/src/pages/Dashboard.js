@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import HomeOverlayUI from "../components/HomeOverlayUI";
 
 // Fix icon issue với Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -57,9 +58,10 @@ function LocationMarker() {
 
 const Dashboard = () => {
   const defaultCenter = [10.8231, 106.6297]; // TP.HCM
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   return (
-    <div className="w-full h-screen">
+    <div className="w-full h-screen relative">
       <MapContainer
         center={defaultCenter}
         zoom={13}
@@ -70,10 +72,16 @@ const Dashboard = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-
         {/* Marker vị trí hiện tại */}
         <LocationMarker />
       </MapContainer>
+      {/* Overlay UI luôn nằm trên map */}
+      <div className="absolute inset-0 z-[9999] pointer-events-none">
+        <HomeOverlayUI
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+        />
+      </div>
     </div>
   );
 };
