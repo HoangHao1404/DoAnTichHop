@@ -1,11 +1,12 @@
 import React from "react";
 import "./App.css";
-import MyReports from "./pages/MyReports";
-
+import Dashboard from "./pages/Dashboard"
+// import Report from "./components/Report"
 function App() {
   return (
-    <div className="w-full h-screen">
-      <MyReports />
+    <div>
+      <Dashboard/>
+      {/* <Report/> */}
     </div>
   );
 }
