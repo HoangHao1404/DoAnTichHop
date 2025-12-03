@@ -1,3 +1,4 @@
+import React from "react";
 import "./App.css";
 import Dashboard from "./pages/Dashboard"
 // import Report from "./components/Report"
