@@ -6,9 +6,9 @@ import MyReport from "./pages/MyReports"
 function App() {
   return (
     <div>
-        <Dashboard/>  
+      <Dashboard />
       {/* <Report/> */}
-      <MyReport/>
+      <MyReport />
     </div>
   );
 }

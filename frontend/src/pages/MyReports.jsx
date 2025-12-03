@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
+import ReportDetail from "../components/ReportDetail";
+import ReportReviews from "../components/ReportReviews";
 
 const MOCK_REPORTS = [
   {
@@ -9,6 +11,8 @@ const MOCK_REPORTS = [
     location: "35 Hùng Vương, ĐN",
     status: "Đang Xử Lý",
     time: "26/11/2025",
+    description: "Ổ gà lớn gây nguy hiểm cho người tham gia giao thông...",
+    image: "/images/oga1.jpg",
   },
   {
     id: "BCD0295",
@@ -17,6 +21,8 @@ const MOCK_REPORTS = [
     location: "136 Yên Bái, ĐN",
     status: "Đang Chờ",
     time: "13/11/2025",
+    description: "Đèn giao thông bị hư làm kẹt xe nghiêm trọng...",
+    image: "/images/den1.jpg",
   },
   {
     id: "BCCX7138",
@@ -25,6 +31,8 @@ const MOCK_REPORTS = [
     location: "16 Lê Lợi, ĐN",
     status: "Đang Chờ",
     time: "03/11/2025",
+    description: "Cây to ngã giữa đường gây cản trở giao thông...",
+    image: "/images/cay1.jpg",
   },
   {
     id: "BCCTC1824",
@@ -33,6 +41,9 @@ const MOCK_REPORTS = [
     location: "66 Phan Châu Trinh, ĐN",
     status: "Đã Giải Quyết",
     time: "16/08/2025",
+    description: "Ghế chờ xe bus bị hư và đã được sửa xong.",
+    beforeImg: "/images/bus_before.jpg",
+    afterImg: "/images/bus_after.jpg",
   },
   {
     id: "BCD0295",
@@ -41,6 +52,9 @@ const MOCK_REPORTS = [
     location: "265 Điện Biên Phủ, ĐN",
     status: "Đã Giải Quyết",
     time: "24/06/2025",
+    description: "Đèn đường phát nổ gây nguy hiểm và đã được thay mới.",
+    beforeImg: "/images/light_before.jpg",
+    afterImg: "/images/light_after.jpg",
   },
 ];
 
@@ -63,6 +77,10 @@ export default function MyReports() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  const [selected, setSelected] = useState(null);
+  const [showDetail, setShowDetail] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+
   useEffect(() => {
     setReports(MOCK_REPORTS);
   }, []);
@@ -77,7 +95,7 @@ export default function MyReports() {
   return (
     <div className="w-full h-screen overflow-hidden bg-gray-100 flex flex-col">
 
-      {/* CONTENT SCROLL AREA */}
+      {/* MAIN CONTENT */}
       <div className="flex-1 overflow-y-auto p-4">
 
         {/* HEADER */}
@@ -93,27 +111,15 @@ export default function MyReports() {
         {/* STAT CARDS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           <StatBox label="Tổng Cộng" number={reports.length} icon="📁" />
-          <StatBox
-            label="Đang Chờ"
-            number={reports.filter((r) => r.status === "Đang Chờ").length}
-            icon="⏳"
-          />
-          <StatBox
-            label="Đang Xử Lý"
-            number={reports.filter((r) => r.status === "Đang Xử Lý").length}
-            icon="⚡"
-          />
-          <StatBox
-            label="Đã Giải Quyết"
-            number={reports.filter((r) => r.status === "Đã Giải Quyết").length}
-            icon="✔️"
-          />
+          <StatBox label="Đang Chờ" number={reports.filter((r) => r.status === "Đang Chờ").length} icon="⏳" />
+          <StatBox label="Đang Xử Lý" number={reports.filter((r) => r.status === "Đang Xử Lý").length} icon="⚡" />
+          <StatBox label="Đã Giải Quyết" number={reports.filter((r) => r.status === "Đã Giải Quyết").length} icon="✔️" />
         </div>
 
         {/* TABLE CARD */}
         <div className="p-4 bg-white border rounded-2xl shadow">
 
-          {/* FILTER ROW */}
+          {/* FILTERS */}
           <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-3">
             <div className="relative w-full md:w-1/3">
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
@@ -127,11 +133,8 @@ export default function MyReports() {
             </div>
 
             <div className="flex gap-2 flex-wrap">
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-3 py-2 rounded-md border bg-gray-100 border-gray-300"
-              >
+              <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
+                className="px-3 py-2 rounded-md border bg-gray-100 border-gray-300">
                 <option value="all">Tất Cả Các Loại</option>
                 <option value="Giao Thông">Giao Thông</option>
                 <option value="Điện">Điện</option>
@@ -139,11 +142,8 @@ export default function MyReports() {
                 <option value="CTCC">CTCC</option>
               </select>
 
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 rounded-md border bg-gray-100 border-gray-300"
-              >
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 rounded-md border bg-gray-100 border-gray-300">
                 <option value="all">Tất Cả Trạng Thái</option>
                 <option value="Đang Chờ">Đang Chờ</option>
                 <option value="Đang Xử Lý">Đang Xử Lý</option>
@@ -157,50 +157,41 @@ export default function MyReports() {
             <table className="min-w-full text-sm text-left">
               <thead className="bg-gray-100 text-gray-700">
                 <tr>
-                  <th className="p-3 whitespace-nowrap">Mã Báo Cáo</th>
-                  <th className="p-3 whitespace-nowrap">Tiêu Đề</th>
-                  <th className="p-3 whitespace-nowrap">Loại</th>
-                  <th className="p-3 whitespace-nowrap">Vị Trí</th>
-                  <th className="p-3 whitespace-nowrap">Trạng Thái</th>
-                  <th className="p-3 whitespace-nowrap">Thời Gian</th>
+                  <th className="p-3">Mã Báo Cáo</th>
+                  <th className="p-3">Tiêu Đề</th>
+                  <th className="p-3">Loại</th>
+                  <th className="p-3">Vị Trí</th>
+                  <th className="p-3">Trạng Thái</th>
+                  <th className="p-3">Thời Gian</th>
                 </tr>
               </thead>
 
               <tbody>
                 {filtered.map((item, index) => (
-                  <tr key={index} className="border-t">
+                  <tr
+                    key={index}
+                    className="border-t hover:bg-gray-50 cursor-pointer transition"
+                    onClick={() => {
+                      setSelected(item);
+                      setShowDetail(true);
+                    }}
+                  >
                     <td className="p-3 font-semibold">{item.id}</td>
                     <td className="p-3">{item.title}</td>
-
                     <td className="p-3">
-                      <span
-                        className={`text-white px-3 py-1 rounded-full text-xs ${TYPE_COLOR[item.type]}`}
-                      >
+                      <span className={`text-white px-3 py-1 rounded-full text-xs ${TYPE_COLOR[item.type]}`}>
                         {item.type}
                       </span>
                     </td>
-
                     <td className="p-3">{item.location}</td>
-
                     <td className="p-3">
-                      <span
-                        className={`text-white px-3 py-1 rounded-full text-xs ${STATUS_COLOR[item.status]}`}
-                      >
+                      <span className={`text-white px-3 py-1 rounded-full text-xs ${STATUS_COLOR[item.status]}`}>
                         {item.status}
                       </span>
                     </td>
-
                     <td className="p-3">{item.time}</td>
                   </tr>
                 ))}
-
-                {!filtered.length && (
-                  <tr>
-                    <td colSpan={6} className="p-4 text-center text-gray-500">
-                      Không có dữ liệu phù hợp
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
@@ -212,12 +203,34 @@ export default function MyReports() {
         </div>
       </div>
 
-     
-      
+      {/* ================= MODALS ================= */}
+
+      {showDetail && (
+        <ReportDetail
+          data={selected}
+          close={() => setShowDetail(false)}
+          openRating={() => {
+            setShowDetail(false);
+            setShowReview(true);
+          }}
+        />
+      )}
+
+      {showReview && (
+        <ReportReviews
+          close={() => setShowReview(false)}
+          submit={(rating, text) => {
+            alert("Đánh giá thành công!");
+            setShowReview(false);
+          }}
+        />
+      )}
     </div>
   );
 }
 
+
+/* STAT BOX */
 function StatBox({ label, number, icon }) {
   return (
     <div className="p-3 bg-white rounded-xl shadow border flex items-center gap-4">
