@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Camera,
   Upload,
@@ -17,11 +17,13 @@ const incidentOptions = [
   { value: "electricity", label: "Điện lực" },
   { value: "other", label: "Khác" },
 ];
-function ReportForm({ onClose }) {
+function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const [title, setTitle] = useState("");
   const [incidentType, setIncidentType] = useState("");
   const [description, setDescription] = useState("");
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [uploadedImages, setUploadedImages] = useState(
+    initialImage ? [initialImage] : []
+  );
   const [location, setLocation] = useState("");
   const [locationLoading, setLocationLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
@@ -30,6 +32,22 @@ function ReportForm({ onClose }) {
   const [openIncidentDropdown, setOpenIncidentDropdown] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+
+  // Auto open camera khi prop autoOpenCamera = true
+  useEffect(() => {
+    if (autoOpenCamera) {
+      openCamera();
+    }
+  }, [autoOpenCamera]);
+
+  // Auto fetch location khi có initialImage
+  useEffect(() => {
+    if (initialImage && !hasFetchedLocation) {
+      getLocation();
+      setHasFetchedLocation(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialImage]);
 
   // ========= IMAGE + GPS =========
   const handleImageUpload = (e) => {
