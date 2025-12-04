@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useRef } from "react";
 import {
   CircleUserRound,
   Search,
@@ -11,8 +10,10 @@ import {
   Megaphone,
   Plus,
   Camera,
+  X,
 } from "lucide-react";
 import ReportForm from "./Report";
+import { useNavigate } from "react-router-dom";
 
 const categories = [
   {
@@ -57,6 +58,57 @@ export default function HomeOverlayUI({
 }) {
   const navigate = useNavigate();
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [showCameraOnly, setShowCameraOnly] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [stream, setStream] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  // Mở camera
+  const openCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false,
+      });
+      setStream(mediaStream);
+      setShowCameraOnly(true);
+      setTimeout(() => {
+        if (videoRef.current) videoRef.current.srcObject = mediaStream;
+      }, 100);
+    } catch (error) {
+      console.error(error);
+      alert("Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.");
+    }
+  };
+
+  // Đóng camera
+  const closeCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
+    setShowCameraOnly(false);
+  };
+
+  // Chụp ảnh
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageData = canvas.toDataURL("image/jpeg");
+    
+    // Đóng camera, lưu ảnh và mở form Report
+    closeCamera();
+    setCapturedImage(imageData);
+    setIsReportOpen(true);
+  };
 
   return (
     <>
@@ -176,6 +228,7 @@ export default function HomeOverlayUI({
               background: "#2563EB",
               color: "#fff",
             }}
+            onClick={openCamera}
           >
             <Camera size={18} />
           </button>
@@ -184,7 +237,50 @@ export default function HomeOverlayUI({
         {/* FORM POPUP: phải bọc trong .interactive để click được */}
         {isReportOpen && (
           <div className="interactive">
-            <ReportForm onClose={() => setIsReportOpen(false)} />
+            <ReportForm 
+              onClose={() => {
+                setIsReportOpen(false);
+                setCapturedImage(null);
+              }} 
+              initialImage={capturedImage}
+            />
+          </div>
+        )}
+
+        {/* CAMERA MODAL - Chỉ hiển thị màn hình camera */}
+        {showCameraOnly && (
+          <div className="interactive fixed inset-0 bg-black bg-opacity-90 z-[10000] flex flex-col items-center justify-center p-4">
+            <div className="w-full max-w-2xl">
+              <div className="bg-white rounded-t-lg p-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Chụp ảnh sự cố</h2>
+                <button
+                  onClick={closeCamera}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="relative bg-black">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-auto max-h-[60vh] object-cover"
+                />
+                <canvas ref={canvasRef} className="hidden" />
+              </div>
+
+              <div className="bg-white rounded-b-lg p-4">
+                <button
+                  onClick={capturePhoto}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors font-medium"
+                >
+                  <Camera className="w-5 h-5" />
+                  <span>Chụp ảnh</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
