@@ -1,14 +1,16 @@
 import React from "react";
 import "./App.css";
-import Dashboard from "./pages/Dashboard"
+// import Dashboard from "./pages/Dashboard"
 import MyReport from "./pages/MyReports"
+// import Register from "./pages/Register"
 // import Report from "./components/Report"
 function App() {
   return (
     <div>
-      <Dashboard />
       {/* <Report/> */}
       <MyReport />
+      {/* <Register/> */}
+      {/* <Dashboard/> */}
     </div>
   );
 }
