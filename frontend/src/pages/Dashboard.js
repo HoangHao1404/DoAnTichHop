@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -60,6 +60,47 @@ const Dashboard = () => {
   const defaultCenter = [10.8231, 106.6297]; // TP.HCM
   const [selectedCategory, setSelectedCategory] = useState("all");
 
+  const mapRef = useRef(null);
+  const [searchMarker, setSearchMarker] = useState(null);
+
+  // HÀM XỬ LÝ SEARCH TỪ THANH TÌM KIẾM
+  const handleSearchLocation = async (query) => {
+    console.log("Search query: ", query);
+    
+    if (!query || !mapRef.current) return;
+
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          query
+        )}&limit=1&addressdetails=1`
+      );
+      const data = await res.json();
+
+      if (!data || data.length === 0) {
+        alert("Không tìm thấy địa điểm phù hợp");
+        return;
+      }
+
+      const place = data[0];
+      const lat = parseFloat(place.lat);
+      const lon = parseFloat(place.lon);
+
+      // di chuyển map đến vị trí tìm được
+      mapRef.current.setView([lat, lon], 17);
+
+      // đặt marker tại vị trí search
+      setSearchMarker({
+        lat,
+        lon,
+        displayName: place.display_name,
+      });
+    } catch (error) {
+      console.error("Lỗi tìm kiếm địa điểm:", error);
+      alert("Có lỗi khi tìm kiếm địa điểm");
+    }
+  };
+
   return (
     <div className="w-full h-screen relative">
       <MapContainer
@@ -67,6 +108,9 @@ const Dashboard = () => {
         zoom={13}
         className="w-full h-full"
         zoomControl={true}
+        whenCreated={(mapInstance) => {
+          mapRef.current = mapInstance; // lưu ref map để điều khiển
+        }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -75,13 +119,6 @@ const Dashboard = () => {
         {/* Marker vị trí hiện tại */}
         <LocationMarker />
       </MapContainer>
-      {/* Overlay UI luôn nằm trên map */}
-      <div className="absolute inset-0 z-[9999] pointer-events-none">
-        <HomeOverlayUI
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-        />
-      </div>
     </div>
   );
 };
