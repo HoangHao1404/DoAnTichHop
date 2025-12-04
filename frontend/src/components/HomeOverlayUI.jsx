@@ -114,12 +114,12 @@ export default function HomeOverlayUI({
     <>
       <div className="app-map-overlay">
         {/* HEADER: Avatar - Search - Categories */}
-        <div className="interactive px-4 pt-6 ml-10">
-          <div className="flex items-center gap-4 w-full ml-[15px] h-12">
+        <div className="interactive px-2 sm:px-3 md:px-4 pt-2 sm:pt-3 md:pt-4 lg:pt-6 ml-0 sm:ml-2 md:ml-4 lg:ml-10">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-2 sm:gap-3 md:gap-4 w-full ml-0 sm:ml-[15px]">
             {/* Avatar */}
             <button
               onClick={() => console.log("Open profile")}
-              className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow cursor-pointer border-2 border-orange-500 overflow-hidden shrink-0"
+              className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow cursor-pointer border-2 border-orange-500 overflow-hidden shrink-0"
             >
               {userAvatar ? (
                 <img
@@ -129,30 +129,27 @@ export default function HomeOverlayUI({
                 />
               ) : (
                 <CircleUserRound
-                  size={24}
-                  className="text-orange-500 flex-shrink-0"
+                  size={20}
+                  className="text-orange-500 flex-shrink-0 sm:w-6 sm:h-6"
                 />
               )}
             </button>
 
             {/* Search box */}
-            <div
-              className="flex items-center bg-white rounded-full shadow px-4 h-10"
-              style={{ width: "450px" }}
-            >
-              <Search size={20} className="text-gray-500 mr-2" />
+            <div className="flex items-center bg-white rounded-full shadow px-2 sm:px-3 md:px-4 h-8 sm:h-9 md:h-10 w-full md:w-auto md:min-w-[280px] md:max-w-[450px]">
+              <Search size={16} className="text-gray-500 mr-1 sm:mr-2 sm:w-5 sm:h-5" />
               <input
-                className="flex-1 bg-transparent outline-none text-base"
+                className="flex-1 bg-transparent outline-none text-sm sm:text-base"
                 placeholder="Tìm kiếm địa điểm"
                 type="text"
               />
             </div>
 
             {/* Categories row */}
-            <div className="flex gap-2 ml-3">
+            <div className="flex gap-1.5 sm:gap-2 ml-0 md:ml-3 overflow-x-auto pb-1 sm:pb-2 md:pb-0 w-full md:w-auto scrollbar-hide">
               <button
                 onClick={() => setSelectedCategory("all")}
-                className={`flex items-center gap-2 px-4 h-10 rounded-full text-sm font-medium transition-all whitespace-nowrap
+                className={`flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2 sm:px-3 md:px-4 h-7 sm:h-8 md:h-9 lg:h-10 rounded-full text-[10px] sm:text-xs md:text-sm font-medium transition-all whitespace-nowrap
                   ${
                     selectedCategory === "all"
                       ? "bg-blue-600 text-white shadow-md"
@@ -166,7 +163,7 @@ export default function HomeOverlayUI({
                 <button
                   key={c.id}
                   onClick={() => setSelectedCategory(c.id)}
-                  className="flex items-center gap-2 px-4 h-10 rounded-full text-sm font-medium transition-all whitespace-nowrap shadow-md"
+                  className="flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2 sm:px-3 md:px-4 h-7 sm:h-8 md:h-9 lg:h-10 rounded-full text-[10px] sm:text-xs md:text-sm font-medium transition-all whitespace-nowrap shadow-md"
                   style={{
                     backgroundColor:
                       selectedCategory === c.id ? c.activeBgColor : c.bgColor,
@@ -206,31 +203,29 @@ export default function HomeOverlayUI({
         <div className="interactive">
           {/* Plus: mở / tắt popup */}
           <button
-            className="fab"
+            className="fab fixed md:absolute w-12 h-12 sm:w-14 sm:h-14 md:w-14 md:h-14"
             style={{
-              position: "absolute",
-              right: 18,
-              bottom: 96,
+              right: "8px",
+              bottom: "80px",
               background: "#2563EB",
               color: "#fff",
             }}
             onClick={() => setIsReportOpen((prev) => !prev)}
           >
-            <Plus size={20} />
+            <Plus size={18} className="sm:w-5 sm:h-5" />
           </button>
 
           <button
-            className="fab"
+            className="fab fixed md:absolute w-12 h-12 sm:w-14 sm:h-14 md:w-14 md:h-14"
             style={{
-              position: "absolute",
-              right: 18,
-              bottom: 18,
+              right: "8px",
+              bottom: "12px",
               background: "#2563EB",
               color: "#fff",
             }}
             onClick={openCamera}
           >
-            <Camera size={18} />
+            <Camera size={16} className="sm:w-[18px] sm:h-[18px]" />
           </button>
         </div>
 
