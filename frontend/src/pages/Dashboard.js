@@ -28,7 +28,7 @@ function LocationMarker() {
     const options = {
       enableHighAccuracy: false, // Tắt GPS chính xác cao, dùng WiFi/Cell tower
       maximumAge: 60000, // Chấp nhận vị trí cũ trong 60 giây
-      timeout: 20000, // Tăng timeout lên 20 giây
+      timeout: 10000, // Tăng timeout lên 20 giây
     };
 
     const handleSuccess = (pos) => {
