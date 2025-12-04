@@ -16,30 +16,46 @@ L.Icon.Default.mergeOptions({
 function LocationMarker() {
   const [position, setPosition] = useState(null);
   const map = useMap();
+  const hasLocationRef = useRef(false);
 
   useEffect(() => {
-    let watchId;
-
-    if (navigator.geolocation) {
-      watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          const newPos = {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          };
-          setPosition(newPos);
-          map.flyTo([newPos.lat, newPos.lng], 15); // Di chuyển map đến vị trí mới
-        },
-        (error) => {
-          console.error("Lỗi lấy vị trí:", error.message);
-        },
-        {
-          enableHighAccuracy: true, // Đảm bảo độ chính xác cao
-          maximumAge: 0, // Không sử dụng vị trí cũ
-          timeout: 10000, // Thời gian chờ tối đa
-        }
-      );
+    if (!navigator.geolocation) {
+      console.error("GPS error: Trình duyệt không hỗ trợ geolocation");
+      return;
     }
+
+    // Thử lấy vị trí với cấu hình dễ dãi hơn
+    const options = {
+      enableHighAccuracy: false, // Tắt GPS chính xác cao, dùng WiFi/Cell tower
+      maximumAge: 60000, // Chấp nhận vị trí cũ trong 60 giây
+      timeout: 20000, // Tăng timeout lên 20 giây
+    };
+
+    const handleSuccess = (pos) => {
+      const newPos = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+      };
+      setPosition(newPos);
+      
+      // Chỉ di chuyển map lần đầu tiên
+      if (!hasLocationRef.current) {
+        map.flyTo([newPos.lat, newPos.lng], 15);
+        hasLocationRef.current = true;
+      }
+    };
+
+    const handleError = (error) => {
+      console.error("GPS error:", error);
+      // Không làm gì thêm, map sẽ ở vị trí mặc định
+    };
+
+    // Bắt đầu theo dõi vị trí
+    const watchId = navigator.geolocation.watchPosition(
+      handleSuccess,
+      handleError,
+      options
+    );
 
     // Cleanup: Dừng theo dõi vị trí khi component unmount
     return () => {
@@ -118,7 +134,23 @@ const Dashboard = () => {
         />
         {/* Marker vị trí hiện tại */}
         <LocationMarker />
+
+        {/* Marker kết quả search */}
+        {searchMarker && (
+          <Marker position={[searchMarker.lat, searchMarker.lon]}>
+            <Popup>{searchMarker.displayName}</Popup>
+          </Marker>
+        )}
       </MapContainer>
+
+      {/* Overlay UI luôn nằm trên map */}
+      <div className="absolute inset-0 z-[9999] pointer-events-none">
+        <HomeOverlayUI
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          onSearch={handleSearchLocation}  
+        />
+      </div>
     </div>
   );
 };

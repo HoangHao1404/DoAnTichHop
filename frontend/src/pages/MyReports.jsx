@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, House, Megaphone } from "lucide-react";
 import ReportDetail from "../components/ReportDetail";
 import ReportReviews from "../components/ReportReviews";
 
@@ -72,6 +73,7 @@ const STATUS_COLOR = {
 };
 
 export default function MyReports() {
+  const navigate = useNavigate();
   const [reports, setReports] = useState([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -225,6 +227,26 @@ export default function MyReports() {
           }}
         />
       )}
+      
+      {/* Bottom Navigation */}
+      <div className="fixed left-0 right-0 bottom-5 flex justify-center pointer-events-none z-50">
+        <div className="bottom-nav pointer-events-auto">
+          <button
+            onClick={() => navigate("/")}
+            className="flex flex-col items-center bg-transparent border-0 text-inherit cursor-pointer transition-opacity hover:opacity-70"
+          >
+            <House size={20} />
+            <div className="text-xs">Home</div>
+          </button>
+          <button
+            onClick={() => navigate("/myreport")}
+            className="flex flex-col items-center bg-transparent border-0 text-inherit cursor-pointer transition-opacity hover:opacity-70"
+          >
+            <Megaphone size={20} />
+            <div className="text-xs">Báo Cáo của tôi</div>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

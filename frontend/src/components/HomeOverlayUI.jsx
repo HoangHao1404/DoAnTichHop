@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   CircleUserRound,
   Search,
@@ -54,6 +55,7 @@ export default function HomeOverlayUI({
   userAvatar,
   userName,
 }) {
+  const navigate = useNavigate();
   const [isReportOpen, setIsReportOpen] = useState(false);
 
   return (
@@ -132,14 +134,14 @@ export default function HomeOverlayUI({
         <div className="interactive absolute left-0 right-0 bottom-5 flex justify-center">
           <div className="bottom-nav">
             <button
-              onClick={() => console.log("Navigate to Home")}
+              onClick={() => navigate("/")}
               className="flex flex-col items-center bg-transparent border-0 text-inherit cursor-pointer transition-opacity hover:opacity-70"
             >
               <House size={20} />
               <div className="text-xs">Home</div>
             </button>
             <button
-              onClick={() => console.log("Navigate to My Reports")}
+              onClick={() => navigate("/myreport")}
               className="flex flex-col items-center bg-transparent border-0 text-inherit cursor-pointer transition-opacity hover:opacity-70"
             >
               <Megaphone size={20} />
