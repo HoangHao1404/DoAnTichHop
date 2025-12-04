@@ -1,4 +1,4 @@
-Sử dụng 3 design pattern này viết code cho tối ưu
+Sử dụng 3 design pattern này viết code cho tối ưu + generics
 
 1. Repository Pattern
    Mục tiêu
