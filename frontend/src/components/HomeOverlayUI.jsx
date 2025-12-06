@@ -229,7 +229,6 @@ export default function HomeOverlayUI({
           </button>
         </div>
 
-        {/* FORM POPUP: phải bọc trong .interactive để click được */}
         {isReportOpen && (
           <div className="interactive">
             <ReportForm 
