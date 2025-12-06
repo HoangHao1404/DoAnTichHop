@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Camera,
   Upload,
@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Image,
 } from "lucide-react";
+import Toast from "./Toast";
 
 const incidentOptions = [
   { value: "infrastructure", label: "Hạ tầng giao thông" },
@@ -17,19 +18,38 @@ const incidentOptions = [
   { value: "electricity", label: "Điện lực" },
   { value: "other", label: "Khác" },
 ];
-function ReportForm({ onClose }) {
+function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const [title, setTitle] = useState("");
   const [incidentType, setIncidentType] = useState("");
   const [description, setDescription] = useState("");
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [uploadedImages, setUploadedImages] = useState(
+    initialImage ? [initialImage] : []
+  );
   const [location, setLocation] = useState("");
   const [locationLoading, setLocationLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [stream, setStream] = useState(null);
   const [hasFetchedLocation, setHasFetchedLocation] = useState(false);
   const [openIncidentDropdown, setOpenIncidentDropdown] = useState(false);
+  const [toast, setToast] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+
+  // Auto open camera khi prop autoOpenCamera = true
+  useEffect(() => {
+    if (autoOpenCamera) {
+      openCamera();
+    }
+  }, [autoOpenCamera]);
+
+  // Auto fetch location khi có initialImage
+  useEffect(() => {
+    if (initialImage && !hasFetchedLocation) {
+      getLocation();
+      setHasFetchedLocation(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialImage]);
 
   // ========= IMAGE + GPS =========
   const handleImageUpload = (e) => {
@@ -180,10 +200,12 @@ function ReportForm({ onClose }) {
       alert("Vui lòng điền đầy đủ các trường bắt buộc");
       return;
     }
-    alert("Đã gửi báo cáo thành công!");
+    setToast({ message: "Đã gửi báo cáo thành công!", type: "success" });
     // TODO: gửi uploadedImages + data lên API
-    resetForm();
-    onClose && onClose();
+    setTimeout(() => {
+      resetForm();
+      onClose && onClose();
+    }, 1500);
   };
 
   const handleCancel = () => {
@@ -193,7 +215,15 @@ function ReportForm({ onClose }) {
 
   return (
     // OVERLAY popup
-    <div
+    <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      <div
       style={{
         position: "fixed",
         inset: 0,
@@ -485,6 +515,7 @@ function ReportForm({ onClose }) {
         </div>
       )}
     </div>
+    </>
   );
 }
 

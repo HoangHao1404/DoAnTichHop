@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Toast animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
 /* Make leaflet map appear under our overlay */
 .leaflet-container {
   z-index: 0 !important;
@@ -107,10 +123,38 @@
   box-shadow: 0 10px 30px rgba(0,0,0,0.18);
 }
 
-/* Fix mobile overflow when header long */
+/* Responsive adjustments */
 @media (max-width: 640px) {
-  .search-box { min-width: 180px; max-width: 62%; }
-  .category-row { gap: 8px; }
+  .search-box { min-width: 160px; max-width: 65%; }
+  .category-row { gap: 6px; }
+  .bottom-nav {
+    gap: 20px;
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  .fab {
+    width: 48px;
+    height: 48px;
+  }
 }
 
+@media (max-width: 375px) {
+  .bottom-nav {
+    gap: 16px;
+    padding: 6px 10px;
+  }
+  .fab {
+    width: 44px;
+    height: 44px;
+  }
+}
 
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

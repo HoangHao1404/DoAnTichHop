@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./src/config/database");
+const authRoutes = require("./src/services/auth/auth.routes")
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 5000;
@@ -25,3 +26,5 @@ connectDB();
 app.listen(PORT, () => {
   console.log(`🔥 Server đang chạy tại http://localhost:${PORT}`);
 });
+
+app.use("/api/auth", authRoutes);
