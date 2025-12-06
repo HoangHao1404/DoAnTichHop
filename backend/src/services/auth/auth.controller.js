@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const otpService = require("./otp.service");
 const userRepo = require("../user/user.repository");
-const User = require("../user/user.model");
 
 // 1) Gửi OTP đăng ký
 async function sendRegisterOtp(req, res) {
@@ -25,10 +24,10 @@ async function sendRegisterOtp(req, res) {
     return res.json({
       success: true,
       message: "Đã tạo OTP (demo). Kiểm tra console server.",
-      otp_demo: code, // chỉ để demo
+      otp_demo: code,
     });
   } catch (err) {
-    console.error(err);
+    console.error("sendRegisterOtp error:", err);
     return res.status(500).json({ message: "Lỗi server" });
   }
 }
@@ -59,7 +58,7 @@ async function confirmRegister(req, res) {
     const hashed = await bcrypt.hash(password, 10);
     const user_id = await userRepo.getNextUserId();
 
-    const user = await User.create({
+    const user = await userRepo.create({
       user_id,
       full_name,
       phone,
@@ -78,7 +77,7 @@ async function confirmRegister(req, res) {
       },
     });
   } catch (err) {
-    console.error(err);
+    console.error("confirmRegister error:", err);
     return res.status(500).json({ message: "Lỗi server" });
   }
 }
@@ -130,7 +129,7 @@ async function login(req, res) {
       },
     });
   } catch (err) {
-    console.error(err);
+    console.error("login error:", err);
     return res.status(500).json({ message: "Lỗi server" });
   }
 }

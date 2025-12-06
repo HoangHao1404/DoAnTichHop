@@ -12,7 +12,7 @@ const SignIn = () => {
   const [showPass, setShowPass] = useState(false);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState("");      // ⭐ THÊM DÒNG NÀY
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
@@ -21,12 +21,13 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+
     try {
       setLoading(true);
       const res = await authApi.login(phone, password);
       if (res.data.success) {
         login(res.data.token, res.data.user);
-        navigate("/"); // về Dashboard
+        navigate("/"); // hoặc /dashboard
       } else {
         setMessage(res.data.message || "Đăng nhập thất bại");
       }
