@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
 import banner from "../image/banner-public.jpeg";
@@ -6,7 +7,49 @@ import comle from "../image/comle.png";
 import cone from "../image/trafficCone.png";
 
 const SignIn = () => {
+  const navigate = useNavigate();
   const [showPass, setShowPass] = useState(false);
+  const [formData, setFormData] = useState({
+    phone: "",
+    password: ""
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!formData.phone || !formData.password) {
+      alert("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
+    
+    // Lấy danh sách user đã đăng ký
+    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    
+    // Tìm user với phone và password khớp
+    const user = registeredUsers.find(
+      u => u.phone === formData.phone && u.password === formData.password
+    );
+    
+    if (!user) {
+      alert("Số điện thoại hoặc mật khẩu không đúng!");
+      return;
+    }
+    
+    // Lưu thông tin đăng nhập
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    
+    // Navigate to dashboard after successful login
+    alert(`Đăng nhập thành công! Chào mừng ${user.name}`);
+    navigate("/dashboard");
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   return (
     <div className="w-full h-screen flex flex-col md:flex-row select-none overflow-hidden">
@@ -50,7 +93,7 @@ const SignIn = () => {
         />
 
         {/* FORM */}
-        <div className="w-[90%] max-w-[450px] mx-auto mt-10 md:mt-0">
+        <form onSubmit={handleSubmit} className="w-[90%] max-w-[450px] mx-auto mt-10 md:mt-0">
           <h2 className="text-3xl md:text-4xl font-semibold leading-tight mb-2">
             Welcome, Log in to
           </h2>
@@ -62,7 +105,10 @@ const SignIn = () => {
           <div className="mb-5">
             <label className="text-sm font-medium">Phone</label>
             <input
-              type="text"
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
               placeholder="Enter your phone"
               className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-xl 
                          text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -75,6 +121,9 @@ const SignIn = () => {
 
             <input
               type={showPass ? "text" : "password"}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               placeholder="Enter your password"
               className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-xl 
                          text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none pr-12"
@@ -90,18 +139,21 @@ const SignIn = () => {
           </div>
 
           {/* BUTTON */}
-          <button className="w-full bg-blue-600 text-white py-3 rounded-lg text-base font-medium hover:bg-blue-700 transition">
+          <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg text-base font-medium hover:bg-blue-700 transition">
             Log In
           </button>
 
           {/* REGISTER */}
           <p className="text-center text-sm mt-5">
-            Don’t Have An Account Yet?{" "}
-            <span className="text-blue-600 font-semibold cursor-pointer">
+            Don't Have An Account Yet?{" "}
+            <span 
+              onClick={() => navigate("/register")} 
+              className="text-blue-600 font-semibold cursor-pointer hover:text-blue-700"
+            >
               Register For Free
             </span>
           </p>
-        </div>
+        </form>
       </div>
     </div>
   );
