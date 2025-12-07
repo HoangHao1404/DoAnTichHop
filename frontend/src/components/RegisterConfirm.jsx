@@ -76,7 +76,7 @@ const RegisterConfirm = () => {
     if (!canResend) return;
     try {
       setMessage("");
-      const res = await authApi.sendRegisterOtp(phone);
+      // const res = await authApi.sendRegisterOtp(phone);
       // res.data.otp_demo dùng để demo
       // alert(`OTP mới (demo): ${res.data.otp_demo}`);
       setTimeLeft(60);
@@ -116,7 +116,6 @@ const RegisterConfirm = () => {
     }
   };
 
-  // Nếu vào thẳng /register/confirm mà không có state
   if (!phone) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
