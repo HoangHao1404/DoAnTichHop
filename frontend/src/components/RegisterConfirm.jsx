@@ -29,6 +29,15 @@ const RegisterConfirm = () => {
     }
   }, [timeLeft]);
 
+  // Nếu vào thẳng /register/confirm mà không có state
+  if (!phone) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <p>Thiếu thông tin đăng ký. Vui lòng quay lại trang đăng ký.</p>
+      </div>
+    );
+  }
+
   // Handle OTP input
   const handleChange = (index, value) => {
     if (value && !/^\d$/.test(value)) return;
