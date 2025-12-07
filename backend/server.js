@@ -22,9 +22,10 @@ app.use(
 // Kết nối MongoDB
 connectDB();
 
+// Routes - phải khai báo TRƯỚC khi listen
+app.use("/api/auth", authRoutes);
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🔥 Server đang chạy tại http://localhost:${PORT}`);
 });
-
-app.use("/api/auth", authRoutes);
