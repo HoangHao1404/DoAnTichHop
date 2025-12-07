@@ -7,11 +7,17 @@ import MyReports from "./pages/MyReports";
 import SignIn from "./pages/SignIn";
 import Register from "./pages/Register";
 import RegisterConfirm from "./components/RegisterConfirm";
+import Navbar from "./components/NavBar";
 
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
   return (
+    // <AuthProvider>
+    //   <Router>
+    //     <Navbar/>
+    //   </Router>
+    // </AuthProvider>
     <AuthProvider>
       <Router>
         <Routes>
