@@ -7,6 +7,7 @@ import MyReports from "./pages/MyReports";
 import SignIn from "./pages/SignIn";
 import Register from "./pages/Register";
 import RegisterConfirm from "./components/RegisterConfirm";
+import UserManagement from "./pages/UserManagement";
 import Navbar from "./components/NavBar";
 
 import { AuthProvider } from "./context/AuthContext";
@@ -16,10 +17,13 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        {/* <Navbar/> */}
-        <Sidebar/>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<UserManagement />} />
+        </Routes>
       </Router>
     </AuthProvider>
+
     // <AuthProvider>
     //   <Router>
     //     <Routes>
