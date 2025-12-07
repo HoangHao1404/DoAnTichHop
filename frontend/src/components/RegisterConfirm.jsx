@@ -3,28 +3,21 @@ import { useNavigate, useLocation } from "react-router-dom";
 import banner from "../image/banner-public.jpeg";
 import cone from "../image/trafficCone.png";
 import authApi from "../services/api/authApi";
+import Toast from "./Toast";
 
 const RegisterConfirm = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   // Lấy dữ liệu truyền từ Register
-  const { phone, password, full_name, otp_demo } = location.state || {};
+  const { phone, password, full_name, /*otp_demo*/ } = location.state || {};
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [message, setMessage] = useState("");
+  const [toast, setToast] = useState(null);
   const inputRefs = useRef([]);
-
-  // Nếu vào thẳng /register/confirm mà không có state
-  if (!phone) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <p>Thiếu thông tin đăng ký. Vui lòng quay lại trang đăng ký.</p>
-      </div>
-    );
-  }
 
   // Countdown timer
   useEffect(() => {
@@ -76,7 +69,7 @@ const RegisterConfirm = () => {
       setMessage("");
       const res = await authApi.sendRegisterOtp(phone);
       // res.data.otp_demo dùng để demo
-      alert(`OTP mới (demo): ${res.data.otp_demo}`);
+      // alert(`OTP mới (demo): ${res.data.otp_demo}`);
       setTimeLeft(60);
       setCanResend(false);
       setOtp(["", "", "", "", "", ""]);
@@ -105,8 +98,8 @@ const RegisterConfirm = () => {
         full_name,
       });
 
-      alert("Đăng ký thành công! Vui lòng đăng nhập.");
-      navigate("/signin");
+      setToast({ message: "Đăng ký thành công!", type: "success" });
+      setTimeout(() => navigate("/signin"), 1500);
     } catch (err) {
       setMessage(err.response?.data?.message || "OTP không đúng, thử lại.");
       setOtp(["", "", "", "", "", ""]);
@@ -114,8 +107,25 @@ const RegisterConfirm = () => {
     }
   };
 
+  // Nếu vào thẳng /register/confirm mà không có state
+  if (!phone) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <p>Thiếu thông tin đăng ký. Vui lòng quay lại trang đăng ký.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-screen flex flex-col md:flex-row select-none overflow-hidden bg-white">
+    <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      <div className="w-full h-screen flex flex-col md:flex-row select-none overflow-hidden bg-white">
       {/* LEFT SIDE */}
       <div className="hidden md:flex w-1/2 min-h-screen relative justify-center items-center overflow-hidden">
         <img
@@ -146,14 +156,14 @@ const RegisterConfirm = () => {
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold leading-tight mb-2">
               Verify your phone
             </h2>
-            <p className="text-sm text-gray-600">
+            {/* <p className="text-sm text-gray-600">
               Mã OTP đã được gửi tới số <b>{phone}</b>
             </p>
             {otp_demo && (
               <p className="text-xs text-gray-500 mt-1">
                 (OTP demo từ backend: <span className="font-mono">{otp_demo}</span>)
               </p>
-            )}
+            )} */}
           </div>
 
           {message && (
@@ -207,12 +217,13 @@ const RegisterConfirm = () => {
               type="submit"
               className="w-full bg-blue-600 text-white py-3 sm:py-3.5 md:py-4 rounded-lg text-base sm:text-lg font-medium hover:bg-blue-700 transition-colors shadow-md"
             >
-              Confirm & Sign Up
+              Verify
             </button>
           </form>
         </div>
       </div>
     </div>
+    </>
   );
 };
 

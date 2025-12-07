@@ -7,13 +7,15 @@ import comle from "../image/comle.png";
 import cone from "../image/trafficCone.png";
 import authApi from "../services/api/authApi";
 import { useAuth } from "../context/AuthContext";
+import Toast from "../components/Toast";
 
 const SignIn = () => {
   const [showPass, setShowPass] = useState(false);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");      // ⭐ THÊM DÒNG NÀY
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -27,7 +29,8 @@ const SignIn = () => {
       const res = await authApi.login(phone, password);
       if (res.data.success) {
         login(res.data.token, res.data.user);
-        navigate("/"); // hoặc /dashboard
+        setToast({ message: `Chào mừng ${res.data.user.full_name || 'bạn'}!`, type: "success" });
+        setTimeout(() => navigate("/"), 1500);
       } else {
         setMessage(res.data.message || "Đăng nhập thất bại");
       }
@@ -39,7 +42,15 @@ const SignIn = () => {
   };
 
   return (
-    <div className="w-full h-screen flex flex-col md:flex-row select-none overflow-hidden">
+    <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      <div className="w-full h-screen flex flex-col md:flex-row select-none overflow-hidden">
       {/* LEFT SIDE (desktop only) */}
       <div className="hidden md:flex w-1/2 min-h-screen relative justify-center items-center overflow-hidden">
         <img
@@ -148,6 +159,7 @@ const SignIn = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
