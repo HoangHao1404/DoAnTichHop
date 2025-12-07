@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import HomeOverlayUI from "../components/HomeOverlayUI";
+import { useAuth } from "../context/AuthContext";
 
 // Fix icon issue với Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -79,6 +80,14 @@ const Dashboard = () => {
   const mapRef = useRef(null);
   const [searchMarker, setSearchMarker] = useState(null);
 
+  // Lấy thông tin user từ AuthContext
+  const { user } = useAuth();
+  
+  // Nếu không có trong context, thử lấy từ localStorage (fallback)
+  const currentUser = user || JSON.parse(localStorage.getItem('user') || '{}');
+  const userName = currentUser.full_name || currentUser.name || 'Người dùng';
+  const userAvatar = currentUser.avatar || null;
+
   // HÀM XỬ LÝ SEARCH TỪ THANH TÌM KIẾM
   const handleSearchLocation = async (query) => {
     console.log("Search query: ", query);
@@ -148,7 +157,9 @@ const Dashboard = () => {
         <HomeOverlayUI
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
-          onSearch={handleSearchLocation}  
+          onSearch={handleSearchLocation}
+          userName={userName}
+          userAvatar={userAvatar}
         />
       </div>
     </div>

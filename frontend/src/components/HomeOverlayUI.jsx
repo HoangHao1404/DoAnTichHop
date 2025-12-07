@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   CircleUserRound,
   Search,
@@ -11,9 +11,13 @@ import {
   Plus,
   Camera,
   X,
+  LogOut,
+  User,
+  Phone,
 } from "lucide-react";
 import ReportForm from "./Report";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const categories = [
   {
@@ -61,8 +65,27 @@ export default function HomeOverlayUI({
   const [showCameraOnly, setShowCameraOnly] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [stream, setStream] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const menuRef = useRef(null);
+
+  // Đóng dropdown khi click bên ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
 
   // Mở camera
   const openCamera = async () => {
@@ -110,30 +133,105 @@ export default function HomeOverlayUI({
     setIsReportOpen(true);
   };
 
+  // Lấy thông tin user từ props hoặc localStorage (sẽ được backend xử lý sau)
+  const { logout } = useAuth();
+  
+  // Tạm thời hiển thị placeholder, chờ backend trả về dữ liệu thật
+  const userInfo = {
+    full_name: 'Người dùng',  // Sẽ được thay bằng dữ liệu từ backend
+    phone: 'Chưa cập nhật',    // Sẽ được thay bằng dữ liệu từ backend
+    avatar: null               // Sẽ được thay bằng dữ liệu từ backend
+  };
+  
+  const handleLogout = () => {
+    logout();
+    alert('Đăng xuất thành công!');
+    navigate('/signin');
+  };
+
   return (
     <>
       <div className="app-map-overlay">
         {/* HEADER: Avatar - Search - Categories */}
         <div className="interactive px-2 sm:px-3 md:px-4 pt-2 sm:pt-3 md:pt-4 lg:pt-6 ml-0 sm:ml-2 md:ml-4 lg:ml-10">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-2 sm:gap-3 md:gap-4 w-full ml-0 sm:ml-[15px]">
-            {/* Avatar */}
-            <button
-              onClick={() => console.log("Open profile")}
-              className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow cursor-pointer border-2 border-orange-500 overflow-hidden shrink-0"
-            >
-              {userAvatar ? (
-                <img
-                  src={userAvatar}
-                  alt={userName || "User"}
-                  className="w-full h-full object-cover object-center"
-                />
-              ) : (
-                <CircleUserRound
-                  size={20}
-                  className="text-orange-500 flex-shrink-0 sm:w-6 sm:h-6"
-                />
+            {/* Avatar with Dropdown */}
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow cursor-pointer border-2 border-orange-500 overflow-hidden shrink-0"
+              >
+                {userAvatar ? (
+                  <img
+                    src={userAvatar}
+                    alt={userName || "User"}
+                    className="w-full h-full object-cover object-center"
+                  />
+                ) : (
+                  <CircleUserRound
+                    size={20}
+                    className="text-orange-500 flex-shrink-0 sm:w-6 sm:h-6"
+                  />
+                )}
+              </button>
+
+              {/* Dropdown Menu */}
+              {showUserMenu && (
+                <div className="absolute top-full left-0 mt-2 w-56 sm:w-64 md:w-72 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50">
+                  {/* User Info Header */}
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-3 sm:p-4 text-white">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 flex items-center justify-center border-2 border-white overflow-hidden shrink-0">
+                        {userInfo?.avatar ? (
+                          <img
+                            src={userInfo.avatar}
+                            alt={userInfo.full_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User size={20} className="text-white sm:w-6 sm:h-6" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-sm sm:text-base truncate">
+                          {userInfo?.full_name || 'Người dùng'}
+                        </div>
+                        <div className="text-[10px] sm:text-xs text-white/80 flex items-center gap-1 mt-0.5 sm:mt-1">
+                          <Phone size={10} className="sm:w-3 sm:h-3 shrink-0" />
+                          <span className="truncate">{userInfo?.phone || 'Chưa cập nhật'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="p-1.5 sm:p-2">
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        // TODO: Navigate to profile page
+                        console.log('View profile');
+                      }}
+                      className="w-full flex items-center gap-2 sm:gap-3 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg hover:bg-gray-100 transition-colors text-left text-xs sm:text-sm"
+                    >
+                      <User size={16} className="text-gray-600 sm:w-[18px] sm:h-[18px] shrink-0" />
+                      <span className="text-gray-700">Thông tin cá nhân</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        handleLogout();
+                      }}
+                      className="w-full flex items-center gap-2 sm:gap-3 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg hover:bg-red-50 transition-colors text-left text-xs sm:text-sm"
+                    >
+                      <LogOut size={16} className="text-red-600 sm:w-[18px] sm:h-[18px] shrink-0" />
+                      <span className="text-red-600 font-medium">Đăng xuất</span>
+                    </button>
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             {/* Search box */}
             <div className="flex items-center bg-white rounded-full shadow px-2 sm:px-3 md:px-4 h-8 sm:h-9 md:h-10 w-full md:w-auto md:min-w-[280px] md:max-w-[450px]">

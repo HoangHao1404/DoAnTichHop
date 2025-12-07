@@ -17,15 +17,6 @@ const RegisterConfirm = () => {
   const [message, setMessage] = useState("");
   const inputRefs = useRef([]);
 
-  // Nếu vào thẳng /register/confirm mà không có state
-  if (!phone) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <p>Thiếu thông tin đăng ký. Vui lòng quay lại trang đăng ký.</p>
-      </div>
-    );
-  }
-
   // Countdown timer
   useEffect(() => {
     if (timeLeft > 0) {
@@ -35,6 +26,15 @@ const RegisterConfirm = () => {
       setCanResend(true);
     }
   }, [timeLeft]);
+
+  // Nếu vào thẳng /register/confirm mà không có state
+  if (!phone) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <p>Thiếu thông tin đăng ký. Vui lòng quay lại trang đăng ký.</p>
+      </div>
+    );
+  }
 
   // Handle OTP input
   const handleChange = (index, value) => {
