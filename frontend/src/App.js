@@ -10,28 +10,30 @@ import RegisterConfirm from "./components/RegisterConfirm";
 import Navbar from "./components/NavBar";
 
 import { AuthProvider } from "./context/AuthContext";
+import { Sidebar } from "./components/Sidebar";
 
 function App() {
   return (
-    // <AuthProvider>
-    //   <Router>
-    //     <Navbar/>
-    //   </Router>
-    // </AuthProvider>
     <AuthProvider>
       <Router>
-        <Routes>
-          {/* Auth */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/register/confirm" element={<RegisterConfirm />} />
-
-          {/* App chính */}
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/myreport" element={<MyReports />} />
-        </Routes>
+        {/* <Navbar/> */}
+        <Sidebar/>
       </Router>
     </AuthProvider>
+    // <AuthProvider>
+    //   <Router>
+    //     <Routes>
+    //       {/* Auth */}
+    //       <Route path="/signin" element={<SignIn />} />
+    //       <Route path="/register" element={<Register />} />
+    //       <Route path="/register/confirm" element={<RegisterConfirm />} />
+
+    //       {/* App chính */}
+    //       <Route path="/" element={<Dashboard />} />
+    //       <Route path="/myreport" element={<MyReports />} />
+    //     </Routes>
+    //   </Router>
+    // </AuthProvider>
   );
 }
 
