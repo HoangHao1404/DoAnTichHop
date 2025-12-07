@@ -30,7 +30,16 @@ const SignIn = () => {
       if (res.data.success) {
         login(res.data.token, res.data.user);
         setToast({ message: `Chào mừng ${res.data.user.full_name || 'bạn'}!`, type: "success" });
-        setTimeout(() => navigate("/"), 1500);
+        
+        // Kiểm tra role để điều hướng
+        const userRole = res.data.user.role;
+        if (userRole === 'admin') {
+          // Admin -> trang Overview
+          setTimeout(() => navigate("/admin/overview"), 1500);
+        } else {
+          // User thường (citizen/manager) -> trang Dashboard
+          setTimeout(() => navigate("/"), 1500);
+        }
       } else {
         setMessage(res.data.message || "Đăng nhập thất bại");
       }
