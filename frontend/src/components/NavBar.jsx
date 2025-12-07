@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Bell, MapPin, LogOut, Settings, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-const Avatar = ({ src, alt }) => (
-  <img
-    src={src}
-    alt={alt}
-    className="h-8 w-8 rounded-full object-cover ring-1 ring-black/5"
-    onError={(e) => (e.currentTarget.style.display = "none")}
-  />
-);
+// const Avatar = ({ src, alt }) => (
+//   <img
+//     src={src}
+//     alt={alt}
+//     className="h-8 w-8 rounded-full object-cover ring-1 ring-black/5"
+//     onError={(e) => (e.currentTarget.style.display = "none")}
+//   />
+// );
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -39,10 +39,13 @@ export default function Navbar() {
   }, []);
 
   // ===============================
-  // LOCATION & DATE 
+  // LOCATION & DATE
   // ===============================
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [location, setLocation] = useState({ city: "Đang tải...", country: "" });
+  const [location, setLocation] = useState({
+    city: "Đang tải...",
+    country: "",
+  });
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentDate(new Date()), 60 * 1000); // cập nhật mỗi phút
@@ -61,10 +64,15 @@ export default function Navbar() {
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=8&addressdetails=1&accept-language=vi`
             );
             const data = await response.json();
-            console.log("Full location data:", data); 
-            const addressParts = data.display_name.split(', ');
-            const city = addressParts.length >= 2 ? addressParts[1] : data.address.city || data.address.state || "Vị trí không xác định";
-            
+            console.log("Full location data:", data);
+            const addressParts = data.display_name.split(", ");
+            const city =
+              addressParts.length >= 2
+                ? addressParts[1]
+                : data.address.city ||
+                  data.address.state ||
+                  "Vị trí không xác định";
+
             const country = data.address.country || "";
             setLocation({ city, country });
           } catch (error) {
@@ -88,7 +96,7 @@ export default function Navbar() {
     });
 
   // ===============================
-  // 🔔 NOTIFICATION 
+  // 🔔 NOTIFICATION
   // ===============================
   const [noti, setNoti] = useState([
     {
@@ -169,9 +177,7 @@ export default function Navbar() {
                          bg-white/90 backdrop-blur shadow-lg p-2"
             >
               <div className="flex items-center justify-between px-2 py-1">
-                <p className="text-sm font-semibold text-zinc-800">
-                  Thông báo
-                </p>
+                <p className="text-sm font-semibold text-zinc-800">Thông báo</p>
                 <button
                   onClick={markAllRead}
                   className="text-xs rounded-full px-2 py-1 hover:bg-zinc-100 text-zinc-600"
