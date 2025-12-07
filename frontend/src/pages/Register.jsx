@@ -57,10 +57,10 @@ const Register = () => {
 
       {/* RIGHT */}
       <div className="w-1/2 h-full bg-white relative flex overflow-hidden">
-        <img src={comle} className="absolute top-4 -right-20 w-56 opacity-90" />
-        <img src={cone} className="absolute bottom-0 left-6 w-56 opacity-90" />
+        <img src={comle} className="absolute top-4 -right-20 w-56 opacity-90 pointer-events-none z-0" />
+        <img src={cone} className="absolute bottom-0 -left-10 w-56 opacity-90 pointer-events-none z-0" />
 
-        <div className="w-full flex flex-col items-center pt-24">
+        <div className="w-full flex flex-col items-center pt-24 relative z-10">
           <div className="w-[85%] max-w-[550px]">
 
             <h2 className="text-4xl font-semibold mb-2">Welcome, Sign up</h2>
