@@ -16,6 +16,7 @@ import {
   Phone,
 } from "lucide-react";
 import ReportForm from "./Report";
+import Toast from "./Toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -66,6 +67,7 @@ export default function HomeOverlayUI({
   const [capturedImage, setCapturedImage] = useState(null);
   const [stream, setStream] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [toast, setToast] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const menuRef = useRef(null);
@@ -145,12 +147,19 @@ export default function HomeOverlayUI({
   
   const handleLogout = () => {
     logout();
-    alert('Đăng xuất thành công!');
-    navigate('/signin');
+    setToast({ message: 'Đăng xuất thành công!', type: 'success' });
+    setTimeout(() => navigate('/signin'), 1500);
   };
 
   return (
     <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="app-map-overlay">
         {/* HEADER: Avatar - Search - Categories */}
         <div className="interactive px-2 sm:px-3 md:px-4 pt-2 sm:pt-3 md:pt-4 lg:pt-6 ml-0 sm:ml-2 md:ml-4 lg:ml-10">
