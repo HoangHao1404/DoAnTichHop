@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Image,
 } from "lucide-react";
+import Toast from "./Toast";
 
 const incidentOptions = [
   { value: "infrastructure", label: "Hạ tầng giao thông" },
@@ -30,6 +31,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const [stream, setStream] = useState(null);
   const [hasFetchedLocation, setHasFetchedLocation] = useState(false);
   const [openIncidentDropdown, setOpenIncidentDropdown] = useState(false);
+  const [toast, setToast] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -198,10 +200,12 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
       alert("Vui lòng điền đầy đủ các trường bắt buộc");
       return;
     }
-    alert("Đã gửi báo cáo thành công!");
+    setToast({ message: "Đã gửi báo cáo thành công!", type: "success" });
     // TODO: gửi uploadedImages + data lên API
-    resetForm();
-    onClose && onClose();
+    setTimeout(() => {
+      resetForm();
+      onClose && onClose();
+    }, 1500);
   };
 
   const handleCancel = () => {
@@ -211,7 +215,15 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
   return (
     // OVERLAY popup
-    <div
+    <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      <div
       style={{
         position: "fixed",
         inset: 0,
@@ -503,6 +515,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
         </div>
       )}
     </div>
+    </>
   );
 }
 
