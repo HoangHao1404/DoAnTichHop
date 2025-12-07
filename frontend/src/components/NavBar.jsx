@@ -131,7 +131,7 @@ export default function Navbar() {
   // ===============================
   return (
     <header
-      className="fixed top-7 left-[250px] right-4 z-40"
+      className="relative z-40"
       style={{ transition: "background-color 300ms ease, color 300ms ease" }}
     >
       <div
@@ -246,7 +246,7 @@ export default function Navbar() {
             <span className="text-sm text-zinc-800">
               Xin chào,{" "}
               <span className="font-semibold">
-                {user?.name || "Người dùng"}
+                {user?.full_name || "Người dùng"}
               </span>{" "}
               👋
             </span>

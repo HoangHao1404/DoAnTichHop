@@ -290,7 +290,7 @@ export default function HomeOverlayUI({
         <div className="interactive absolute left-0 right-0 bottom-5 flex justify-center">
           <div className="bottom-nav">
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/dashboard")}
               className="flex flex-col items-center bg-transparent border-0 text-inherit cursor-pointer transition-opacity hover:opacity-70"
             >
               <House size={20} />

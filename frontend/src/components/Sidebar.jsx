@@ -1,6 +1,7 @@
 import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { LayoutGrid, Inbox, FileText, Users, Tag, BarChart3, LogOut } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 const menuItems = [
   {
@@ -12,7 +13,7 @@ const menuItems = [
   {
     key: "DonTiepNhan",
     label: "Đơn Tiếp Nhận",
-    path: "/admin/",
+    path: "/admin/reception",
     icon: Inbox,
   },
   {
@@ -43,9 +44,16 @@ const menuItems = [
 
 const SidebarAdmin = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/signin");
+  };
 
   return (
-    <div className="fixed left-[-10px] top-0 h-screen w-[250px] flex items-start justify-start p-7 z-30">
+    <div className="fixed left-0 top-0 h-screen w-[280px] flex items-start justify-start p-7 z-30">
       <div className="relative">
         <aside
           className="w-[260px] h-auto min-h-[700px] rounded-[25px] shadow relative flex flex-col transition-colors duration-300 bg-white text-black py-8 px-4"
@@ -86,7 +94,10 @@ const SidebarAdmin = () => {
 
           {/* Đăng Xuất */}
           <div className="mt-auto pt-8">
-            <button className="flex items-center gap-3 px-6 py-3 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-[14px] transition-all duration-200 w-full">
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-6 py-3 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-[14px] transition-all duration-200 w-full"
+            >
               <LogOut className="w-5 h-5" />
               <span className="font-['Inter'] text-[16px] leading-[20px]">
                 Đăng Xuất
@@ -100,4 +111,4 @@ const SidebarAdmin = () => {
 };
 
 export default SidebarAdmin;
-export { SidebarAdmin as Sidebar };
+

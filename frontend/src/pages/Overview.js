@@ -41,46 +41,12 @@ const Overview = () => {
   ];
 
   return (
-    <>
-      {/* Sidebar - Empty */}
-      <aside className="w-full lg:w-64 xl:w-72 bg-gray-200 lg:fixed lg:left-0 lg:top-0 lg:h-screen border-0">
-      </aside>
-
-      {/* Main Content */}
-      <div className="lg:ml-64 xl:ml-72 min-h-screen bg-transparent">
-        {/* Header Box */}
-        <div className="bg-white rounded-full px-6 sm:px-8 py-3 sm:py-4 m-4 sm:m-6 lg:m-8 shadow-sm">
-          <div className="flex items-center justify-end gap-3 sm:gap-4">
-            {/* TP. Đà Nẵng and Date */}
-            <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full">
-              <MapPin size={18} className="text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">
-                Thành phố Đà Nẵng
-              </span>
-              <span className="text-gray-400 mx-1">|</span>
-              <span className="text-sm text-gray-500">07 thg 12, 25</span>
-            </div>
-
-            {/* Notification */}
-            <button className="relative bg-white p-2.5 rounded-full hover:bg-gray-50 transition-colors">
-              <Bell size={20} className="text-gray-600" />
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-            </button>
-
-            {/* User Info */}
-            <div className="flex items-center bg-yellow-50 px-4 py-2 rounded-full">
-              <span className="text-sm text-gray-700 font-medium">
-                Xin chào, <span className="font-semibold">Người dùng</span> 👋
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Khu Vực Quản Lý */}
-        <section className="bg-white rounded-3xl shadow-md p-6 sm:p-8 lg:p-10 m-4 sm:m-6 lg:m-8 mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8 text-gray-800">
-              Khu Vực Quản Lý
-            </h2>
+    <div className="min-h-screen bg-gray-50">
+      {/* Khu Vực Quản Lý */}
+      <section className="bg-white rounded-3xl shadow-md p-6 sm:p-8 lg:p-10 mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8 text-gray-800">
+          Khu Vực Quản Lý
+        </h2>
 
             <div className="overflow-x-auto">
               <table className="w-full min-w-[600px] border-collapse">
@@ -126,7 +92,7 @@ const Overview = () => {
           </section>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 m-4 sm:m-6 lg:m-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
             {/* Biểu đồ tròn - Loại Trạng Thái */}
             <section className="bg-white rounded-3xl shadow-md p-4 sm:p-6 lg:p-8">
               <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold mb-4 sm:mb-6 lg:mb-8 text-gray-800">
@@ -215,8 +181,7 @@ const Overview = () => {
               </div>
             </section>
           </div>
-      </div>
-    </>
+        </div>
   );
 };
 

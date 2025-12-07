@@ -38,7 +38,7 @@ const SignIn = () => {
           setTimeout(() => navigate("/admin/overview"), 1500);
         } else {
           // User thường (citizen/manager) -> trang Dashboard
-          setTimeout(() => navigate("/"), 1500);
+          setTimeout(() => navigate("/dashboard"), 1500);
         }
       } else {
         setMessage(res.data.message || "Đăng nhập thất bại");
