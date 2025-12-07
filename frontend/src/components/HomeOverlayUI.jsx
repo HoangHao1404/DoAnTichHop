@@ -133,14 +133,14 @@ export default function HomeOverlayUI({
     setIsReportOpen(true);
   };
 
-  // Lấy thông tin user từ props hoặc localStorage (sẽ được backend xử lý sau)
-  const { logout } = useAuth();
+  // Lấy thông tin user từ AuthContext
+  const { user, logout } = useAuth();
   
-  // Tạm thời hiển thị placeholder, chờ backend trả về dữ liệu thật
+  // Sử dụng thông tin từ database hoặc placeholder
   const userInfo = {
-    full_name: 'Người dùng',  // Sẽ được thay bằng dữ liệu từ backend
-    phone: 'Chưa cập nhật',    // Sẽ được thay bằng dữ liệu từ backend
-    avatar: null               // Sẽ được thay bằng dữ liệu từ backend
+    full_name: user?.full_name || 'Người dùng',
+    phone: user?.phone || 'Chưa cập nhật',
+    avatar: user?.avatar || null
   };
   
   const handleLogout = () => {
