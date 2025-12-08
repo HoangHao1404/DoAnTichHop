@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { LayoutGrid, Inbox, FileText, Users, Tag, BarChart3, LogOut } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import Toast from "./Toast";
 
 const menuItems = [
   {
@@ -46,14 +47,59 @@ const SidebarAdmin = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const handleLogout = () => {
-    logout();
-    navigate("/signin");
+    setToast({ message: 'Đăng xuất thành công!', type: 'success' });
+    setTimeout(() => {
+      logout();
+      navigate("/signin");
+    }, 1500);
   };
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-[280px] flex items-start justify-start p-7 z-30">
+    <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Popup xác nhận đăng xuất */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">
+              Thông báo
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Bạn có chắc chắn muốn đăng xuất?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  handleLogout();
+                }}
+                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="fixed left-0 top-0 h-screen w-[280px] flex items-start justify-start p-7 z-30">
       <div className="relative">
         <aside
           className="w-[260px] h-auto min-h-[700px] rounded-[25px] shadow relative flex flex-col transition-colors duration-300 bg-white text-black py-8 px-4"
@@ -95,7 +141,7 @@ const SidebarAdmin = () => {
           {/* Đăng Xuất */}
           <div className="mt-auto pt-8">
             <button 
-              onClick={handleLogout}
+              onClick={() => setShowLogoutConfirm(true)}
               className="flex items-center gap-3 px-6 py-3 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-[14px] transition-all duration-200 w-full"
             >
               <LogOut className="w-5 h-5" />
@@ -107,6 +153,7 @@ const SidebarAdmin = () => {
         </aside>
       </div>
     </div>
+    </>
   );
 };
 

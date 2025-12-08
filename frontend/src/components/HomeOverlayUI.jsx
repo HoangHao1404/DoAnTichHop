@@ -67,6 +67,7 @@ export default function HomeOverlayUI({
   const [capturedImage, setCapturedImage] = useState(null);
   const [stream, setStream] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [toast, setToast] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -146,9 +147,11 @@ export default function HomeOverlayUI({
   };
   
   const handleLogout = () => {
-    logout();
     setToast({ message: 'Đăng xuất thành công!', type: 'success' });
-    setTimeout(() => navigate('/signin'), 1500);
+    setTimeout(() => {
+      logout();
+      navigate('/signin');
+    }, 1500);
   };
 
   return (
@@ -159,6 +162,48 @@ export default function HomeOverlayUI({
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+
+      {/* Popup xác nhận đăng xuất */}
+      {showLogoutConfirm && (
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100000]"
+          style={{ pointerEvents: 'auto' }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowLogoutConfirm(false);
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">
+              Thông báo
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Bạn có chắc chắn muốn đăng xuất?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  handleLogout();
+                }}
+                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       <div className="app-map-overlay">
         {/* HEADER: Avatar - Search - Categories */}
@@ -230,7 +275,7 @@ export default function HomeOverlayUI({
                     <button
                       onClick={() => {
                         setShowUserMenu(false);
-                        handleLogout();
+                        setShowLogoutConfirm(true);
                       }}
                       className="w-full flex items-center gap-2 sm:gap-3 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg hover:bg-red-50 transition-colors text-left text-xs sm:text-sm"
                     >

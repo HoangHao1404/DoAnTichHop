@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, MapPin, LogOut, Settings, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import Toast from "./Toast";
 
 // const Avatar = ({ src, alt }) => (
 //   <img
@@ -18,6 +19,8 @@ export default function Navbar() {
 
   const [openUser, setOpenUser] = useState(false);
   const [openNoti, setOpenNoti] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [toast, setToast] = useState(null);
 
   // Refs để detect click outside
   const userRef = useRef(null);
@@ -121,19 +124,62 @@ export default function Navbar() {
     setNoti((prev) => prev.map((n) => ({ ...n, unread: false })));
 
   const handleLogout = () => {
-    logout();
+    setToast({ message: 'Đăng xuất thành công!', type: 'success' });
     setOpenUser(false);
-    navigate("/signin");
+    setTimeout(() => {
+      logout();
+      navigate("/signin");
+    }, 1500);
   };
 
   // ===============================
   // 🧭 NAVBAR UI
   // ===============================
   return (
-    <header
-      className="relative z-40"
-      style={{ transition: "background-color 300ms ease, color 300ms ease" }}
-    >
+    <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Popup xác nhận đăng xuất */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">
+              Thông báo
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Bạn có chắc chắn muốn đăng xuất?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  handleLogout();
+                }}
+                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <header
+        className="relative z-40"
+        style={{ transition: "background-color 300ms ease, color 300ms ease" }}
+      >
       <div
         className="rounded-3xl bg-white/90 
                    shadow px-4 py-2 flex items-center justify-end gap-3"
@@ -278,7 +324,10 @@ export default function Navbar() {
                 </li>
                 <li>
                   <button
-                    onClick={handleLogout}
+                    onClick={() => {
+                      setOpenUser(false);
+                      setShowLogoutConfirm(true);
+                    }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-2 
                                hover:bg-zinc-50 text-sm text-rose-600"
                   >
@@ -291,5 +340,6 @@ export default function Navbar() {
         </div>
       </div>
     </header>
+    </>
   );
 }
