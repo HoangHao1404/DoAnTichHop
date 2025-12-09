@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #f3f4f6;
+}
+
+/* Toast animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+/* Make leaflet map appear under our overlay */
+.leaflet-container {
+  z-index: 0 !important;
+}
+
+/* Ensure map panes don't jump above UI overlay */
+.leaflet-map-pane,
+.leaflet-tile-pane,
+.leaflet-overlay-pane,
+.leaflet-shadow-pane,
+.leaflet-marker-pane,
+.leaflet-popup-pane {
+  z-index: 0 !important;
+}
+
+/* Our overlay root should be above map */
+.app-map-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none; /* allow map interaction by default */
+}
+
+/* Interactive elements inside overlay must enable pointer events */
+.app-map-overlay .interactive {
+  pointer-events: auto;
+}
+
+/* Layout niceties for header: */
+.map-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Search box small + rounded */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border-radius: 9999px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  padding: 10px 14px;
+  min-width: 260px;
+  max-width: 60%;
+}
+
+/* Category pills container */
+.category-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 6px 2px;
+}
+
+/* Pill */
+.cat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 9999px;
+  box-shadow: 0 6px 18px rgba(11,14,17,0.06);
+  white-space: nowrap;
+  font-weight: 500;
+  color: #1f2937; /* gray-800 */
+}
+
+/* active pill */
+.cat-pill.active { color: white; }
+
+/* small icon circle inside pill */
+.cat-pill .icon-wrap {
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(0,0,0,0.03);
+}
+
+/* bottom nav */
+.bottom-nav {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap: 36px;
+  background: rgba(17,24,39,0.72);
+  backdrop-filter: blur(6px);
+  padding: 10px 24px;
+  border-radius: 9999px;
+  color: white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* Floating action */
+.fab {
+  width:56px; height:56px;
+  border-radius:9999px;
+  display:grid; place-items:center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .search-box { min-width: 160px; max-width: 65%; }
+  .category-row { gap: 6px; }
+  .bottom-nav {
+    gap: 20px;
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  .fab {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (max-width: 375px) {
+  .bottom-nav {
+    gap: 16px;
+    padding: 6px 10px;
+  }
+  .fab {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

@@ -1,0 +1,85 @@
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import "./App.css";
+
+import Dashboard from "./pages/Dashboard";
+import MyReports from "./pages/MyReports";
+import SignIn from "./pages/SignIn";
+import Register from "./pages/Register";
+import RegisterConfirm from "./components/RegisterConfirm";
+
+import AdminOverview from "./pages/Overview";
+import AdminUserManagerment from "./pages/UserManagement";
+
+import LayoutAdmin from "./components/LayoutAdmin";
+import ProtectedRoute from "./router/ProtectedRoute"; 
+import { AuthProvider } from "./context/AuthContext";
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Public */}
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/register/confirm" element={<RegisterConfirm />} />
+          
+          {/* Root redirect */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          
+          {/*citizen*/}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/myreport"
+            element={
+              <ProtectedRoute>
+                <MyReports />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* admin */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <LayoutAdmin />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="overview" element={<AdminOverview />} />
+            <Route path="users" element={<AdminUserManagerment />} />
+          </Route>
+
+          {/* Manager 
+          <Route
+            path="/manager/dashboard"
+            element={
+              <ProtectedRoute requiredRole="manager">
+                <ManagerDashboard />
+              </ProtectedRoute>
+            }
+          /> */}
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
+}
+
+export default App;
