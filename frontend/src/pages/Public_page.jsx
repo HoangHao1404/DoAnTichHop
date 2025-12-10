@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import banner from "../image/banner-public.jpeg";
 import brick from "../image/brick.png";
 import pic_abt from "../image/pic-abt.png";
@@ -6,7 +7,6 @@ import hat from "../image/hat.jpg";
 import map from "../image/VN_map.png";
 import trafficCone from "../image/trafficCone.png";
 import fireHydrant from "../image/fireHydrant.png";
-import meeting from "../image/meeting.png";
 
 import {
   ArrowDownRightIcon,
@@ -14,7 +14,7 @@ import {
   ArrowUpRightIcon,
 } from "@phosphor-icons/react";
 
-const Public_page = () => {
+const PublicPage = () => {
   const sections = [
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
@@ -88,7 +88,7 @@ const Public_page = () => {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [sections]);
 
   return (
     <main className="h-screen w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth">
@@ -121,13 +121,13 @@ const Public_page = () => {
           </div>
           {/* button */}
           <div className="flex items-center gap-3 hover:scale-105 hover:rotate-2 transition-all">
-            <a
-              href="#"
+            <Link
+              to="/signin"
               className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-[0_0_30px_rgba(255,255,255,0.7)]"
             >
               <span className="text-[#0033ff]">Log in</span>
               <ArrowUpRightIcon size={18} color="#0033ff" />
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -154,13 +154,13 @@ const Public_page = () => {
               effective.
             </p>
 
-            <a
-              href="#"
+            <Link
+              to="/signin"
               className="mt-3 inline-flex w-max items-center gap-2 rounded-full px-4 py-2 text-xl font-light text-white border border-solid border-white bg-[rgba(255,255,255,0.01)] backdrop-blur-[10px] backdrop-brightness-[1.1] hover:scale-105 hover:rotate-2 transition-all"
             >
               <span>Get Started</span>
               <ArrowRightIcon size={24} color="#ffffff" />
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -181,7 +181,7 @@ const Public_page = () => {
           <div className="w-[40%] rounded-3xl">
             <img
               src={pic_abt}
-              alt="about picture"
+              alt="Team collaboration"
               className="h-full w-full object-contain "
             />
           </div>
@@ -467,4 +467,4 @@ const Public_page = () => {
   );
 };
 
-export default Public_page;
+export default PublicPage;

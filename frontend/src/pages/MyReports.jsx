@@ -232,7 +232,7 @@ export default function MyReports() {
       <div className="fixed left-0 right-0 bottom-5 flex justify-center pointer-events-none z-50">
         <div className="bottom-nav pointer-events-auto">
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/dashboard")}
             className="flex flex-col items-center bg-transparent border-0 text-inherit cursor-pointer transition-opacity hover:opacity-70"
           >
             <House size={20} />
