@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import "./App.css";
+import Public_page from "./pages/Public_page";
 
 import Dashboard from "./pages/Dashboard";
 import MyReports from "./pages/MyReports";
@@ -21,6 +22,7 @@ import ProtectedRoute from "./router/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
+<<<<<<< HEAD
   return (
     <AuthProvider>
       <Router>
@@ -80,6 +82,9 @@ function App() {
       </Router>
     </AuthProvider>
   );
+=======
+  return <Public_page />;
+>>>>>>> origin/Long
 }
 
 export default App;
