@@ -112,8 +112,9 @@ const Dashboard = () => {
       const lon = parseFloat(place.lon);
 
       // di chuyển map đến vị trí tìm được
-      mapRef.current.setView([lat, lon], 17);
-
+      if (mapRef.current) {
+        mapRef.current.setView([lat, lon], 17);
+      }
       // đặt marker tại vị trí search
       setSearchMarker({
         lat,
@@ -133,9 +134,7 @@ const Dashboard = () => {
         zoom={13}
         className="w-full h-full"
         zoomControl={true}
-        whenCreated={(mapInstance) => {
-          mapRef.current = mapInstance; // lưu ref map để điều khiển
-        }}
+        ref={mapRef}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

@@ -3,67 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Search, House, Megaphone } from "lucide-react";
 import ReportDetail from "../components/ReportDetail";
 import ReportReviews from "../components/ReportReviews";
-
-const MOCK_REPORTS = [
-  {
-    id: "BCGT3101",
-    title: "Ổ gà siêu bự lụng",
-    type: "Giao Thông",
-    location: "35 Hùng Vương, ĐN",
-    status: "Đang Xử Lý",
-    time: "26/11/2025",
-    description: "Ổ gà lớn gây nguy hiểm cho người tham gia giao thông...",
-    image: "/images/oga1.jpg",
-  },
-  {
-    id: "BCD0295",
-    title: "Đèn giao thông không hoạt động",
-    type: "Điện",
-    location: "136 Yên Bái, ĐN",
-    status: "Đang Chờ",
-    time: "13/11/2025",
-    description: "Đèn giao thông bị hư làm kẹt xe nghiêm trọng...",
-    image: "/images/den1.jpg",
-  },
-  {
-    id: "BCCX7138",
-    title: "Cây ngã chắn đường",
-    type: "Cây Xanh",
-    location: "16 Lê Lợi, ĐN",
-    status: "Đang Chờ",
-    time: "03/11/2025",
-    description: "Cây to ngã giữa đường gây cản trở giao thông...",
-    image: "/images/cay1.jpg",
-  },
-  {
-    id: "BCCTC1824",
-    title: "Nhà chờ xe bus bị gãy ghế",
-    type: "CTCC",
-    location: "66 Phan Châu Trinh, ĐN",
-    status: "Đã Giải Quyết",
-    time: "16/08/2025",
-    description: "Ghế chờ xe bus bị hư và đã được sửa xong.",
-    beforeImg: "/images/bus_before.jpg",
-    afterImg: "/images/bus_after.jpg",
-  },
-  {
-    id: "BCD0295",
-    title: "Đèn điện phát nổ",
-    type: "Điện",
-    location: "265 Điện Biên Phủ, ĐN",
-    status: "Đã Giải Quyết",
-    time: "24/06/2025",
-    description: "Đèn đường phát nổ gây nguy hiểm và đã được thay mới.",
-    beforeImg: "/images/light_before.jpg",
-    afterImg: "/images/light_after.jpg",
-  },
-];
-
+import { reportApi } from "../services/reportApi";
 const TYPE_COLOR = {
   "Giao Thông": "bg-orange-400",
-  "Điện": "bg-yellow-400",
+  Điện: "bg-yellow-400",
   "Cây Xanh": "bg-green-400",
-  "CTCC": "bg-purple-400",
+  CTCC: "bg-purple-400",
 };
 
 const STATUS_COLOR = {
@@ -75,6 +20,8 @@ const STATUS_COLOR = {
 export default function MyReports() {
   const navigate = useNavigate();
   const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -83,23 +30,63 @@ export default function MyReports() {
   const [showDetail, setShowDetail] = useState(false);
   const [showReview, setShowReview] = useState(false);
 
+  //! Lấy dữ liệu từ API
   useEffect(() => {
-    setReports(MOCK_REPORTS);
+    fetchReports();
   }, []);
+  const fetchReports = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await reportApi.getAllReports();
+      if (response.success) {
+        setReports(response.data);
+      }
+    } catch (error) {
+      setError("Lỗi khi tải dữ liệu");
+      console.error("Lỗi khi tải dữ liệu:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filtered = reports.filter((item) => {
-    const matchSearch = item.id.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = item.title.toLowerCase().includes(search.toLowerCase());
     const matchType = typeFilter === "all" || item.type === typeFilter;
     const matchStatus = statusFilter === "all" || item.status === statusFilter;
     return matchSearch && matchType && matchStatus;
   });
+  //! Hiển thị loading
+  if (loading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">❌ {error}</p>
+          <button
+            onClick={fetchReports}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-screen overflow-hidden bg-gray-100 flex flex-col">
-
       {/* MAIN CONTENT */}
       <div className="flex-1 overflow-y-auto p-4">
-
         {/* HEADER */}
         <div className="flex items-center gap-3 mb-4">
           <img
@@ -113,21 +100,32 @@ export default function MyReports() {
         {/* STAT CARDS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           <StatBox label="Tổng Cộng" number={reports.length} icon="📁" />
-          <StatBox label="Đang Chờ" number={reports.filter((r) => r.status === "Đang Chờ").length} icon="⏳" />
-          <StatBox label="Đang Xử Lý" number={reports.filter((r) => r.status === "Đang Xử Lý").length} icon="⚡" />
-          <StatBox label="Đã Giải Quyết" number={reports.filter((r) => r.status === "Đã Giải Quyết").length} icon="✔️" />
+          <StatBox
+            label="Đang Chờ"
+            number={reports.filter((r) => r.status === "Đang Chờ").length}
+            icon="⏳"
+          />
+          <StatBox
+            label="Đang Xử Lý"
+            number={reports.filter((r) => r.status === "Đang Xử Lý").length}
+            icon="⚡"
+          />
+          <StatBox
+            label="Đã Giải Quyết"
+            number={reports.filter((r) => r.status === "Đã Giải Quyết").length}
+            icon="✔️"
+          />
         </div>
 
         {/* TABLE CARD */}
         <div className="p-4 bg-white border rounded-2xl shadow">
-
           {/* FILTERS */}
           <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-3">
             <div className="relative w-full md:w-1/3">
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
               <input
                 type="text"
-                placeholder="Nhập mã báo cáo để tìm kiếm"
+                placeholder="Nhập báo cáo cần tìm..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10 w-full px-3 py-2 rounded-md border bg-gray-100 border-gray-300"
@@ -135,8 +133,11 @@ export default function MyReports() {
             </div>
 
             <div className="flex gap-2 flex-wrap">
-              <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-3 py-2 rounded-md border bg-gray-100 border-gray-300">
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="px-3 py-2 rounded-md border bg-gray-100 border-gray-300"
+              >
                 <option value="all">Tất Cả Các Loại</option>
                 <option value="Giao Thông">Giao Thông</option>
                 <option value="Điện">Điện</option>
@@ -144,8 +145,11 @@ export default function MyReports() {
                 <option value="CTCC">CTCC</option>
               </select>
 
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 rounded-md border bg-gray-100 border-gray-300">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 rounded-md border bg-gray-100 border-gray-300"
+              >
                 <option value="all">Tất Cả Trạng Thái</option>
                 <option value="Đang Chờ">Đang Chờ</option>
                 <option value="Đang Xử Lý">Đang Xử Lý</option>
@@ -181,13 +185,21 @@ export default function MyReports() {
                     <td className="p-3 font-semibold">{item.id}</td>
                     <td className="p-3">{item.title}</td>
                     <td className="p-3">
-                      <span className={`text-white px-3 py-1 rounded-full text-xs ${TYPE_COLOR[item.type]}`}>
+                      <span
+                        className={`text-white px-3 py-1 rounded-full text-xs ${
+                          TYPE_COLOR[item.type]
+                        }`}
+                      >
                         {item.type}
                       </span>
                     </td>
                     <td className="p-3">{item.location}</td>
                     <td className="p-3">
-                      <span className={`text-white px-3 py-1 rounded-full text-xs ${STATUS_COLOR[item.status]}`}>
+                      <span
+                        className={`text-white px-3 py-1 rounded-full text-xs ${
+                          STATUS_COLOR[item.status]
+                        }`}
+                      >
                         {item.status}
                       </span>
                     </td>
@@ -204,8 +216,6 @@ export default function MyReports() {
           </div>
         </div>
       </div>
-
-      {/* ================= MODALS ================= */}
 
       {showDetail && (
         <ReportDetail
@@ -227,7 +237,7 @@ export default function MyReports() {
           }}
         />
       )}
-      
+
       {/* Bottom Navigation */}
       <div className="fixed left-0 right-0 bottom-5 flex justify-center pointer-events-none z-50">
         <div className="bottom-nav pointer-events-auto">
@@ -250,7 +260,6 @@ export default function MyReports() {
     </div>
   );
 }
-
 
 /* STAT BOX */
 function StatBox({ label, number, icon }) {
