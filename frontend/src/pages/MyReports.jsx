@@ -4,6 +4,7 @@ import { Search, House, Megaphone } from "lucide-react";
 import ReportDetail from "../components/ReportDetail";
 import ReportReviews from "../components/ReportReviews";
 import { reportApi } from "../services/reportApi";
+
 const TYPE_COLOR = {
   "Giao Thông": "bg-orange-400",
   Điện: "bg-yellow-400",
@@ -29,6 +30,12 @@ export default function MyReports() {
   const [selected, setSelected] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showReview, setShowReview] = useState(false);
+
+  // =======================
+  // ✅ [ADD] Pagination state
+  // =======================
+  const PAGE_SIZE = 5; // ✅ [ADD] mỗi trang 5 báo cáo
+  const [page, setPage] = useState(1); // ✅ [ADD] trang hiện tại
 
   //! Lấy dữ liệu từ API
   useEffect(() => {
@@ -56,6 +63,28 @@ export default function MyReports() {
     const matchStatus = statusFilter === "all" || item.status === statusFilter;
     return matchSearch && matchType && matchStatus;
   });
+
+  // ==========================================
+  // ✅ [ADD] Reset page về 1 khi filter/search đổi
+  // ==========================================
+  useEffect(() => {
+    setPage(1);
+  }, [search, typeFilter, statusFilter]);
+
+  // ==========================================
+  // ✅ [ADD] Pagination derived data + handlers
+  // ==========================================
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)); // ✅ [ADD] tổng số trang dựa theo dữ liệu filtered
+  const safePage = Math.min(page, totalPages); // ✅ [ADD] đảm bảo không vượt quá totalPages
+
+  const paginated = filtered.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  ); // ✅ [ADD] dữ liệu của trang hiện tại
+
+  const goPrev = () => setPage((p) => Math.max(1, p - 1)); // ✅ [ADD]
+  const goNext = () => setPage((p) => Math.min(totalPages, p + 1)); // ✅ [ADD]
+
   //! Hiển thị loading
   if (loading) {
     return (
@@ -173,7 +202,8 @@ export default function MyReports() {
               </thead>
 
               <tbody>
-                {filtered.map((item, index) => (
+                {/* ✅ [CHANGE] filtered.map -> paginated.map để chỉ hiển thị 5 item / trang */}
+                {paginated.map((item, index) => (
                   <tr
                     key={index}
                     className="border-t hover:bg-gray-50 cursor-pointer transition"
@@ -211,8 +241,33 @@ export default function MyReports() {
           </div>
 
           {/* PAGINATION */}
-          <div className="mt-4 flex justify-center">
-            <div className="px-4 py-2 bg-gray-100 rounded-full">1 / 3</div>
+          {/* ✅ [CHANGE] Pagination thực thi được: Prev/Next + tổng trang dựa trên filtered */}
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <button
+              onClick={goPrev}
+              disabled={safePage === 1}
+              className={`px-3 py-2 rounded-full border bg-gray-100 transition ${
+                safePage === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200"
+              }`}
+            >
+              Back
+            </button>
+
+            <div className="px-4 py-2 bg-gray-100 rounded-full">
+              {safePage} / {totalPages}
+            </div>
+
+            <button
+              onClick={goNext}
+              disabled={safePage === totalPages}
+              className={`px-3 py-2 rounded-full border bg-gray-100 transition ${
+                safePage === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-200"
+              }`}
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
