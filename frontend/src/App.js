@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import "./App.css";
+import PublicPage from "./pages/Public_page";
 
 import Dashboard from "./pages/Dashboard";
 import MyReports from "./pages/MyReports";
@@ -26,12 +27,10 @@ function App() {
       <Router>
         <Routes>
           {/* Public */}
+          <Route path="/" element={<PublicPage />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/register" element={<Register />} />
           <Route path="/register/confirm" element={<RegisterConfirm />} />
-          
-          {/* Root redirect */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           
           {/*citizen*/}
           <Route
@@ -75,7 +74,7 @@ function App() {
           /> */}
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
