@@ -50,15 +50,15 @@ const Register = () => {
     <div className="w-full h-screen flex select-none overflow-hidden">
       {/* LEFT */}
       <div className="w-1/2 h-full relative flex justify-center items-center">
-        <img src={banner} className="absolute inset-0 w-full h-full object-cover" />
+        <img src={banner} alt="Background banner" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/10"></div>
         <h1 className="text-white font-bold drop-shadow-2xl italic" style={{ fontSize: "150px", letterSpacing: "3px" }}>Safin</h1>
       </div>
 
       {/* RIGHT */}
       <div className="w-1/2 h-full bg-white relative flex overflow-hidden">
-        <img src={comle} className="absolute top-4 -right-20 w-56 opacity-90 pointer-events-none z-0" />
-        <img src={cone} className="absolute bottom-0 -left-10 w-56 opacity-90 pointer-events-none z-0" />
+        <img src={comle} alt="" className="absolute top-4 -right-20 w-56 opacity-90 pointer-events-none z-0" />
+        <img src={cone} alt="" className="absolute bottom-0 -left-10 w-56 opacity-90 pointer-events-none z-0" />
 
         <div className="w-full flex flex-col items-center pt-24 relative z-10">
           <div className="w-[85%] max-w-[550px]">
