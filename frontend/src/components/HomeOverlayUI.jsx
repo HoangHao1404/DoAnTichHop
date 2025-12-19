@@ -58,6 +58,7 @@ const categories = [
 export default function HomeOverlayUI({
   selectedCategory,
   setSelectedCategory,
+  onSearch,
   userAvatar,
   userName,
 }) {
@@ -69,6 +70,7 @@ export default function HomeOverlayUI({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [toast, setToast] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const menuRef = useRef(null);
@@ -294,6 +296,15 @@ export default function HomeOverlayUI({
                 className="flex-1 bg-transparent outline-none text-sm sm:text-base"
                 placeholder="Tìm kiếm địa điểm"
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && searchQuery.trim()) {
+                    if (onSearch) {
+                      onSearch(searchQuery.trim());
+                    }
+                  }
+                }}
               />
             </div>
 

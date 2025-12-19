@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import "./App.css";
+import PublicPage from "./pages/Public_page";
 
 import Dashboard from "./pages/Dashboard";
 import MyReports from "./pages/MyReports";
@@ -15,6 +16,10 @@ import RegisterConfirm from "./components/RegisterConfirm";
 
 import AdminOverview from "./pages/Overview";
 import AdminUserManagerment from "./pages/UserManagement";
+import ReceptForm from "./pages/ReceptForm";
+import ReportManagement from "./pages/Report_Management";
+import IncidentManagement from "./pages/Incident_management";
+import ThongKe from "./pages/ThongKe";
 
 import LayoutAdmin from "./components/LayoutAdmin";
 import ProtectedRoute from "./router/ProtectedRoute"; 
@@ -26,12 +31,10 @@ function App() {
       <Router>
         <Routes>
           {/* Public */}
+          <Route path="/" element={<PublicPage />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/register" element={<Register />} />
           <Route path="/register/confirm" element={<RegisterConfirm />} />
-          
-          {/* Root redirect */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           
           {/*citizen*/}
           <Route
@@ -61,6 +64,10 @@ function App() {
             }
           >
             <Route path="overview" element={<AdminOverview />} />
+            <Route path="recept-form" element={<ReceptForm />} />
+            <Route path="reports" element={<ReportManagement />} />
+            <Route path="incident-types" element={<IncidentManagement />} />
+            <Route path="statistics" element={<ThongKe />} />
             <Route path="users" element={<AdminUserManagerment />} />
           </Route>
 
@@ -75,7 +82,7 @@ function App() {
           /> */}
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

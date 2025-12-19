@@ -1,9 +1,5 @@
 import React from "react";
 import {
-  Bell,
-  MapPin,
-} from "lucide-react";
-import {
   PieChart,
   Pie,
   Cell,

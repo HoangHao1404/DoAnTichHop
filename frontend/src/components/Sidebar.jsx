@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { LayoutGrid, Inbox, FileText, Users, Tag, BarChart3, LogOut } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Toast from "./Toast";
@@ -14,7 +14,7 @@ const menuItems = [
   {
     key: "DonTiepNhan",
     label: "Đơn Tiếp Nhận",
-    path: "/admin/reception",
+    path: "/admin/recept-form",
     icon: Inbox,
   },
   {
@@ -44,7 +44,6 @@ const menuItems = [
 ];
 
 const SidebarAdmin = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
