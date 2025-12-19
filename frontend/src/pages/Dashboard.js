@@ -13,6 +13,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
+// Component để lưu map reference
+function MapController({ mapRef }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    mapRef.current = map;
+  }, [map, mapRef]);
+  
+  return null;
+}
+
 // Component để di chuyển map đến vị trí hiện tại
 function LocationMarker() {
   const [position, setPosition] = useState(null);
@@ -136,6 +147,7 @@ const Dashboard = () => {
         zoomControl={true}
         ref={mapRef}
       >
+        <MapController mapRef={mapRef} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

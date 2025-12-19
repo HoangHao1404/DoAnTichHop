@@ -14,7 +14,7 @@ const menuItems = [
   {
     key: "DonTiepNhan",
     label: "Đơn Tiếp Nhận",
-    path: "/admin/reception",
+    path: "/admin/recept-form",
     icon: Inbox,
   },
   {
