@@ -211,9 +211,9 @@ export default function MyReports() {
           </div>
 
           {/* PAGINATION */}
-          <div className="mt-4 flex justify-center">
+          {/* <div className="mt-4 flex justify-center">
             <div className="px-4 py-2 bg-gray-100 rounded-full">1 / 3</div>
-          </div>
+          </div> */}
         </div>
       </div>
 
