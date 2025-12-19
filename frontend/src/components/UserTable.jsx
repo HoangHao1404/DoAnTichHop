@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { Search, Plus, Pencil, Trash2, Lock } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, Lock, X } from "lucide-react";
 
 // Mock data – sau này thay bằng dữ liệu thật từ API
-const mockUsers = [
+const initialUsers = [
   {
     id: "user153",
     name: "VLong",
@@ -82,6 +82,7 @@ const statusLabel = {
 };
 
 export default function UserTable() {
+  const [users, setUsers] = useState(initialUsers);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [areaFilter, setAreaFilter] = useState("all");
@@ -90,9 +91,23 @@ export default function UserTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
+  // Modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+
+  // Form states
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    role: "User",
+    area: "Sơn Trà",
+    status: "active",
+  });
+
   const filteredUsers = useMemo(() => {
     const text = search.toLowerCase().trim();
-    return mockUsers.filter((u) => {
+    return users.filter((u) => {
       const matchSearch =
         !text ||
         u.name.toLowerCase().includes(text) ||
@@ -104,7 +119,7 @@ export default function UserTable() {
 
       return matchSearch && matchRole && matchArea && matchStatus;
     });
-  }, [search, roleFilter, areaFilter, statusFilter]);
+  }, [search, roleFilter, areaFilter, statusFilter, users]);
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
@@ -113,6 +128,78 @@ export default function UserTable() {
 
   const handlePrev = () => setCurrentPage((p) => Math.max(1, p - 1));
   const handleNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
+
+  // Handle Add User
+  const handleAddUser = () => {
+    const newId = `user${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`;
+    const newUser = {
+      id: newId,
+      ...formData,
+    };
+    setUsers((prev) => [...prev, newUser]);
+    setShowAddModal(false);
+    setFormData({
+      name: "",
+      phone: "",
+      role: "User",
+      area: "Sơn Trà",
+      status: "active",
+    });
+  };
+
+  // Handle Edit User
+  const handleEditClick = (user) => {
+    setEditingUser(user);
+    setFormData({
+      name: user.name,
+      phone: user.phone,
+      role: user.role,
+      area: user.area,
+      status: user.status,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = () => {
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === editingUser.id
+          ? { ...u, ...formData }
+          : u
+      )
+    );
+    setShowEditModal(false);
+    setEditingUser(null);
+    setFormData({
+      name: "",
+      phone: "",
+      role: "User",
+      area: "Sơn Trà",
+      status: "active",
+    });
+  };
+
+  // Handle Delete User
+  const handleDelete = (userId) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa người dùng này?")) {
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+    }
+  };
+
+  // Handle Lock/Unlock User
+  const handleToggleLock = (userId) => {
+    setUsers((prev) =>
+      prev.map((u) => {
+        if (u.id === userId) {
+          return {
+            ...u,
+            status: u.status === "active" ? "locked" : "active",
+          };
+        }
+        return u;
+      })
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -188,6 +275,7 @@ export default function UserTable() {
           {/* Nút Thêm User */}
           <button
             type="button"
+            onClick={() => setShowAddModal(true)}
             className="ml-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-blue-500 hover:bg-blue-600 text-white shadow-sm transition"
           >
             <Plus className="w-4 h-4" />
@@ -195,6 +283,260 @@ export default function UserTable() {
           </button>
         </div>
       </div>
+
+      {/* Add User Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Thêm User Mới</h3>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setFormData({
+                    name: "",
+                    phone: "",
+                    role: "User",
+                    area: "Sơn Trà",
+                    status: "active",
+                  });
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tên
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  placeholder="Nhập tên"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Số điện thoại
+                </label>
+                <input
+                  type="text"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  placeholder="(xxx) xxx-xxxx"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Vai trò
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                >
+                  <option value="User">User</option>
+                  <option value="Admin">Admin</option>
+                  <option value="QTV">QTV</option>
+                  <option value="KTV">KTV</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Khu vực
+                </label>
+                <select
+                  value={formData.area}
+                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                >
+                  <option value="Sơn Trà">Sơn Trà</option>
+                  <option value="Liên Chiểu">Liên Chiểu</option>
+                  <option value="Hải Châu">Hải Châu</option>
+                  <option value="Hòa Xuân">Hòa Xuân</option>
+                  <option value="Khuê Trung">Khuê Trung</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Trạng thái
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                >
+                  <option value="active">Hoạt động</option>
+                  <option value="locked">Bị Khóa</option>
+                  <option value="banned">Bị Cấm</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setFormData({
+                    name: "",
+                    phone: "",
+                    role: "User",
+                    area: "Sơn Trà",
+                    status: "active",
+                  });
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleAddUser}
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Thêm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Chỉnh Sửa User</h3>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingUser(null);
+                  setFormData({
+                    name: "",
+                    phone: "",
+                    role: "User",
+                    area: "Sơn Trà",
+                    status: "active",
+                  });
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tên
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  placeholder="Nhập tên"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Số điện thoại
+                </label>
+                <input
+                  type="text"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  placeholder="(xxx) xxx-xxxx"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Vai trò
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                >
+                  <option value="User">User</option>
+                  <option value="Admin">Admin</option>
+                  <option value="QTV">QTV</option>
+                  <option value="KTV">KTV</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Khu vực
+                </label>
+                <select
+                  value={formData.area}
+                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                >
+                  <option value="Sơn Trà">Sơn Trà</option>
+                  <option value="Liên Chiểu">Liên Chiểu</option>
+                  <option value="Hải Châu">Hải Châu</option>
+                  <option value="Hòa Xuân">Hòa Xuân</option>
+                  <option value="Khuê Trung">Khuê Trung</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Trạng thái
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                >
+                  <option value="active">Hoạt động</option>
+                  <option value="locked">Bị Khóa</option>
+                  <option value="banned">Bị Cấm</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingUser(null);
+                  setFormData({
+                    name: "",
+                    phone: "",
+                    role: "User",
+                    area: "Sơn Trà",
+                    status: "active",
+                  });
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Lưu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bảng */}
       <div className="overflow-x-auto rounded-2xl border shadow-sm bg-white border-gray-100">
@@ -246,6 +588,7 @@ export default function UserTable() {
                   <div className="flex items-center justify-center gap-3">
                     <button
                       type="button"
+                      onClick={() => handleToggleLock(u.id)}
                       className="text-amber-500 hover:text-amber-600"
                       title="Khóa / mở khóa"
                     >
@@ -253,6 +596,7 @@ export default function UserTable() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => handleEditClick(u)}
                       className="text-blue-500 hover:text-blue-600"
                       title="Sửa"
                     >
@@ -260,6 +604,7 @@ export default function UserTable() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => handleDelete(u.id)}
                       className="text-red-500 hover:text-red-600"
                       title="Xóa"
                     >

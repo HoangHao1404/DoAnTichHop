@@ -15,6 +15,10 @@ import RegisterConfirm from "./components/RegisterConfirm";
 
 import AdminOverview from "./pages/Overview";
 import AdminUserManagerment from "./pages/UserManagement";
+import ReceptForm from "./pages/ReceptForm";
+import ReportManagement from "./pages/Report_Management";
+import IncidentManagement from "./pages/incident_management";
+import ThongKe from "./pages/ThongKe";
 
 import LayoutAdmin from "./components/LayoutAdmin";
 import ProtectedRoute from "./router/ProtectedRoute"; 
@@ -61,6 +65,10 @@ function App() {
             }
           >
             <Route path="overview" element={<AdminOverview />} />
+            <Route path="recept-form" element={<ReceptForm />} />
+            <Route path="reports" element={<ReportManagement />} />
+            <Route path="incident-types" element={<IncidentManagement />} />
+            <Route path="statistics" element={<ThongKe />} />
             <Route path="users" element={<AdminUserManagerment />} />
           </Route>
 
