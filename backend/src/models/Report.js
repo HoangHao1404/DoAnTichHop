@@ -7,6 +7,11 @@ const ReportSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    userId: {
+      type: String,
+      required: true,
+      index: true,
+    },
     title: {
       type: String,
       required: true,
@@ -35,6 +40,10 @@ const ReportSchema = new mongoose.Schema(
     },
     image: {
       type: String,
+    },
+    images: {
+      type: [String],
+      default: [],
     },
     beforeImg: {
       type: String,

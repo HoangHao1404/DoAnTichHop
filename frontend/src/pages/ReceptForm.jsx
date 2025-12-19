@@ -15,7 +15,7 @@ const ReceptForm = () => {
     "Hải Châu",
     "Sơn Trà",
     "Liên Chiểu",
-    "Hòang Sa",
+    "Hoàng Sa",
     "Thanh Khê",
     "Ngũ Hành Sơn",
     "Cẩm Lệ",

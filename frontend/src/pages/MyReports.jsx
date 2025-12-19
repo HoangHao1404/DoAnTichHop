@@ -4,7 +4,11 @@ import { Search, House, Megaphone } from "lucide-react";
 import ReportDetail from "../components/ReportDetail";
 import ReportReviews from "../components/ReportReviews";
 import { reportApi } from "../services/reportApi";
+<<<<<<< HEAD
 
+=======
+import { useAuth } from "../context/AuthContext";
+>>>>>>> Quoc
 const TYPE_COLOR = {
   "Giao Thông": "bg-orange-400",
   Điện: "bg-yellow-400",
@@ -20,6 +24,7 @@ const STATUS_COLOR = {
 
 export default function MyReports() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,19 +44,47 @@ export default function MyReports() {
 
   //! Lấy dữ liệu từ API
   useEffect(() => {
-    fetchReports();
-  }, []);
+    const userId = user?._id || user?.user_id;
+    if (userId) {
+      fetchReports();
+    } else {
+      // Nếu không có user sau 1 giây, dừng loading
+      const timer = setTimeout(() => {
+        setLoading(false);
+        setError("Vui lòng đăng nhập để xem báo cáo");
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [user]); // Re-fetch khi user hoặc location thay đổi
+  
   const fetchReports = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await reportApi.getAllReports();
+      
+      const userId = user?._id || user?.user_id;
+      console.log("🔍 Fetching reports for userId:", userId);
+      console.log("👤 User object:", user);
+      
+      if (!userId) {
+        setError("Vui lòng đăng nhập để xem báo cáo");
+        setLoading(false);
+        return;
+      }
+      
+      const response = await reportApi.getReportsByUserId(userId);
+      console.log("📡 API Response:", response);
+      
       if (response.success) {
         setReports(response.data);
+        console.log("✅ Reports loaded:", response.data.length);
+      } else {
+        setError("Không thể tải báo cáo");
       }
     } catch (error) {
       setError("Lỗi khi tải dữ liệu");
-      console.error("Lỗi khi tải dữ liệu:", error);
+      console.error("❌ Lỗi khi tải dữ liệu:", error);
+      console.error("Error details:", error.response?.data || error.message);
     } finally {
       setLoading(false);
     }

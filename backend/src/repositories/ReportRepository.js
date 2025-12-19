@@ -20,6 +20,17 @@ class ReportRepository {
   }
 
   /**
+   * Lấy tất cả báo cáo của một user
+   */
+  async getByUserId(userId) {
+    try {
+      return await Report.find({ userId }).sort({ createdAt: -1 });
+    } catch (error) {
+      throw new Error("Lỗi khi lấy báo cáo của user: " + error.message);
+    }
+  }
+
+  /**
    * Tạo báo cáo mới
    */
   async create(reportData) {

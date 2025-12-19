@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Camera,
   Upload,
@@ -9,6 +10,8 @@ import {
   Image,
 } from "lucide-react";
 import Toast from "./Toast";
+import { reportApi } from "../services/reportApi";
+import { useAuth } from "../context/AuthContext";
 
 const incidentOptions = [
   { value: "infrastructure", label: "Hạ tầng giao thông" },
@@ -19,6 +22,7 @@ const incidentOptions = [
   { value: "other", label: "Khác" },
 ];
 function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [incidentType, setIncidentType] = useState("");
   const [description, setDescription] = useState("");
@@ -83,25 +87,34 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     setLocationLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        console.log("GPS OK:", position);
+        console.log("📍 GPS OK:", position);
         const { latitude, longitude } = position.coords;
 
         try {
+          // Gọi API backend để reverse geocode (tránh CORS)
+          console.log("🌍 Calling backend geocode API...");
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
-            { headers: { "Accept-Language": "vi" } }
+            `http://localhost:5001/api/geocode/reverse?lat=${latitude}&lon=${longitude}`
           );
-          const data = await response.json();
-          console.log("Reverse geocode OK:", data);
+          
+          if (!response.ok) {
+            throw new Error(`Backend API error: ${response.status}`);
+          }
+          
+          const result = await response.json();
+          console.log("📡 Backend response:", result);
 
-          if (data.display_name) {
-            setLocation(data.display_name);
+          if (result.success && result.data.address) {
+            console.log("✅ Address found:", result.data.address);
+            setLocation(result.data.address);
           } else {
+            console.warn("⚠️ No address in response");
             setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
           }
         } catch (err) {
-          console.error("Error reverse geocoding:", err);
+          console.error("❌ Error getting address:", err);
           setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          alert("Không thể lấy địa chỉ. Vui lòng nhập thủ công.");
         }
 
         setLocationLoading(false);
@@ -185,6 +198,8 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   };
 
   // ========= FORM =========
+  const { user } = useAuth();
+
   const resetForm = () => {
     setTitle("");
     setIncidentType("");
@@ -194,18 +209,64 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     setHasFetchedLocation(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !incidentType || uploadedImages.length === 0) {
       alert("Vui lòng điền đầy đủ các trường bắt buộc");
       return;
     }
-    setToast({ message: "Đã gửi báo cáo thành công!", type: "success" });
-    // TODO: gửi uploadedImages + data lên API
-    setTimeout(() => {
-      resetForm();
-      onClose && onClose();
-    }, 1500);
+
+    if (!location) {
+      alert("Vui lòng nhập vị trí hoặc cho phép truy cập GPS");
+      return;
+    }
+
+    const userId = user?._id || user?.user_id;
+    if (!userId) {
+      alert("Bạn cần đăng nhập để gửi báo cáo");
+      return;
+    }
+
+    try {
+      // Map incident type to Vietnamese
+      const typeMapping = {
+        infrastructure: "Giao Thông",
+        lighting: "Điện",
+        environment: "Cây Xanh",
+        water: "Cây Xanh",
+        electricity: "Điện",
+        other: "CTCC",
+      };
+
+      const reportData = {
+        userId: userId,
+        title,
+        type: typeMapping[incidentType] || "CTCC",
+        location,
+        description,
+        images: uploadedImages,
+      };
+
+      const response = await reportApi.createReport(reportData);
+
+      if (response.success) {
+        setToast({ message: "Đã gửi báo cáo thành công!", type: "success" });
+        setTimeout(() => {
+          resetForm();
+          onClose && onClose();
+          // Navigate về MyReports để reload data thay vì reload page
+          navigate("/myreport", { replace: true });
+        }, 1500);
+      } else {
+        setToast({ message: "Gửi báo cáo thất bại!", type: "error" });
+      }
+    } catch (error) {
+      console.error("Error creating report:", error);
+      setToast({ 
+        message: error.response?.data?.message || "Lỗi khi gửi báo cáo!", 
+        type: "error" 
+      });
+    }
   };
 
   const handleCancel = () => {

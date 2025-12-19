@@ -17,7 +17,7 @@ import AdminOverview from "./pages/Overview";
 import AdminUserManagerment from "./pages/UserManagement";
 import ReceptForm from "./pages/ReceptForm";
 import ReportManagement from "./pages/Report_Management";
-import IncidentManagement from "./pages/incident_management";
+import IncidentManagement from "./pages/Incident_management";
 import ThongKe from "./pages/ThongKe";
 
 import LayoutAdmin from "./components/LayoutAdmin";
