@@ -5,24 +5,27 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+
 import "./App.css";
 
-import Dashboard from "./pages/Dashboard";
-import MyReports from "./pages/MyReports";
-import SignIn from "./pages/SignIn";
-import Register from "./pages/Register";
-import RegisterConfirm from "./components/RegisterConfirm";
+import PublicPage from "./pages/Public_page.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import MyReports from "./pages/MyReports.jsx";
+import SignIn from "./pages/SignIn.jsx";
+import Register from "./pages/Register.jsx";
 
-import AdminOverview from "./pages/Overview";
-import AdminUserManagerment from "./pages/UserManagement";
-import ReceptForm from "./pages/ReceptForm";
-import ReportManagement from "./pages/Report_Management";
-import IncidentManagement from "./pages/Incident_management";
-import ThongKe from "./pages/ThongKe";
+import AdminOverview from "./pages/Overview.jsx";
+import AdminUserManagement from "./pages/UserManagement.jsx";
+import ReceptForm from "./pages/ReceptForm.jsx";
+import ReportManagement from "./pages/Report_Management.jsx";
+import IncidentManagement from "./pages/incident_management.jsx";
+import ThongKe from "./pages/ThongKe.jsx";
 
-import LayoutAdmin from "./components/LayoutAdmin";
-import ProtectedRoute from "./router/ProtectedRoute"; 
-import { AuthProvider } from "./context/AuthContext";
+import RegisterConfirm from "./components/RegisterConfirm.jsx";
+import LayoutAdmin from "./components/LayoutAdmin.jsx";
+import ProtectedRoute from "./router/ProtectedRoute.jsx";
+
+import { AuthProvider } from "./context/AuthContext.jsx";
 
 function App() {
   return (
@@ -30,14 +33,12 @@ function App() {
       <Router>
         <Routes>
           {/* Public */}
+          <Route path="/" element={<PublicPage />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/register" element={<Register />} />
           <Route path="/register/confirm" element={<RegisterConfirm />} />
-          
-          {/* Root redirect */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          
-          {/*citizen*/}
+
+          {/* Citizen */}
           <Route
             path="/dashboard"
             element={
@@ -46,6 +47,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/myreport"
             element={
@@ -55,7 +57,7 @@ function App() {
             }
           />
 
-          {/* admin */}
+          {/* Admin */}
           <Route
             path="/admin"
             element={
@@ -69,21 +71,11 @@ function App() {
             <Route path="reports" element={<ReportManagement />} />
             <Route path="incident-types" element={<IncidentManagement />} />
             <Route path="statistics" element={<ThongKe />} />
-            <Route path="users" element={<AdminUserManagerment />} />
+            <Route path="users" element={<AdminUserManagement />} />
           </Route>
 
-          {/* Manager 
-          <Route
-            path="/manager/dashboard"
-            element={
-              <ProtectedRoute requiredRole="manager">
-                <ManagerDashboard />
-              </ProtectedRoute>
-            }
-          /> */}
-
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
