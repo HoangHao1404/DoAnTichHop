@@ -233,15 +233,3 @@ Tối ưu UX/UI dashboard
 Thêm notification system
 
 Tích hợp bản đồ nâng cao (heatmap)
-
-📌 Conclusion
-
-Hệ thống hướng tới xây dựng một nền tảng:
-
-Nhanh hơn
-
-Chính xác hơn
-
-Minh bạch hơn
-
-trong việc xử lý các vấn đề hạ tầng đô thị, góp phần phát triển mô hình Smart City hiện đại.
