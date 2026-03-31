@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, House, Megaphone } from "lucide-react";
 import ReportDetail from "../components/ReportDetail";
 import ReportReviews from "../components/ReportReviews";
-import { reportApi } from "../services/reportApi";
+import { reportApi } from "../services/api/reportApi";
 import { useAuth } from "../context/AuthContext";
 const TYPE_COLOR = {
   "Giao Thông": "bg-orange-400",
