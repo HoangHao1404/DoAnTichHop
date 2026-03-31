@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const ReportSchema = new mongoose.Schema(
   {
+    report_id: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     id: {
       type: String,
       required: true,

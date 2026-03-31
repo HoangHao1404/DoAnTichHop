@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutGrid, Inbox, FileText, Users, Tag, BarChart3, LogOut } from "lucide-react";
+import { LayoutGrid, Inbox, FileText, Users, Tag, BarChart3, LogOut, Construction } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Toast from "./Toast";
 
@@ -22,6 +22,12 @@ const menuItems = [
     label: "Quản Lý Báo Cáo",
     path: "/admin/reports",
     icon: FileText,
+  },
+  {
+    key: "QuanLyDoiXuLy",
+    label: "Quản Lý Đội Xử Lý",
+    path: "/admin/maintenanceteam",
+    icon: Construction,
   },
   {
     key: "QuanLyNguoiDung",
