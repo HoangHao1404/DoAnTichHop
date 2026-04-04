@@ -27,12 +27,14 @@ import LayoutAdmin from "./components/LayoutAdmin.jsx";
 import ProtectedRoute from "./router/ProtectedRoute.jsx";
 
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { TooltipProvider } from "./components/ui/tooltip.tsx";
 
 function App() {
-  return (
+  return ( 
     <AuthProvider>
-      <Router>
-        <Routes>
+      <TooltipProvider>
+        <Router>
+          <Routes>
           {/* Public */}
           <Route path="/" element={<PublicPage />} />
           <Route path="/signin" element={<SignIn />} />
@@ -79,7 +81,8 @@ function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Router>
+        </Router>
+      </TooltipProvider>
     </AuthProvider>
   );
 }

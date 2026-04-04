@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Search, House, Megaphone } from "lucide-react";
 import ReportDetail from "../components/ReportDetail";
 import ReportReviews from "../components/ReportReviews";
+import UserSidebar from "../components/UserSidebar";
+import { SidebarProvider } from "../components/ui/sidebar";
 import { reportApi } from "../services/api/reportApi";
 import { useAuth } from "../context/AuthContext";
 const TYPE_COLOR = {
@@ -114,22 +116,34 @@ export default function MyReports() {
   }
 
   return (
-    <div className="w-full h-screen overflow-hidden bg-gray-100 flex flex-col">
+    <div className="w-full h-screen overflow-hidden bg-gray-100 flex flex-col relative">
+      {/* Floating Sidebar */}
+      <div className="absolute left-6 top-4 z-10">
+        <SidebarProvider>
+          <UserSidebar />
+        </SidebarProvider>
+      </div>
+      
       {/* MAIN CONTENT */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {/* HEADER */}
-        <div className="flex items-center gap-3 mb-4">
-          <img
-            src="https://i.pravatar.cc/150?img=15"
-            alt="avatar"
-            className="w-12 h-12 rounded-full border shadow-sm object-cover"
-          />
-          <h1 className="text-2xl md:text-3xl font-bold">Báo Cáo Của Tôi</h1>
+      <div className="flex-1 overflow-y-auto p-6" style={{ marginLeft: '7rem' }}>
+        {/* HEADER - Title + Search */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-4xl font-bold">Báo Cáo Của Tôi</h1>
+          <div className="relative w-96">
+            <Search className="w-5 h-5 text-gray-400 absolute left-4 top-3.5" />
+            <input
+              type="text"
+              placeholder="Nhập mã báo cáo, tiêu đề,..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-12 w-full px-4 py-3 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
         </div>
 
         {/* STAT CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <StatBox label="Tổng Cộng" number={reports.length} icon="📁" />
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <StatBox label="Tổng Báo Cáo" number={reports.length} icon="📁" />
           <StatBox
             label="Đang Chờ"
             number={reports.filter((r) => r.status === "Đang Chờ").length}
@@ -147,49 +161,77 @@ export default function MyReports() {
           />
         </div>
 
-        {/* TABLE CARD */}
-        <div className="p-4 bg-white border rounded-2xl shadow">
-          {/* FILTERS */}
-          <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-3">
-            <div className="relative w-full md:w-1/3">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
-              <input
-                type="text"
-                placeholder="Nhập báo cáo cần tìm..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 w-full px-3 py-2 rounded-md border bg-gray-100 border-gray-300"
-              />
-            </div>
-
-            <div className="flex gap-2 flex-wrap">
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-3 py-2 rounded-md border bg-gray-100 border-gray-300"
-              >
-                <option value="all">Tất Cả Các Loại</option>
-                <option value="Giao Thông">Giao Thông</option>
-                <option value="Điện">Điện</option>
-                <option value="Cây Xanh">Cây Xanh</option>
-                <option value="CTCC">CTCC</option>
-              </select>
-
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 rounded-md border bg-gray-100 border-gray-300"
-              >
-                <option value="all">Tất Cả Trạng Thái</option>
-                <option value="Đang Chờ">Đang Chờ</option>
-                <option value="Đang Xử Lý">Đang Xử Lý</option>
-                <option value="Đã Giải Quyết">Đã Giải Quyết</option>
-              </select>
-            </div>
+        {/* FILTERS & SORT */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex gap-3">
+            <button
+              onClick={() => setTypeFilter("all")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                typeFilter === "all"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Tất cả
+            </button>
+            <button
+              onClick={() => setTypeFilter("Giao Thông")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                typeFilter === "Giao Thông"
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Giao thông
+            </button>
+            <button
+              onClick={() => setTypeFilter("Điện")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                typeFilter === "Điện"
+                  ? "bg-yellow-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Điện
+            </button>
+            <button
+              onClick={() => setTypeFilter("Cây Xanh")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                typeFilter === "Cây Xanh"
+                  ? "bg-green-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Cây xanh
+            </button>
+            <button
+              onClick={() => setTypeFilter("CTCC")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                typeFilter === "CTCC"
+                  ? "bg-purple-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Công trình công cộng
+            </button>
           </div>
+          
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="Đang Chờ">Đang Chờ</option>
+            <option value="Đang Xử Lý">Đang Xử Lý</option>
+            <option value="Đã Giải Quyết">Đã Giải Quyết</option>
+          </select>
+        </div>
 
+        {/* TABLE CARD */}
+        <div className="p-6 bg-white border rounded-2xl shadow">
           {/* TABLE */}
-          <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
+          <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
             <table className="min-w-full text-sm text-left">
               <thead className="bg-gray-100 text-gray-700">
                 <tr>
@@ -241,9 +283,10 @@ export default function MyReports() {
           </div>
 
           {/* PAGINATION */}
-          {/* <div className="mt-4 flex justify-center">
-            <div className="px-4 py-2 bg-gray-100 rounded-full">1 / 3</div>
-          </div> */}
+          <div className="mt-6 flex justify-between items-center">
+            <button className="px-4 py-2 text-gray-500 hover:text-gray-700">Previous</button>
+            <button className="px-4 py-2 text-gray-500 hover:text-gray-700">Next</button>
+          </div>
         </div>
       </div>
 
@@ -267,26 +310,6 @@ export default function MyReports() {
           }}
         />
       )}
-
-      {/* Bottom Navigation */}
-      <div className="fixed left-0 right-0 bottom-5 flex justify-center pointer-events-none z-50">
-        <div className="bottom-nav pointer-events-auto">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex flex-col items-center bg-transparent border-0 text-inherit cursor-pointer transition-opacity hover:opacity-70"
-          >
-            <House size={20} />
-            <div className="text-xs">Home</div>
-          </button>
-          <button
-            onClick={() => navigate("/myreport")}
-            className="flex flex-col items-center bg-transparent border-0 text-inherit cursor-pointer transition-opacity hover:opacity-70"
-          >
-            <Megaphone size={20} />
-            <div className="text-xs">Báo Cáo của tôi</div>
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
@@ -294,11 +317,11 @@ export default function MyReports() {
 /* STAT BOX */
 function StatBox({ label, number, icon }) {
   return (
-    <div className="p-3 bg-white rounded-xl shadow border flex items-center gap-4">
-      <div className="text-2xl">{icon}</div>
+    <div className="p-4 bg-white rounded-xl shadow border flex items-center gap-4">
+      <div className="text-3xl">{icon}</div>
       <div>
-        <p className="text-sm">{label}</p>
-        <p className="text-xl font-bold">{number}</p>
+        <p className="text-sm text-gray-600">{label}</p>
+        <p className="text-2xl font-bold">{number}</p>
       </div>
     </div>
   );
