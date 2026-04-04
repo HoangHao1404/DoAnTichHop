@@ -141,39 +141,38 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="w-full h-screen relative">
-      <MapContainer
-        center={defaultCenter}
-        zoom={13}
-        className="w-full h-full"
-        zoomControl={true}
-        ref={mapRef}
-      >
-        <MapController mapRef={mapRef} />
+    <div className="w-full h-screen">
+      <HomeOverlayUI
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        onSearch={handleSearchLocation}
+        userName={userName}
+        userAvatar={userAvatar}
+        mapElement={
+          <MapContainer
+            center={defaultCenter}
+            zoom={13}
+            className="w-full h-full"
+            zoomControl={true}
+            ref={mapRef}
+          >
+            <MapController mapRef={mapRef} />
 
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
 
-        <LocationMarker />
+            <LocationMarker />
 
-        {searchMarker && (
-          <Marker position={[searchMarker.lat, searchMarker.lon]}>
-            <Popup>{searchMarker.displayName}</Popup>
-          </Marker>
-        )}
-      </MapContainer>
-
-      <div className="absolute inset-0 z-[9999] pointer-events-none">
-        <HomeOverlayUI
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          onSearch={handleSearchLocation}
-          userName={userName}
-          userAvatar={userAvatar}
-        />
-      </div>
+            {searchMarker && (
+              <Marker position={[searchMarker.lat, searchMarker.lon]}>
+                <Popup>{searchMarker.displayName}</Popup>
+              </Marker>
+            )}
+          </MapContainer>
+        }
+      />
     </div>
   );
 };
