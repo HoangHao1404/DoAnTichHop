@@ -1,4 +1,5 @@
 const ReportRepository = require("../repositories/ReportRepository");
+const Report = require("../models/Report");
 
 class ReportController {
   async getAllReports(req, res) {
@@ -45,7 +46,6 @@ class ReportController {
     try {
       const { userId } = req.params;
       console.log("🔍 Getting reports for userId:", userId);
-      
       const reports = await ReportRepository.getByUserId(userId);
       console.log("✅ Found reports:", reports.length);
 
@@ -75,8 +75,17 @@ class ReportController {
         });
       }
 
-      // Generate unique ID for report
-      const reportId = `RPT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      // Generate unique string ID for current app flow
+      const reportStringId = `RPT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+      // Generate numeric report_id to match MongoDB current indexes/data
+      const lastReport = await Report.findOne({
+        report_id: { $ne: null },
+      }).sort({ report_id: -1 });
+
+      const nextReportId = lastReport?.report_id
+        ? Number(lastReport.report_id) + 1
+        : 1;
 
       // Get current time
       const currentTime = new Date().toLocaleString("vi-VN", {
@@ -84,14 +93,16 @@ class ReportController {
       });
 
       const reportData = {
-        id: reportId,
-        userId,
+        id: reportStringId,
+        userId: String(userId),
+        report_id: nextReportId,
+        user_id: Number(userId),
         title,
         type,
         location,
         description: description || "",
-        images: images || [],
-        image: images && images.length > 0 ? images[0] : "",
+        images: Array.isArray(images) ? images : [],
+        image: Array.isArray(images) && images.length > 0 ? images[0] : "",
         status: "Đang Chờ",
         time: currentTime,
       };
@@ -104,6 +115,7 @@ class ReportController {
         data: newReport,
       });
     } catch (error) {
+      console.error("❌ Error in createReport:", error);
       res.status(500).json({
         success: false,
         message: error.message,
