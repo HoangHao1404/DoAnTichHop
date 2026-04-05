@@ -10,7 +10,7 @@ const RegisterConfirm = () => {
   const location = useLocation();
 
   // Lấy dữ liệu truyền từ Register
-  const { phone, password, full_name, /*otp_demo*/ } = location.state || {};
+  const { phone, password, full_name } = location.state || {};
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(60);
@@ -76,9 +76,7 @@ const RegisterConfirm = () => {
     if (!canResend) return;
     try {
       setMessage("");
-      // const res = await authApi.sendRegisterOtp(phone);
-      // res.data.otp_demo dùng để demo
-      // alert(`OTP mới (demo): ${res.data.otp_demo}`);
+      await authApi.sendRegisterOtp(phone);
       setTimeLeft(60);
       setCanResend(false);
       setOtp(["", "", "", "", "", ""]);
@@ -164,14 +162,9 @@ const RegisterConfirm = () => {
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold leading-tight mb-2">
               Verify your phone
             </h2>
-            {/* <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600">
               Mã OTP đã được gửi tới số <b>{phone}</b>
             </p>
-            {otp_demo && (
-              <p className="text-xs text-gray-500 mt-1">
-                (OTP demo từ backend: <span className="font-mono">{otp_demo}</span>)
-              </p>
-            )} */}
           </div>
 
           {message && (

@@ -2,6 +2,31 @@ const ReportRepository = require("../repositories/ReportRepository");
 const Report = require("../models/Report");
 
 class ReportController {
+  async getManagementReports(req, res) {
+    try {
+      const { search = "", type = "all", status = "all", page = 1, limit = 10 } = req.query;
+
+      const result = await ReportRepository.getManagementList({
+        search,
+        type,
+        status,
+        page,
+        limit,
+      });
+
+      res.status(200).json({
+        success: true,
+        data: result.items,
+        pagination: result.pagination,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   async getAllReports(req, res) {
     try {
       const reports = await ReportRepository.getAll();
@@ -93,10 +118,16 @@ class ReportController {
       });
 
       const reportData = {
+<<<<<<< HEAD
         id: reportStringId,
         userId: String(userId),
         report_id: nextReportId,
         user_id: Number(userId),
+=======
+        report_id: reportId,
+        id: reportId,
+        userId,
+>>>>>>> origin/Quoc
         title,
         type,
         location,
