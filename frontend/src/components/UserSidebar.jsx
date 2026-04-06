@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Toast from "./Toast";
+import Info_Management from "../pages/Info_Management";
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +21,7 @@ const UserSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [toast, setToast] = useState(null);
@@ -198,7 +200,7 @@ const UserSidebar = () => {
               <button
                 onClick={() => {
                   setShowAvatarMenu(false);
-                  navigate("/profile");
+                  setShowInfoModal(true);
                 }}
                 className="w-full px-4 py-2 flex items-center gap-3 text-gray-700 hover:bg-gray-50 transition-colors text-left"
               >
@@ -219,6 +221,15 @@ const UserSidebar = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* INFO MANAGEMENT MODAL */}
+      {showInfoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <Info_Management onClose={() => setShowInfoModal(false)} />
+          </div>
+        </div>
       )}
     </>
   );

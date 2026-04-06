@@ -32,7 +32,9 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 connectDB();
 
 // Routes
+const userRoutes = require("./src/services/user/user.routes");
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/geocode", geocodeRoutes);
 

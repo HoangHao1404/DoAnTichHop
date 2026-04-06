@@ -13,6 +13,10 @@ const authApi = {
   login(phone, password) {
     return axiosClient.post("/auth/login", { phone, password });
   },
+
+  googleLogin(googleToken) {
+    return axiosClient.post("/auth/google-login", { token: googleToken });
+  },
 };
 
 export default authApi;

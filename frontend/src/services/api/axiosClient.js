@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:5001/api", // backend của bạn
+  baseURL: "http://localhost:5000/api", // backend của bạn
   withCredentials: false,
 });
 
