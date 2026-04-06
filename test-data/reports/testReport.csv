@@ -1,0 +1,12 @@
+id,userId,title,type,location,status,description,imagePath,potholeCount,damageLevel,aiPercent,createdAt
+"1","16","Test ổ gà","Giao Thông","15.95,108.22","Đang Chờ","Mẫu test nhanh","test-data/reports/uploads/test-report-1775367933133-7118.jpg","1","Nhẹ","0.00","2026-04-05T05:45:33.301Z"
+"2","16","hfhf","Điện","Hòa Xuân, Đà Nẵng, Việt Nam","Đang Chờ","kjjgj","test-data/reports/uploads/test-report-1775371021553-9123.jpg","1","Nhẹ","0.00","2026-04-05T06:37:01.788Z"
+"3","16","Ổ gà","Giao Thông","Hòa Xuân, Đà Nẵng, Việt Nam","Đang Chờ","sà","test-data/reports/uploads/test-report-1775379031054-3513.jpg","1","Trung bình","65.00","2026-04-05T08:50:31.558Z"
+"4","16","udajs","Giao Thông","Hòa Xuân, Đà Nẵng, Việt Nam","Đang Chờ","ádas","test-data/reports/uploads/test-report-1775379707598-6032.jpg","1","Nhẹ","9.47","2026-04-05T09:01:47.957Z"
+"5","16","ádas","Giao Thông","Hòa Xuân, Đà Nẵng, Việt Nam","Đang Chờ","ádasd","test-data/reports/uploads/test-report-1775379842142-9047.jpg","1","Nhẹ","7.33","2026-04-05T09:04:02.408Z"
+"6","16","jhg","Giao Thông","Hòa Xuân, Đà Nẵng, Việt Nam","Đang Chờ","ádasđg","test-data/reports/uploads/test-report-1775380383021-461.jpg","3","Nặng","244.33","2026-04-05T09:13:03.306Z"
+"7","16","ádasd","Giao Thông","Hòa Xuân, Đà Nẵng, Việt Nam","Đang Chờ","ằevvzxx","test-data/reports/uploads/test-report-1775380702220-4669.jpg","3","Nặng","244.33","2026-04-05T09:18:22.493Z"
+"8","16","sdgsdgsd","Giao Thông","Hòa Xuân, Đà Nẵng, Việt Nam","Đang Chờ","sdsdfsdf","test-data/reports/uploads/test-report-1775380733807-5711.jpg","3","Nặng","244.33","2026-04-05T09:18:54.003Z"
+"9","16","kdjhas","Giao Thông","Hòa Xuân, Đà Nẵng, Việt Nam","Đang Chờ","kwye812as","test-data/reports/uploads/test-report-1775380927149-944.jpg","3","Nặng","76.60","2026-04-05T09:22:07.457Z"
+"10","16","lkaskda","Điện","Hòa Xuân, Đà Nẵng, Việt Nam","Đang Chờ","dkashdua8","test-data/reports/uploads/test-report-1775380954771-428.jpg","1","Nặng","78.10","2026-04-05T09:22:35.168Z"
+"11","16","sdfdf3","Giao Thông","Hòa Xuân, Đà Nẵng, Việt Nam","Đang Chờ","kạhsdiqd","test-data/reports/uploads/test-report-1775381741337-414.jpg","8","Nặng","78.22","2026-04-05T09:35:41.661Z"

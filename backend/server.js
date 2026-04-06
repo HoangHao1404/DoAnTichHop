@@ -1,0 +1,52 @@
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
+const connectDB = require("./src/config/database");
+const authRoutes = require("./src/services/auth/auth.routes");
+const reportRoutes = require("./src/routes/reportRoutes");
+const geocodeRoutes = require("./src/routes/geocodeRoutes");
+const testReportRoutes = require("./src/routes/testReportRoutes");
+
+const app = express();
+const PORT = process.env.BACKEND_PORT || 5000;
+
+// CORS - Phải đặt trước các middleware khác
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
+// Middleware - Tăng limit cho JSON và URL encoded để nhận ảnh base64
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// Kết nối MongoDB
+if (process.env.ENABLE_MONGO !== "false") {
+  connectDB();
+} else {
+  console.log("⚠️ MongoDB disabled by ENABLE_MONGO=false");
+}
+
+// Public static path for saved test images
+app.use("/test-data", express.static(path.resolve(__dirname, "../test-data")));
+
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/test-reports", testReportRoutes);
+app.use("/api/geocode", geocodeRoutes);
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🔥 Server đang chạy tại http://localhost:${PORT}`);
+});
