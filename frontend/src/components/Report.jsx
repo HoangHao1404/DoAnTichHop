@@ -13,6 +13,9 @@ import Toast from "./Toast";
 import { reportApi } from "../services/api/reportApi";
 import { useAuth } from "../context/AuthContext";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5050/api";
+
 const incidentOptions = [
   { value: "infrastructure", label: "Hạ tầng giao thông" },
   { value: "lighting", label: "Chiếu sáng công cộng" },
@@ -94,7 +97,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
           // Gọi API backend để reverse geocode (tránh CORS)
           console.log("🌍 Calling backend geocode API...");
           const response = await fetch(
-            `http://localhost:5001/api/geocode/reverse?lat=${latitude}&lon=${longitude}`
+            `${API_BASE_URL}/geocode/reverse?lat=${latitude}&lon=${longitude}`
           );
           
           if (!response.ok) {
