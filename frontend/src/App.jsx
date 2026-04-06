@@ -10,7 +10,7 @@ import "./App.css";
 
 import PublicPage from "./pages/Public_page.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import MyReports from "./pages/MyReports.jsx";
+import MyReports from "./components/MyReports.jsx";
 import SignIn from "./pages/SignIn.jsx";
 import Register from "./pages/Register.jsx";
 
