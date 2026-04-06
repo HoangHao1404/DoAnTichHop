@@ -8,6 +8,7 @@ const geocodeRoutes = require("./src/routes/geocodeRoutes");
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 5000;
+const ENABLE_MONGO = process.env.ENABLE_MONGO !== "false";
 
 // CORS - Phải đặt trước các middleware khác
 app.use(
@@ -29,7 +30,11 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Kết nối MongoDB
-connectDB();
+if (ENABLE_MONGO) {
+  connectDB();
+} else {
+  console.log("MongoDB connection is disabled via ENABLE_MONGO=false");
+}
 
 // Routes
 app.use("/api/auth", authRoutes);
