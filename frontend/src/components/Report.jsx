@@ -10,7 +10,7 @@ import {
   Image,
 } from "lucide-react";
 import Toast from "./Toast";
-import { reportApi } from "../services/reportApi";
+import { reportApi } from "../services/api/reportApi";
 import { useAuth } from "../context/AuthContext";
 
 const incidentOptions = [

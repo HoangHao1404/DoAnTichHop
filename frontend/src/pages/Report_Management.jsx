@@ -1,121 +1,95 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { reportApi } from "../services/api/reportApi";
 
 const ReportManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [reports, setReports] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // Dữ liệu mẫu báo cáo
-  const reports = [
-    {
-      id: "BCGT3101",
-      title: "Ổ gà sâu bự lung",
-      category: "Giao Thông",
-      categoryColor: "#f97316",
-      location: "35 Hưng Vương, Hải Châu",
-      status: "Đang Xử Lý",
-      statusColor: "#f97316",
-      date: "26/11/2025",
-    },
-    {
-      id: "BCD0295",
-      title: "Đèn giao thông không hoạt động",
-      category: "Điện",
-      categoryColor: "#eab308",
-      location: "136 Yên Bái, Hải Châu",
-      status: "Đang Chờ",
-      statusColor: "#9ca3af",
-      date: "13/11/2025",
-    },
-    {
-      id: "BCCX7138",
-      title: "Cây ngã chắn đường",
-      category: "Cây Xanh",
-      categoryColor: "#22c55e",
-      location: "16 Lê Lợi, Hải Châu",
-      status: "Đang Chờ",
-      statusColor: "#9ca3af",
-      date: "03/11/2025",
-    },
-    {
-      id: "BCCX7137",
-      title: "Cây ngã chắn đường",
-      category: "Cây Xanh",
-      categoryColor: "#22c55e",
-      location: "36 Hải Phòng, Hải Châu",
-      status: "Đang Chờ",
-      statusColor: "#9ca3af",
-      date: "01/11/2025",
-    },
-    {
-      id: "BCCTCC1824",
-      title: "Nhà chờ xe bus bị gãy ghế",
-      category: "CTCC",
-      categoryColor: "#a855f7",
-      location: "66 Phan Châu Trinh, Hải Châu",
-      status: "Đã Giải Quyết",
-      statusColor: "#06b6d4",
-      date: "16/08/2025",
-    },
-    {
-      id: "BCCTCC1824",
-      title: "Nhà chờ xe bus bị gãy ghế",
-      category: "CTCC",
-      categoryColor: "#a855f7",
-      location: "66 Phan Châu Trinh, Hải Châu",
-      status: "Đã Giải Quyết",
-      statusColor: "#06b6d4",
-      date: "16/08/2025",
-    },
-    {
-      id: "BCD0295",
-      title: "Đèn điện phát nổ",
-      category: "Điện",
-      categoryColor: "#eab308",
-      location: "265 Điện Biên Phủ, Liên Chiểu",
-      status: "Đã Giải Quyết",
-      statusColor: "#06b6d4",
-      date: "24/06/2025",
-    },
-  ];
+  const limit = 10;
 
-  const totalPages = 3;
+  const fetchManagementReports = async () => {
+    try {
+      setLoading(true);
+      setErrorMessage("");
 
-  // Lọc báo cáo theo search query, category và status
-  const filteredReports = reports.filter((report) => {
-    const matchesSearch = report.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         report.title.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = selectedCategory === "all" || 
-                           report.category === getCategoryName(selectedCategory);
-    
-    const matchesStatus = selectedStatus === "all" || 
-                         report.status === getStatusName(selectedStatus);
-    
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+      const response = await reportApi.getManagementReports({
+        search: searchQuery,
+        type: selectedCategory,
+        status: selectedStatus,
+        page: currentPage,
+        limit,
+      });
 
-  // Helper functions để chuyển đổi giá trị select thành tên hiển thị
-  function getCategoryName(value) {
-    const categoryMap = {
-      "giao-thong": "Giao Thông",
-      "dien": "Điện",
-      "cay-xanh": "Cây Xanh",
-      "ctcc": "CTCC"
-    };
-    return categoryMap[value] || value;
-  }
+      setReports(response?.data || []);
+      setTotalPages(response?.pagination?.totalPages || 1);
+    } catch (error) {
+      setErrorMessage(
+        error?.response?.data?.message || "Không thể tải danh sách báo cáo"
+      );
+      setReports([]);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  function getStatusName(value) {
-    const statusMap = {
-      "dang-cho": "Đang Chờ",
-      "dang-xu-ly": "Đang Xử Lý",
-      "da-giai-quyet": "Đã Giải Quyết"
-    };
-    return statusMap[value] || value;
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchManagementReports();
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedCategory, selectedStatus, currentPage]);
+
+  const getCategoryColor = (category) => {
+    switch (category) {
+      case "Giao Thông":
+        return "#f97316";
+      case "Điện":
+        return "#eab308";
+      case "Cây Xanh":
+        return "#22c55e";
+      case "CTCC":
+        return "#a855f7";
+      default:
+        return "#6b7280";
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Đang Chờ":
+        return "#9ca3af";
+      case "Đang Xử Lý":
+        return "#f97316";
+      case "Đã Giải Quyết":
+        return "#06b6d4";
+      default:
+        return "#6b7280";
+    }
+  };
+
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (e) => {
+    setSelectedStatus(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -138,7 +112,7 @@ const ReportManagement = () => {
               type="text"
               placeholder="Nhập mã báo cáo để tìm kiếm"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             />
           </div>
@@ -146,29 +120,35 @@ const ReportManagement = () => {
           {/* Category Filter */}
           <select
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            onChange={handleCategoryChange}
             className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white cursor-pointer"
           >
             <option value="all">Tất Cả Các Loại</option>
-            <option value="giao-thong">Giao Thông</option>
-            <option value="dien">Điện</option>
-            <option value="cay-xanh">Cây Xanh</option>
-            <option value="ctcc">CTCC</option>
+            <option value="Giao Thông">Giao Thông</option>
+            <option value="Điện">Điện</option>
+            <option value="Cây Xanh">Cây Xanh</option>
+            <option value="CTCC">CTCC</option>
           </select>
 
           {/* Status Filter */}
           <select
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            onChange={handleStatusChange}
             className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white cursor-pointer"
           >
             <option value="all">Tất Cả Trạng Thái</option>
-            <option value="dang-cho">Đang Chờ</option>
-            <option value="dang-xu-ly">Đang Xử Lý</option>
-            <option value="da-giai-quyet">Đã Giải Quyết</option>
+            <option value="Đang Chờ">Đang Chờ</option>
+            <option value="Đang Xử Lý">Đang Xử Lý</option>
+            <option value="Đã Giải Quyết">Đã Giải Quyết</option>
           </select>
         </div>
       </div>
+
+      {errorMessage && (
+        <div className="px-4 sm:px-6 mb-4">
+          <p className="text-sm text-red-600">{errorMessage}</p>
+        </div>
+      )}
 
       {/* Table */}
       <div className="px-4 sm:px-6">
@@ -198,14 +178,20 @@ const ReportManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredReports.length > 0 ? (
-                  filteredReports.map((report, index) => (
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="py-8 text-center text-gray-500">
+                      Đang tải dữ liệu...
+                    </td>
+                  </tr>
+                ) : reports.length > 0 ? (
+                  reports.map((report) => (
                     <tr
-                      key={index}
+                      key={report._id || report.id || report.report_id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       <td className="py-4 px-4 text-sm font-medium text-gray-900">
-                        {report.id}
+                        {report.id || report.report_id}
                       </td>
                       <td className="py-4 px-4 text-sm text-gray-700">
                         {report.title}
@@ -213,9 +199,9 @@ const ReportManagement = () => {
                       <td className="py-4 px-4">
                         <span
                           className="inline-block px-3 py-1 rounded-full text-xs font-medium text-white"
-                          style={{ backgroundColor: report.categoryColor }}
+                          style={{ backgroundColor: getCategoryColor(report.type) }}
                         >
-                          {report.category}
+                          {report.type}
                         </span>
                       </td>
                       <td className="py-4 px-4 text-sm text-gray-700">
@@ -224,13 +210,13 @@ const ReportManagement = () => {
                       <td className="py-4 px-4">
                         <span
                           className="inline-block px-3 py-1 rounded-full text-xs font-medium text-white"
-                          style={{ backgroundColor: report.statusColor }}
+                          style={{ backgroundColor: getStatusColor(report.status) }}
                         >
                           {report.status}
                         </span>
                       </td>
                       <td className="py-4 px-4 text-sm text-gray-700">
-                        {report.date}
+                        {report.time || "-"}
                       </td>
                     </tr>
                   ))
