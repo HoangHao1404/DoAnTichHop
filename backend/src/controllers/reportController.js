@@ -4,7 +4,13 @@ const Report = require("../models/Report");
 class ReportController {
   async getManagementReports(req, res) {
     try {
-      const { search = "", type = "all", status = "all", page = 1, limit = 10 } = req.query;
+      const {
+        search = "",
+        type = "all",
+        status = "all",
+        page = 1,
+        limit = 10,
+      } = req.query;
 
       const result = await ReportRepository.getManagementList({
         search,
@@ -118,16 +124,10 @@ class ReportController {
       });
 
       const reportData = {
-<<<<<<< HEAD
         id: reportStringId,
         userId: String(userId),
         report_id: nextReportId,
         user_id: Number(userId),
-=======
-        report_id: reportId,
-        id: reportId,
-        userId,
->>>>>>> origin/Quoc
         title,
         type,
         location,

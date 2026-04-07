@@ -13,6 +13,17 @@ import {
 import Toast from "./Toast";
 import { reportApi } from "../services/api/reportApi";
 import { useAuth } from "../context/AuthContext";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import { Button } from "./ui/button";
+import { Label } from "./ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 const incidentOptions = [
   { value: "infrastructure", label: "Hạ tầng giao thông" },
@@ -38,13 +49,11 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const [showCamera, setShowCamera] = useState(false);
   const [stream, setStream] = useState(null);
   const [hasFetchedLocation, setHasFetchedLocation] = useState(false);
-  const [openIncidentDropdown, setOpenIncidentDropdown] = useState(false);
   const [toast, setToast] = useState(null);
   const [dragActive, setDragActive] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const dropdownRef = useRef(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -62,16 +71,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialImage]);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenIncidentDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Removed custom dropdown click outside logic as Shadcn handles it
 
   const showErrorToast = (message) => {
     setToast({ message, type: "error" });
@@ -315,7 +315,6 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     setUploadedImages([]);
     setLocation("");
     setHasFetchedLocation(false);
-    setOpenIncidentDropdown(false);
     setDragActive(false);
   };
 
@@ -411,7 +410,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-2">
               {/* LEFT */}
-              <div className="bg-[#f8f8f8] px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
+              <div className="bg-white px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
                 <div className="max-w-[520px]">
                   <h2 className="text-[24px] font-bold leading-tight text-[#111111] sm:text-[28px]">
                     Tạo báo cáo sự cố
@@ -424,83 +423,61 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
                   <div className="mt-6 space-y-5">
                     <div>
-                      <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                      <Label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide leading-normal text-[#2b2b2b]">
                         Tiêu đề sự cố
-                      </label>
-                      <input
+                      </Label>
+                      <Input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Mô tả ngắn gọn sự cố"
-                        className="h-11 w-full rounded-xl border border-transparent bg-[#ececec] px-4 text-sm text-[#222] outline-none transition placeholder:text-[#9b9b9b] focus:border-[#5d5fef] focus:bg-white focus:ring-4 focus:ring-[#5d5fef]/10"
+                        className="h-11 py-0 w-full rounded-xl border border-transparent !bg-[#f4f5f6] px-4 text-sm text-[#222] outline-none transition placeholder:text-[#9b9b9b] focus:border-[#5d5fef] focus:!bg-white focus:ring-4 focus:ring-[#5d5fef]/10 shadow-none"
                       />
                     </div>
 
-                    <div ref={dropdownRef}>
-                      <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                    <div>
+                      <Label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide leading-normal text-[#2b2b2b]">
                         Loại sự cố
-                      </label>
+                      </Label>
 
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setOpenIncidentDropdown((prev) => !prev)
-                          }
-                          className={`flex h-11 w-full items-center justify-between rounded-xl border px-4 text-left text-sm transition focus:outline-none focus:ring-4 focus:ring-[#5d5fef]/10 ${
+                      <Select
+                        value={incidentType}
+                        onValueChange={setIncidentType}
+                      >
+                        <SelectTrigger
+                          style={{ width: "100%", height: "44px" }}
+                          className={`flex !h-11 py-0 items-center justify-between rounded-xl border px-4 text-left text-sm transition focus:outline-none focus:ring-4 focus:ring-[#5d5fef]/10 hover:!bg-[#e8e9eb] [&_svg]:!size-5 [&_svg]:!text-[#9b9b9b] [&_svg]:opacity-100 shadow-none ${
                             incidentType
-                              ? "border-transparent bg-[#ececec] text-[#222]"
-                              : "border-transparent bg-[#ececec] text-[#9b9b9b]"
+                              ? "border-transparent !bg-[#f4f5f6] text-[#222]"
+                              : "border-transparent !bg-[#f4f5f6] text-[#9b9b9b] data-[placeholder]:!text-[#9b9b9b]"
                           }`}
                         >
-                          <span>
-                            {incidentType
-                              ? incidentOptions.find(
-                                  (item) => item.value === incidentType,
-                                )?.label
-                              : "Chọn loại sự cố"}
-                          </span>
-                          <ChevronDown
-                            className={`h-5 w-5 text-[#9b9b9b] transition-transform ${
-                              openIncidentDropdown ? "rotate-180" : ""
-                            }`}
-                          />
-                        </button>
-
-                        {openIncidentDropdown && (
-                          <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 max-h-[200px] overflow-y-auto overflow-x-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_12px_30px_rgba(0,0,0,0.12)] custom-scrollbar">
-                            {incidentOptions.map((option) => (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => {
-                                  setIncidentType(option.value);
-                                  setOpenIncidentDropdown(false);
-                                }}
-                                className={`w-full px-4 py-3 text-left text-sm transition hover:bg-[#f5f6ff] ${
-                                  incidentType === option.value
-                                    ? "bg-[#f5f6ff] font-semibold text-[#3b3df5]"
-                                    : "text-[#333]"
-                                }`}
-                              >
-                                {option.label}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                          <SelectValue placeholder="Chọn loại sự cố" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[10000] max-h-[200px] overflow-y-auto overflow-x-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_12px_30px_rgba(0,0,0,0.12)] custom-scrollbar">
+                          {incidentOptions.map((option) => (
+                            <SelectItem
+                              key={option.value}
+                              value={option.value}
+                              className={`w-full cursor-pointer px-4 py-3 text-left text-sm transition hover:bg-[#f5f6ff] focus:bg-[#f5f6ff] data-[state=checked]:bg-[#f5f6ff] data-[state=checked]:font-semibold data-[state=checked]:text-[#3b3df5]`}
+                            >
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    <div>
-                      <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                    <div className="pt-2">
+                      <Label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide leading-normal text-[#2b2b2b]">
                         Mô tả chi tiết
-                      </label>
-                      <textarea
+                      </Label>
+                      <Textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         rows={6}
-                        placeholder="Mô tả chi tiết về sự cố: Tình trạng hiện tại, mức độ nghiêm trọng, các yếu tố liên quan...."
-                        className="w-full resize-none rounded-2xl border border-transparent bg-[#ececec] px-4 py-3.5 text-sm leading-5 text-[#222] outline-none transition placeholder:text-[#9b9b9b] focus:border-[#5d5fef] focus:bg-white focus:ring-4 focus:ring-[#5d5fef]/10"
+                        placeholder="Mô tả chi tiết về sự cố: Tình trạng hiện tại, mức độ nghiêm trọng, các yếu tố liên quan..."
+                        className="w-full min-h-[140px] resize-none rounded-2xl border border-transparent !bg-[#f4f5f6] px-4 py-3.5 text-sm leading-5 text-[#222] outline-none transition placeholder:text-[#9b9b9b] focus:border-[#5d5fef] focus:!bg-white focus:ring-4 focus:ring-[#5d5fef]/10 shadow-none"
                       />
                     </div>
                   </div>
@@ -508,7 +485,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
               </div>
 
               {/* RIGHT */}
-              <div className="flex flex-col bg-white px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
+              <div className="flex flex-col bg-[#f8f9fa] px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
                 <div className="mx-auto flex h-full w-full max-w-[520px] flex-col">
                   <div>
                     <h3 className="text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
@@ -624,48 +601,48 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                   </div>
 
                   <div className="mt-5">
-                    <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                    <Label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide leading-normal text-[#2b2b2b]">
                       Vị trí sự cố
-                    </label>
+                    </Label>
 
                     <div className="relative">
                       <div className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center">
                         <MapPin className="h-4 w-4 text-[#8a8a8a]" />
                       </div>
-                      <input
+                      <Input
                         type="text"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
                         disabled={locationLoading}
-                        placeholder="Nhập vị trí sự cố (Ví dụ: 03 Quang Trung...)"
-                        className="h-11 w-full rounded-xl border border-transparent bg-[#f2f2f2] pl-10 pr-4 text-sm text-[#222] outline-none transition placeholder:text-[#9b9b9b] focus:border-[#5d5fef] focus:bg-white focus:ring-4 focus:ring-[#5d5fef]/10 disabled:cursor-not-allowed disabled:opacity-70"
+                        placeholder="Nhập vị trí sự cố (Ví dụ: 03 Quang Trung, Hải Châu, ĐN)"
+                        className="h-11 py-0 w-full rounded-xl border border-transparent !bg-white !pl-10 pr-4 text-sm text-[#222] outline-none transition placeholder:text-[#9b9b9b] focus:border-[#5d5fef] focus:ring-4 focus:ring-[#5d5fef]/10 disabled:cursor-not-allowed disabled:opacity-70 shadow-none"
                       />
                     </div>
 
-                    <div className="mt-2.5 flex items-start gap-1.5 text-[11px] leading-4 text-[#8d8d8d]">
+                    <div className="mt-2.5 flex items-start gap-1.5 leading-4 text-[#8d8d8d]">
                       <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[#9b9b9b]" />
-                      <p>
-                        Vui lòng nhập chính xác vị trí của sự cố để thuận tiện
-                        cho đội xử lý.
+                      <p className="whitespace-nowrap text-[10.5px] tracking-tight">
+                        Vui lòng nhập chính xác vị trí của sự cố để thuận tiện cho đội xử lý tiến hành khắc phục.
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-auto flex flex-col-reverse gap-2 pt-6 sm:flex-row sm:justify-end">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={handleCancel}
-                      className="inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold text-[#555] transition hover:bg-gray-100"
+                      className="inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold text-[#555] transition hover:bg-gray-100 hover:text-gray-600 bg-transparent"
                     >
                       Huỷ bỏ
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                       type="submit"
-                      className="inline-flex h-11 items-center justify-center rounded-xl bg-[#3f39f5] px-7 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(63,57,245,0.28)] transition hover:bg-[#322cf0]"
+                      className="inline-flex h-11 items-center justify-center rounded-xl bg-[#3f39f5] px-7 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(63,57,245,0.28)] transition hover:bg-[#322cf0] hover:text-white"
                     >
                       Gửi báo cáo
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
