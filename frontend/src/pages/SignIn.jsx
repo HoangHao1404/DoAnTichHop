@@ -36,7 +36,9 @@ const SignIn = () => {
         setToast({ message: `Chào mừng ${res.data.user.full_name || 'bạn'}!`, type: "success" });
         
         const userRole = res.data.user.role;
-        if (userRole === 'admin') {
+        if (userRole === "maintenance") {
+          setTimeout(() => navigate("/admin/maintenanceteam"), 1500);
+        } else if (userRole === "admin" || userRole === "manager") {
           setTimeout(() => navigate("/admin/overview"), 1500);
         } else {
           setTimeout(() => navigate("/dashboard"), 1500);
@@ -67,11 +69,11 @@ const SignIn = () => {
         
         // Kiểm tra role để điều hướng
         const userRole = res.data.user.role;
-        if (userRole === 'admin') {
-          // Admin -> trang Overview
+        if (userRole === "maintenance") {
+          setTimeout(() => navigate("/admin/maintenanceteam"), 1500);
+        } else if (userRole === "admin" || userRole === "manager") {
           setTimeout(() => navigate("/admin/overview"), 1500);
         } else {
-          // User thường -> trang Dashboard
           setTimeout(() => navigate("/dashboard"), 1500);
         }
       } else {
