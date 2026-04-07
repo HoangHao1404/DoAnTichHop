@@ -84,42 +84,45 @@ const AdminSidebar = () => {
 
   return (
     <>
-      {showLogoutConfirm && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowLogoutConfirm(false);
-            }
-          }}
-        >
+      {showLogoutConfirm &&
+        portalTarget &&
+        createPortal(
           <div
-            className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[2500] flex items-center justify-center bg-black/50 px-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowLogoutConfirm(false);
+              }
+            }}
           >
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">
-              Xác nhận đăng xuất
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-medium"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors font-medium"
-              >
-                Đăng xuất
-              </button>
+            <div
+              className="w-full max-w-[420px] rounded-2xl bg-white p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-3xl font-semibold text-gray-800">
+                Xác nhận đăng xuất
+              </h3>
+              <p className="mt-3 text-base leading-6 text-gray-600">
+                Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?
+              </p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="rounded-lg bg-red-500 px-4 py-2 font-medium text-white transition-colors hover:bg-red-600"
+                >
+                  Đăng xuất
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          portalTarget,
+        )}
 
       <div className="fixed left-3 top-4 z-30">
         <Sidebar

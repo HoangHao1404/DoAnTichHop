@@ -1,20 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  Map,
-  FolderOpen,
-  Bell,
-  LogOut,
-  User,
-  BellRing,
-  CheckCheck,
-  X,
-  AlertTriangle,
-  FileText,
-  ShieldAlert,
-  Clock3,
-} from "lucide-react";
+import { Map, FolderOpen, Bell, LogOut, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { reportApi } from "../services/api/reportApi";
@@ -24,10 +11,7 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "./ui/sidebar";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { Card, CardContent } from "./ui/card";
-import { ScrollArea } from "./ui/scroll-area";
+import NotificationPanel from "./NotificationPanel";
 
 function formatRelativeTime(inputDate) {
   if (!inputDate) return "Vừa xong";
@@ -83,7 +67,8 @@ const UserSidebar = () => {
       const reports = Array.isArray(response?.data) ? response.data : [];
 
       const mapped = reports.slice(0, 30).map((report) => {
-        const reportId = report?.id || report?.report_id || report?._id || "N/A";
+        const reportId =
+          report?.id || report?.report_id || report?._id || "N/A";
         const status = report?.status || "Đang Chờ";
         const meta = mapStatusToNotificationMeta(status);
 
@@ -176,66 +161,47 @@ const UserSidebar = () => {
     setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
   };
 
-  const getNotificationIcon = (type) => {
-    if (type === "warning") return AlertTriangle;
-    if (type === "report") return FileText;
-    return ShieldAlert;
-  };
-
-  const getLevelBadgeClass = (level) => {
-    if (level === "critical") {
-      return "bg-red-100 text-red-700";
-    }
-    if (level === "low") {
-      return "bg-emerald-100 text-emerald-700";
-    }
-    return "bg-slate-100 text-slate-700";
-  };
-
-  const getLevelLabel = (level) => {
-    if (level === "critical") return "Khẩn cấp";
-    if (level === "low") return "Thông tin";
-    return "Bình thường";
-  };
-
   return (
     <>
-      {showLogoutConfirm && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowLogoutConfirm(false);
-            }
-          }}
-        >
+      {showLogoutConfirm &&
+        portalTarget &&
+        createPortal(
           <div
-            className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[2500] flex items-center justify-center bg-black/50 px-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowLogoutConfirm(false);
+              }
+            }}
           >
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">
-              Xác nhận đăng xuất
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-medium"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors font-medium"
-              >
-                Đăng xuất
-              </button>
+            <div
+              className="w-full max-w-[420px] rounded-2xl bg-white p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-3xl font-semibold text-gray-800">
+                Xác nhận đăng xuất
+              </h3>
+              <p className="mt-3 text-base leading-6 text-gray-600">
+                Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?
+              </p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="rounded-lg bg-red-500 px-4 py-2 font-medium text-white transition-colors hover:bg-red-600"
+                >
+                  Đăng xuất
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          portalTarget,
+        )}
 
       {/* ICON-ONLY SIDEBAR - Floating */}
       <Sidebar
@@ -366,160 +332,15 @@ const UserSidebar = () => {
           portalTarget,
         )}
 
-      {showNotificationsPopup &&
-        portalTarget &&
-        createPortal(
-          <>
-            <div
-              className="fixed inset-0 z-[1900]"
-              onClick={() => setShowNotificationsPopup(false)}
-            />
-
-            <div
-              className="fixed left-24 top-20 z-[2000] w-[380px] max-w-[calc(100vw-7.5rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="border-b border-gray-100 bg-gradient-to-r from-slate-50 via-white to-blue-50 px-4 py-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                      <BellRing className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        Thông báo
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Mã giao diện b1IfkE0pY
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowNotificationsPopup(false)}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-gray-600">
-                    <span className="font-semibold text-gray-900">
-                      {unreadCount}
-                    </span>{" "}
-                    chưa đọc
-                  </p>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="h-7 rounded-full border-gray-200 px-3 text-xs"
-                    onClick={markAllRead}
-                    disabled={unreadCount === 0}
-                  >
-                    <CheckCheck className="h-3.5 w-3.5" />
-                    Đánh dấu tất cả
-                  </Button>
-                </div>
-              </div>
-
-              <ScrollArea className="h-[430px]">
-                <div className="space-y-3 p-3">
-                  {loadingNotifications && notifications.length === 0 && (
-                    <Card size="sm" className="border bg-white py-0">
-                      <CardContent className="px-3 py-4 text-xs text-gray-500">
-                        Đang tải thông báo...
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {!loadingNotifications && notifications.length === 0 && (
-                    <Card size="sm" className="border bg-white py-0">
-                      <CardContent className="px-3 py-4 text-xs text-gray-500">
-                        Chưa có thông báo nào từ dữ liệu báo cáo.
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {notifications.map((item) => {
-                    const NoticeIcon = getNotificationIcon(item.type);
-
-                    return (
-                      <Card
-                        size="sm"
-                        key={item.id}
-                        className={`border bg-white py-0 ring-0 transition-all duration-200 hover:-translate-y-px hover:shadow-md ${
-                          item.isRead
-                            ? "border-gray-200 shadow-[0_2px_10px_rgba(15,23,42,0.05)]"
-                            : "border-blue-300 shadow-[0_8px_20px_rgba(59,130,246,0.14)]"
-                        }`}
-                      >
-                        <CardContent className="px-3 py-3">
-                          <div className="mb-2 flex items-start gap-2">
-                            <span
-                              className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-                                item.isRead
-                                  ? "bg-gray-100 text-gray-500"
-                                  : "bg-blue-100 text-blue-600"
-                              }`}
-                            >
-                              <NoticeIcon className="h-3.5 w-3.5" />
-                            </span>
-
-                            <div className="min-w-0 flex-1">
-                              <div className="mb-1 flex items-center gap-2">
-                                <p className="truncate text-sm font-semibold text-gray-900">
-                                  {item.title}
-                                </p>
-                                {!item.isRead && (
-                                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500" />
-                                )}
-                              </div>
-
-                              <p className="mb-2 line-clamp-2 text-xs leading-relaxed text-gray-700">
-                                {item.message}
-                              </p>
-
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-1.5">
-                                  <Badge
-                                    variant="outline"
-                                    className={`h-auto border-0 px-2 py-0.5 text-[10px] ${getLevelBadgeClass(item.level)}`}
-                                  >
-                                    {getLevelLabel(item.level)}
-                                  </Badge>
-                                  <span className="inline-flex items-center gap-1 text-[11px] text-gray-500">
-                                    <Clock3 className="h-3 w-3" />
-                                    {item.createdAt}
-                                  </span>
-                                </div>
-
-                                {!item.isRead && (
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="link"
-                                    className="h-auto px-0 text-[11px] text-slate-700 hover:text-slate-900"
-                                    onClick={() => markNotificationRead(item.id)}
-                                  >
-                                    Đã đọc
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
-            </div>
-          </>,
-          portalTarget,
-        )}
+      <NotificationPanel
+        open={showNotificationsPopup}
+        notifications={notifications}
+        loading={loadingNotifications}
+        unreadCount={unreadCount}
+        onClose={() => setShowNotificationsPopup(false)}
+        onMarkAllRead={markAllRead}
+        onMarkRead={markNotificationRead}
+      />
     </>
   );
 };
