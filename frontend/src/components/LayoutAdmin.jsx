@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import AdminSidebar from "./AdminSidebar"; 
+import AdminSidebar from "./AdminSidebar";
 import NavbarAdmin from "./NavBar";
 import { SidebarProvider } from "./ui/sidebar";
 
@@ -14,12 +14,12 @@ const LayoutAdmin = () => {
         {/* Main content area with margin for floating sidebar */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Navbar */}
-          <div className="flex-shrink-0 p-7 pb-2 ml-80">
+          <div className="flex-shrink-0 p-7 pb-2 ml-24">
             <NavbarAdmin />
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6 pt-2 ml-80">
+          <div className="flex-1 overflow-y-auto p-6 pt-2 ml-24">
             <Outlet />
           </div>
         </div>

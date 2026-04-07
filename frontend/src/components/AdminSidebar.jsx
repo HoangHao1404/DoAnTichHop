@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Map,
@@ -8,9 +9,10 @@ import {
   BarChart3,
   LogOut,
   User,
+  Tag,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import Toast from "./Toast";
+import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,
@@ -24,44 +26,44 @@ const AdminSidebar = () => {
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [toast, setToast] = useState(null);
+  const portalTarget = typeof document !== "undefined" ? document.body : null;
 
   const menuItems = [
     {
       id: "map",
       path: "/admin/overview",
       icon: <Map className="h-5 w-5" />,
-      label: "Bản Đồ",
+      label: "Bản đồ",
     },
     {
       id: "receive",
       path: "/admin/recept-form",
       icon: <Inbox className="h-5 w-5" />,
-      label: "Đơn Tiếp Nhận",
+      label: "Đơn tiếp nhận",
     },
     {
       id: "routes",
-      path: "/admin/routes",
+      path: "/admin/maintenanceteam",
       icon: <Shield className="h-5 w-5" />,
-      label: "Quản Lý Đội Xử Lý",
+      label: "Quản lý đội xử lý",
     },
     {
       id: "users",
       path: "/admin/users",
       icon: <Users className="h-5 w-5" />,
-      label: "Quản Lý Người Dùng",
+      label: "Quản lý người dùng",
     },
     {
       id: "categories",
-      path: "/admin/categories",
-      icon: <Shield className="h-5 w-5" />,
-      label: "Quản Lý Loại Sự Cố",
+      path: "/admin/incident-types",
+      icon: <Tag className="h-5 w-5" />,
+      label: "Quản lý loại sự cố",
     },
     {
       id: "stats",
-      path: "/admin/stats",
+      path: "/admin/statistics",
       icon: <BarChart3 className="h-5 w-5" />,
-      label: "Thống Kê",
+      label: "Thống kê",
     },
   ];
 
@@ -73,7 +75,7 @@ const AdminSidebar = () => {
 
   const handleLogout = () => {
     setShowLogoutConfirm(false);
-    setToast({ message: "Đăng xuất thành công!", type: "success" });
+    toast.success("Đăng xuất thành công!");
     setTimeout(() => {
       logout();
       navigate("/signin");
@@ -82,14 +84,6 @@ const AdminSidebar = () => {
 
   return (
     <>
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
       {showLogoutConfirm && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]"
@@ -127,108 +121,120 @@ const AdminSidebar = () => {
         </div>
       )}
 
-      {/* ADMIN SIDEBAR - Floating Left */}
-      <div className="fixed left-6 top-1/2 transform -translate-y-1/2 h-[95vh] w-64 z-30">
-        <Sidebar className="rounded-3xl border border-gray-200 bg-white shadow-lg h-full overflow-hidden">
-          <SidebarHeader className="flex items-center justify-start px-6 py-8">
-            <div className="flex items-center gap-1">
-              <span className="text-3xl font-bold text-blue-600">S</span>
-              <span className="text-2xl font-semibold text-black">afin</span>
+      <div className="fixed left-3 top-4 z-30">
+        <Sidebar
+          className="w-20 rounded-2xl border border-gray-200 overflow-hidden shadow-lg"
+          style={{ height: "calc(100vh - 32px)" }}
+        >
+          <SidebarHeader className="flex items-center justify-center pb-4">
+            <div className="flex items-center gap-0.5">
+              <span className="text-2xl font-bold text-blue-600">S</span>
+              <span className="text-lg font-semibold text-black">afin</span>
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="px-0">
-            <nav className="space-y-2 px-3">
-              {menuItems.map((item) => (
+          <SidebarContent className="flex flex-col items-center py-4 gap-4">
+            {menuItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
                 <button
                   key={item.id}
                   onClick={() => navigate(item.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    location.pathname === item.path
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                  title={item.label}
+                  className={`w-10 h-10 flex items-center justify-center rounded-lg transition-all ${
+                    isActive
+                      ? "bg-black text-white shadow-md"
+                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                   }`}
                 >
                   {item.icon}
-                  <span className="text-sm font-medium">{item.label}</span>
                 </button>
-              ))}
-            </nav>
+              );
+            })}
           </SidebarContent>
 
-          <SidebarFooter className="px-6 py-8 border-t border-gray-200">
-            <div className="relative">
-              {/* User Info */}
-              <button
-                onClick={() => setShowAvatarMenu(!showAvatarMenu)}
-                className="w-full flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+          <SidebarFooter className="flex flex-col items-center gap-2 py-4 relative">
+            <button
+              onClick={() => setShowAvatarMenu(!showAvatarMenu)}
+              title={userInfo.name}
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold text-sm hover:shadow-md transition-all relative z-40"
+            >
+              {userInfo.avatar ? (
+                <img
+                  src={userInfo.avatar}
+                  alt={userInfo.name}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                userInfo.name.charAt(0).toUpperCase()
+              )}
+            </button>
+          </SidebarFooter>
+        </Sidebar>
+      </div>
+
+      {showAvatarMenu &&
+        portalTarget &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[1900]"
+              onClick={() => setShowAvatarMenu(false)}
+            />
+
+            <div
+              className="fixed bottom-[4.5rem] left-24 z-[2000] w-56 rounded-xl border border-gray-100 bg-white shadow-lg"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 border-b border-gray-100 p-4">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-base font-semibold text-white">
                   {userInfo.avatar ? (
                     <img
                       src={userInfo.avatar}
                       alt={userInfo.name}
-                      className="w-full h-full object-cover rounded-full"
+                      className="h-full w-full rounded-full object-cover"
                     />
                   ) : (
                     userInfo.name.charAt(0).toUpperCase()
                   )}
                 </div>
-                <div className="flex-1 text-left min-w-0">
-                  <p className="font-semibold text-gray-800 text-sm truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-gray-800">
                     {userInfo.name}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="truncate text-sm text-gray-500">
                     {userInfo.email}
                   </p>
                 </div>
-              </button>
+              </div>
 
-              {/* Dropdown Menu */}
-              {showAvatarMenu && (
-                <>
-                  {/* Close backdrop */}
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowAvatarMenu(false)}
-                  />
+              <div className="py-2">
+                <button
+                  onClick={() => {
+                    setShowAvatarMenu(false);
+                    navigate("/profile");
+                  }}
+                  className="w-full px-4 py-2 flex items-center gap-3 text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                >
+                  <User className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium">Thông tin cá nhân</span>
+                </button>
 
-                  {/* Dropdown */}
-                  <div
-                    className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-xl shadow-lg border border-gray-100 z-50"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* Menu Items */}
-                    <div className="py-2">
-                      <button
-                        onClick={() => {
-                          setShowAvatarMenu(false);
-                          navigate("/profile");
-                        }}
-                        className="w-full px-4 py-2 flex items-center gap-3 text-gray-700 hover:bg-gray-50 transition-colors text-left text-sm"
-                      >
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">Thông tin cá nhân</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setShowAvatarMenu(false);
-                          setShowLogoutConfirm(true);
-                        }}
-                        className="w-full px-4 py-2 flex items-center gap-3 text-red-600 hover:bg-red-50 transition-colors text-left text-sm"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span className="font-medium">Đăng xuất</span>
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
+                <button
+                  onClick={() => {
+                    setShowAvatarMenu(false);
+                    setShowLogoutConfirm(true);
+                  }}
+                  className="w-full px-4 py-2 flex items-center gap-3 text-red-600 hover:bg-red-50 transition-colors text-left"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="text-sm font-medium">Đăng xuất</span>
+                </button>
+              </div>
             </div>
-          </SidebarFooter>
-        </Sidebar>
-      </div>
+          </>,
+          portalTarget,
+        )}
     </>
   );
 };
