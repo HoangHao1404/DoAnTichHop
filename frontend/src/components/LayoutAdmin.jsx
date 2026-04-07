@@ -14,7 +14,7 @@ const LayoutAdmin = () => {
         {/* Main content area with margin for floating sidebar */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Navbar */}
-          <div className="flex-shrink-0 p-7 pb-2 ml-80">
+          <div className="flex-shrink-0 pt-6 px-6 ml-80 rounded-full">
             <NavbarAdmin />
           </div>
 

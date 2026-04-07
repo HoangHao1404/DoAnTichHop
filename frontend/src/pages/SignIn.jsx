@@ -10,6 +10,8 @@ import authApi from "../services/api/authApi";
 import { useAuth } from "../context/AuthContext";
 import Toast from "../components/Toast";
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
 const SignIn = () => {
   const [showPass, setShowPass] = useState(false);
   const [phone, setPhone] = useState("");
@@ -196,18 +198,24 @@ const SignIn = () => {
           </div>
 
           {/* GOOGLE Đăng nhập */}
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <div className="w-full">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                useOneTap={false}
-                theme="outline"
-                size="large"
-                text="signin_with"
-              />
-            </div>
-          </GoogleOAuthProvider>
+          {GOOGLE_CLIENT_ID ? (
+            <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+              <div className="w-full">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  useOneTap={false}
+                  theme="outline"
+                  size="large"
+                  text="signin_with"
+                />
+              </div>
+            </GoogleOAuthProvider>
+          ) : (
+            <p className="text-center text-xs text-amber-600">
+              Google login chưa được cấu hình (thiếu VITE_GOOGLE_CLIENT_ID).
+            </p>
+          )}
 
           <p className="text-center text-sm mt-5">
             Don’t Have An Account Yet?{" "}

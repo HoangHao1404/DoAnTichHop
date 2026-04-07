@@ -516,45 +516,32 @@ export function NavbarAdmin() {
         </div>
       )}
 
-      <header
-        className="relative z-40 mx-6 mt-6 mb-6 rounded-2xl shadow-md"
-      >
+      <header className="relative z-40">
         <div
-          className="bg-white/95 backdrop-blur border border-gray-200 
-                   px-6 py-4 flex items-center justify-between gap-4 flex-wrap rounded-2xl"
+          className="bg-white border border-gray-200 rounded-2xl shadow-md
+                   px-6 py-4 flex items-center justify-between gap-6 flex-nowrap"
           style={{ minHeight: "70px" }}
         >
-          {/* LOCATION + USER INFO */}
-          <div className="flex items-center gap-4">
-            <div
-              className="flex items-center gap-2 rounded-full 
-                          bg-gray-100/90 
-                          text-gray-700 
-                          px-3 py-2 shadow-sm text-sm"
-            >
-              <MapPin className="h-4 w-4 opacity-70" />
-              <span className="font-medium">{location.city}</span>
-              {location.country && (
-                <>
-                  <span className="text-gray-400">|</span>
-                  <span className="text-xs">{formatDate(currentDate)}</span>
-                </>
-              )}
+          {/* LEFT SIDE - Location + Date + Greeting ALL IN ONE ROW */}
+          <div className="flex items-center gap-8 flex-nowrap">
+            {/* Location & Date */}
+            <div className="flex items-center gap-2 text-sm text-gray-600 whitespace-nowrap">
+              <MapPin size={16} className="text-gray-600 flex-shrink-0" />
+              <span className="font-medium text-gray-700">{location.city}</span>
+              <span className="text-gray-400">|</span>
+              <span>{formatDate(currentDate)}</span>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>
-                Xin chào,{" "}
-                <span className="font-semibold text-gray-800">
-                  {user?.full_name || "Người dùng"}
-                </span>{" "}
-                👋
-              </span>
+            {/* Greeting */}
+            <div className="flex items-center gap-2 text-sm text-gray-700 whitespace-nowrap">
+              <span>Xin chào,</span>
+              <span className="font-bold">{user?.full_name || "AdminQ"}</span>
+              <span>😊</span>
             </div>
           </div>
 
-          {/* RIGHT ACTIONS */}
-          <div className="flex items-center gap-3">
+          {/* RIGHT SIDE - Notification & User */}
+          <div className="flex items-center gap-3 flex-shrink-0">
             {/* 🔔 Notification */}
             <div className="relative" ref={notiRef}>
               <button
@@ -573,7 +560,7 @@ export function NavbarAdmin() {
               {openNoti && (
                 <div
                   className="absolute right-0 mt-2 w-80 rounded-2xl border border-gray-200 
-                           bg-white/95 backdrop-blur shadow-lg p-2"
+                           bg-white/95 backdrop-blur shadow-lg p-2 z-50"
                 >
                   <div className="flex items-center justify-between px-2 py-1">
                     <p className="text-sm font-semibold text-gray-800">Thông báo</p>
@@ -638,11 +625,11 @@ export function NavbarAdmin() {
                 onClick={() => setOpenUser((v) => !v)}
                 className="group flex items-center gap-3 
                          rounded-full 
-                         bg-amber-50 
-                         px-4 py-2 shadow-sm 
-                         hover:bg-amber-100"
+                         bg-gray-100 
+                         px-3 py-2 shadow-sm 
+                         hover:bg-gray-200"
               >
-                <User className="h-4 w-4" />
+                <User className="h-5 w-5 text-gray-700" />
               </button>
 
               {openUser && (
