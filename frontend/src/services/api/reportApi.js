@@ -1,12 +1,10 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:5001/api/reports";
+import axiosClient from "./axiosClient";
 
 export const reportApi = {
   // Dữ liệu cho trang quản lý báo cáo (có lọc + phân trang)
   getManagementReports: async (params = {}) => {
     try {
-      const response = await axios.get(`${API_URL}/management`, { params });
+      const response = await axiosClient.get(`/reports/management`, { params });
       return response.data;
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu quản lý báo cáo:", error);
@@ -17,7 +15,7 @@ export const reportApi = {
   // Lấy tất cả báo cáo
   getAllReports: async () => {
     try {
-      const response = await axios.get(API_URL);
+      const response = await axiosClient.get("/reports");
       return response.data;
     } catch (error) {
       console.error("Lỗi khi lấy báo cáo:", error);
@@ -28,7 +26,7 @@ export const reportApi = {
   // Lấy 1 báo cáo theo ID
   getReportById: async (id) => {
     try {
-      const response = await axios.get(`${API_URL}/${id}`);
+      const response = await axiosClient.get(`/reports/${id}`);
       return response.data;
     } catch (error) {
       console.error("Lỗi khi lấy chi tiết báo cáo:", error);
@@ -39,7 +37,7 @@ export const reportApi = {
   // Lấy báo cáo theo userId
   getReportsByUserId: async (userId) => {
     try {
-      const response = await axios.get(`${API_URL}/user/${userId}`);
+      const response = await axiosClient.get(`/reports/user/${userId}`);
       return response.data;
     } catch (error) {
       console.error("Lỗi khi lấy báo cáo của user:", error);
@@ -47,10 +45,21 @@ export const reportApi = {
     }
   },
 
+  // Alias cho test workflow (dùng cùng endpoint hiện tại)
+  getTestReportsByUserId: async (userId) => {
+    try {
+      const response = await axiosClient.get(`/reports/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi lấy báo cáo test của user:", error);
+      throw error;
+    }
+  },
+
   // Tạo báo cáo mới
   createReport: async (reportData) => {
     try {
-      const response = await axios.post(API_URL, reportData);
+      const response = await axiosClient.post("/reports", reportData);
       return response.data;
     } catch (error) {
       console.error("Lỗi khi tạo báo cáo:", error);

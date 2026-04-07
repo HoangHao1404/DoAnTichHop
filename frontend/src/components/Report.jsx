@@ -25,6 +25,9 @@ import {
   SelectValue,
 } from "./ui/select";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5050/api";
+
 const incidentOptions = [
   { value: "infrastructure", label: "Hạ tầng giao thông" },
   { value: "lighting", label: "Chiếu sáng công cộng" },
@@ -622,7 +625,8 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                     <div className="mt-2.5 flex items-start gap-1.5 leading-4 text-[#8d8d8d]">
                       <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[#9b9b9b]" />
                       <p className="whitespace-nowrap text-[10.5px] tracking-tight">
-                        Vui lòng nhập chính xác vị trí của sự cố để thuận tiện cho đội xử lý tiến hành khắc phục.
+                        Vui lòng nhập chính xác vị trí của sự cố để thuận tiện
+                        cho đội xử lý tiến hành khắc phục.
                       </p>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 
 import banner from "../image/banner-public.jpeg";
 import comle from "../image/comle.png";
@@ -8,6 +9,8 @@ import cone from "../image/trafficCone.png";
 import authApi from "../services/api/authApi";
 import { useAuth } from "../context/AuthContext";
 import Toast from "../components/Toast";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const SignIn = () => {
   const [showPass, setShowPass] = useState(false);
@@ -20,10 +23,43 @@ const SignIn = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      const token = credentialResponse.credential;
+      
+      const res = await authApi.googleLogin(token);
+      
+      if (res.data.success) {
+        // Login thẳng
+        login(res.data.token, res.data.user);
+        setToast({ message: `Chào mừng ${res.data.user.full_name || 'bạn'}!`, type: "success" });
+        
+        const userRole = res.data.user.role;
+        if (userRole === "maintenance") {
+          setTimeout(() => navigate("/admin/maintenanceteam"), 1500);
+        } else if (userRole === "admin" || userRole === "manager") {
+          setTimeout(() => navigate("/admin/overview"), 1500);
+        } else {
+          setTimeout(() => navigate("/dashboard"), 1500);
+        }
+      }
+    } catch (err) {
+      setToast({ 
+        message: err.response?.data?.message || "Google login thất bại",
+        type: "error" 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setToast({ message: "Google login bị lỗi, vui lòng thử lại", type: "error" });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
-
     try {
       setLoading(true);
       const res = await authApi.login(phone, password);
@@ -33,11 +69,11 @@ const SignIn = () => {
         
         // Kiểm tra role để điều hướng
         const userRole = res.data.user.role;
-        if (userRole === 'admin') {
-          // Admin -> trang Overview
+        if (userRole === "maintenance") {
+          setTimeout(() => navigate("/admin/maintenanceteam"), 1500);
+        } else if (userRole === "admin" || userRole === "manager") {
           setTimeout(() => navigate("/admin/overview"), 1500);
         } else {
-          // User thường (citizen/manager) -> trang Dashboard
           setTimeout(() => navigate("/dashboard"), 1500);
         }
       } else {
@@ -60,7 +96,7 @@ const SignIn = () => {
         />
       )}
       <div className="w-full h-screen flex flex-col md:flex-row select-none overflow-hidden">
-      {/* LEFT SIDE (desktop only) */}
+      {/* Dành cho mt để bàn */}
       <div className="hidden md:flex w-1/2 min-h-screen relative justify-center items-center overflow-hidden">
         <img
           src={banner}
@@ -80,7 +116,7 @@ const SignIn = () => {
         </h1>
       </div>
 
-      {/* RIGHT SIDE (FORM - always visible) */}
+     
       <div className="w-full md:w-1/2 min-h-screen bg-white relative flex justify-center items-center py-10">
         <img
           src={comle}
@@ -156,6 +192,33 @@ const SignIn = () => {
             </button>
           </form>
 
+          {/* TIẾP TỤC */}
+          <div className="flex items-center my-6">
+            <div className="flex-1 border-t border-gray-300"></div>
+            <span className="px-3 text-gray-500 text-sm">or continue with</span>
+            <div className="flex-1 border-t border-gray-300"></div>
+          </div>
+
+          {/* GOOGLE Đăng nhập */}
+          {GOOGLE_CLIENT_ID ? (
+            <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+              <div className="w-full">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  useOneTap={false}
+                  theme="outline"
+                  size="large"
+                  text="signin_with"
+                />
+              </div>
+            </GoogleOAuthProvider>
+          ) : (
+            <p className="text-center text-xs text-amber-600">
+              Google login chưa được cấu hình (thiếu VITE_GOOGLE_CLIENT_ID).
+            </p>
+          )}
+
           <p className="text-center text-sm mt-5">
             Don’t Have An Account Yet?{" "}
             <span
@@ -170,6 +233,5 @@ const SignIn = () => {
     </div>
     </>
   );
-};
-
+}
 export default SignIn;

@@ -1,184 +1,414 @@
-import React, { useState } from "react";
-import {
-  User,
-  Calendar,
-} from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Calendar, MapPin, Search } from "lucide-react";
 import roadImage from "../image/road.png";
 import trafficConeImage from "../image/trafficCone.png";
 import fireHydrantImage from "../image/fireHydrant.png";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const DISTRICTS = [
+  "Hải Châu",
+  "Sơn Trà",
+  "Liên Chiểu",
+  "Hoàng Sa",
+  "Thanh Khê",
+  "Ngũ Hành Sơn",
+  "Cẩm Lệ",
+  "Hòa Vang",
+];
+
+const TYPE_OPTIONS = ["all", "Giao Thông", "Điện", "Cây Xanh", "CTCC"];
+const STATUS_OPTIONS = ["all", "Đang Chờ", "Đang Xử Lý", "Đã Giải Quyết"];
+
+const CATEGORY_COLORS = {
+  "Giao Thông": "#f97316",
+  Điện: "#fdca00",
+  "Cây Xanh": "#16a34a",
+  CTCC: "#b78ff2",
+};
+
+const reports = [
+  {
+    id: "bcgt3101",
+    title: "Ổ gà to đùng",
+    category: "Giao Thông",
+    image: roadImage,
+    location: "35 Hùng Vương",
+    date: "24/11/2025",
+    status: "Đang Chờ",
+    district: "Hải Châu",
+  },
+  {
+    id: "bcD4228",
+    title: "Đèn giao thông không hoạt động",
+    category: "Điện",
+    image: trafficConeImage,
+    location: "136 Yên Bái",
+    date: "13/11/2025",
+    status: "Đang Chờ",
+    district: "Hải Châu",
+  },
+  {
+    id: "bcctcc356",
+    title: "Nhà chờ xe bus bị gãy ghế",
+    category: "CTCC",
+    image: fireHydrantImage,
+    location: "66 Phan Châu Trinh",
+    date: "18/10/2025",
+    status: "Đang Chờ",
+    district: "Hải Châu",
+  },
+  {
+    id: "bcD4228",
+    title: "Đèn giao thông không hoạt động",
+    category: "Điện",
+    image: trafficConeImage,
+    location: "136 Yên Bái",
+    date: "13/11/2025",
+    status: "Đang Chờ",
+    district: "Sơn Trà",
+  },
+  {
+    id: "bcctcc356",
+    title: "Nhà chờ xe bus bị gãy ghế",
+    category: "CTCC",
+    image: fireHydrantImage,
+    location: "66 Phan Châu Trinh",
+    date: "18/10/2025",
+    status: "Đang Chờ",
+    district: "Liên Chiểu",
+  },
+  {
+    id: "bcgt3101",
+    title: "Ổ gà to đùng",
+    category: "Giao Thông",
+    image: roadImage,
+    location: "35 Hùng Vương",
+    date: "24/11/2025",
+    status: "Đang Chờ",
+    district: "Hải Châu",
+  },
+  {
+    id: "bcdx5509",
+    title: "Cây xanh gãy đổ cản đường",
+    category: "Cây Xanh",
+    image: roadImage,
+    location: "18 Nguyễn Chí Thanh",
+    date: "21/11/2025",
+    status: "Đang Chờ",
+    district: "Hải Châu",
+  },
+  {
+    id: "bcct7702",
+    title: "Nắp cống hỏng gây nguy hiểm",
+    category: "CTCC",
+    image: fireHydrantImage,
+    location: "92 Bạch Đằng",
+    date: "20/11/2025",
+    status: "Đang Chờ",
+    district: "Hải Châu",
+  },
+];
 
 const ReceptForm = () => {
   const [activeDistrict, setActiveDistrict] = useState("Hải Châu");
+  const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [page, setPage] = useState(2);
 
-  // Danh sách quận
-  const districts = [
-    "Hải Châu",
-    "Sơn Trà",
-    "Liên Chiểu",
-    "Hoàng Sa",
-    "Thanh Khê",
-    "Ngũ Hành Sơn",
-    "Cẩm Lệ",
-    "Hòa Vang",
-  ];
+  const filteredReports = useMemo(() => {
+    const searchTerm = query.trim().toLowerCase();
 
-  // Dữ liệu mẫu cho các đơn tiếp nhận
-  const reports = [
-    {
-      id: 1,
-      title: "Ổ Gà To Đùng",
-      category: "Giao Thông",
-      categoryColor: "#f97316",
-      image: roadImage,
-      reporter: "35 Hưng Vương",
-      date: "24/11/2025",
-      status: "Đang Chờ",
-    },
-    {
-      id: 2,
-      title: "Đèn Giao Thông Không Hoạt Động",
-      category: "Điện",
-      categoryColor: "#eab308",
-      image: trafficConeImage,
-      reporter: "136 Yên Bái",
-      date: "13/11/2025",
-      status: "Đang Chờ",
-    },
-    {
-      id: 3,
-      title: "Nhà Chờ Xe Bus Bị Gãy Ghế",
-      category: "CTCC",
-      categoryColor: "#a855f7",
-      image: fireHydrantImage,
-      reporter: "66 Phan Châu Trinh",
-      date: "18/10/2025",
-      status: "Đang Chờ",
-    },
-    {
-      id: 4,
-      title: "Đèn Giao Thông Không Hoạt Động",
-      category: "Điện",
-      categoryColor: "#eab308",
-      image: trafficConeImage,
-      reporter: "136 Yên Bái",
-      date: "13/11/2025",
-      status: "Đang Chờ",
-    },
-    {
-      id: 5,
-      title: "Nhà Chờ Xe Bus Bị Gãy Ghế",
-      category: "CTCC",
-      categoryColor: "#a855f7",
-      image: fireHydrantImage,
-      reporter: "66 Phan Châu Trinh",
-      date: "18/10/2025",
-      status: "Đang Chờ",
-    },
-    {
-      id: 6,
-      title: "Ổ Gà To Đùng",
-      category: "Giao Thông",
-      categoryColor: "#f97316",
-      image: roadImage,
-      reporter: "35 Hưng Vương",
-      date: "24/11/2025",
-      status: "Đang Chờ",
-    },
-  ];
+    return reports.filter((item) => {
+      const byDistrict = item.district === activeDistrict;
+      const byType = typeFilter === "all" || item.category === typeFilter;
+      const byStatus = statusFilter === "all" || item.status === statusFilter;
+      const byDate =
+        dateFilter === "all" ||
+        (dateFilter === "recent" && item.date === "24/11/2025") ||
+        (dateFilter === "old" && item.date !== "24/11/2025");
+
+      const haystack = `${item.id} ${item.title}`.toLowerCase();
+      const bySearch = !searchTerm || haystack.includes(searchTerm);
+
+      return byDistrict && byType && byStatus && byDate && bySearch;
+    });
+  }, [activeDistrict, query, typeFilter, statusFilter, dateFilter]);
+
+  const pageSize = 6;
+  const totalPages = Math.max(Math.ceil(filteredReports.length / pageSize), 1);
+  const safePage = Math.min(page, totalPages);
+  const visibleReports = filteredReports.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const pageNumbers = useMemo(() => {
+    const maxVisible = 5;
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    const start = Math.max(1, safePage - 2);
+    const end = Math.min(totalPages, start + maxVisible - 1);
+    const adjustedStart = Math.max(1, end - maxVisible + 1);
+
+    return Array.from(
+      { length: end - adjustedStart + 1 },
+      (_, index) => adjustedStart + index,
+    );
+  }, [safePage, totalPages]);
 
   return (
-    <div className="min-h-screen bg-white">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 mb-4">
-          <div className="px-4 sm:px-6 py-4">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
-              Đơn tiếp nhận
-            </h1>
-          </div>
-        </div>
-
-        {/* Districts Tabs */}
-        <div className="bg-white border-b border-gray-200 mb-4">
-          <div className="px-4 sm:px-6">
-            <div className="flex gap-2 overflow-x-auto py-3 scrollbar-hide">
-              {districts.map((district) => (
-                <button
-                  key={district}
-                  onClick={() => setActiveDistrict(district)}
-                  className={`px-6 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                    activeDistrict === district
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  {district}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Reports Grid */}
-        <div className="px-4 sm:px-6 py-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            {reports.map((report) => (
-              <div
-                key={report.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group cursor-pointer"
+    <div className="min-h-full rounded-[22px] border border-gray-200 bg-white p-3 sm:p-4 flex flex-col">
+      <div className="mb-2.5 rounded-[10px] bg-[#f5f5f5] px-3 py-2.5">
+        <div className="flex min-w-max items-center gap-8 overflow-x-auto scrollbar-hide px-1">
+          {DISTRICTS.map((district) => {
+            const active = district === activeDistrict;
+            return (
+              <button
+                key={district}
+                type="button"
+                onClick={() => {
+                  setActiveDistrict(district);
+                  setPage(1);
+                }}
+                className={`text-sm transition-colors ${
+                  active ? "font-semibold text-black" : "text-gray-500"
+                }`}
               >
-                {/* Image */}
-                <div className="relative h-48 bg-gray-200 overflow-hidden">
-                  {/* Category Badge */}
-                  <div
-                    className="absolute top-3 right-3 px-3 py-1 rounded-full text-white text-xs font-medium shadow-md z-10"
-                    style={{ backgroundColor: report.categoryColor }}
-                  >
-                    {report.category}
-                  </div>
-                  {/* Background Image */}
-                  {report.image ? (
-                    <div 
-                      className="w-full h-full bg-cover bg-center"
-                      style={{ 
-                        backgroundImage: `url(${report.image})`,
-                        filter: 'brightness(0.9)'
-                      }}
-                    ></div>
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="p-4">
-                  <h3 className="text-base font-bold text-gray-800 mb-3 line-clamp-2">
-                    {report.title}
-                  </h3>
-
-                  <div className="space-y-2 mb-4">
-                    {/* Reporter */}
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <User size={16} className="text-gray-400" />
-                      <span>{report.reporter}</span>
-                    </div>
-
-                    {/* Date */}
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar size={16} className="text-gray-400" />
-                      <span>{report.date}</span>
-                    </div>
-                  </div>
-
-                  {/* Status Button */}
-                  <button className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors">
-                    {report.status}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                {district}
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      <div className="relative z-30 mb-2.5 flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
+        <div className="relative w-full xl:max-w-[560px]">
+          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#969696]" />
+          <Input
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Tìm kiếm theo mã sự cố, tiêu đề sự cố..."
+            className="h-[44px] rounded-full border border-[#dfe3e8] bg-[#f5f5f5] pl-12 pr-4 text-sm text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] placeholder:text-[#969696] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Select
+            value={typeFilter}
+            onValueChange={(value) => {
+              setTypeFilter(value);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="h-[44px] min-w-[158px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
+              <SelectValue placeholder="Loại sự cố" />
+            </SelectTrigger>
+            <SelectContent
+              position="popper"
+              align="start"
+              sideOffset={8}
+              className="z-[120] min-w-[190px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
+            >
+              <SelectItem value="all">Loại sự cố</SelectItem>
+              <SelectItem value="Giao Thông">Giao thông</SelectItem>
+              <SelectItem value="Điện">Điện</SelectItem>
+              <SelectItem value="Cây Xanh">Cây xanh</SelectItem>
+              <SelectItem value="CTCC">CTCC</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => {
+              setStatusFilter(value);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="h-[44px] min-w-[158px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
+              <SelectValue placeholder="Trạng thái" />
+            </SelectTrigger>
+            <SelectContent
+              position="popper"
+              align="start"
+              sideOffset={8}
+              className="z-[120] min-w-[190px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
+            >
+              <SelectItem value="all">Trạng thái</SelectItem>
+              {STATUS_OPTIONS.filter((option) => option !== "all").map(
+                (option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ),
+              )}
+            </SelectContent>
+          </Select>
+
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger className="h-[44px] min-w-[146px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
+              <SelectValue placeholder="Chọn ngày" />
+            </SelectTrigger>
+            <SelectContent
+              position="popper"
+              align="start"
+              sideOffset={8}
+              className="z-[120] min-w-[170px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
+            >
+              <SelectItem value="all">Chọn ngày</SelectItem>
+              <SelectItem value="recent">Mới nhất</SelectItem>
+              <SelectItem value="old">Cũ hơn</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="relative z-10 mb-2.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+        {visibleReports.map((report, index) => (
+          <div
+            key={`${report.id}-${report.location}-${index}`}
+            className="relative h-[214px] overflow-hidden rounded-[22px]"
+          >
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${report.image})` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/65" />
+
+            <div className="absolute left-3 right-3 top-3 flex items-center justify-between">
+              <div className="rounded-full bg-white px-4 py-1 text-[11px] font-semibold text-[#424242]">
+                {report.id}
+              </div>
+              <div
+                className="rounded-full px-4 py-1 text-[11px] font-medium text-white"
+                style={{
+                  backgroundColor:
+                    CATEGORY_COLORS[report.category] || "#64748b",
+                }}
+              >
+                {report.category.toLowerCase()}
+              </div>
+            </div>
+
+            <div className="absolute bottom-[82px] left-1/2 flex -translate-x-1/2 items-center gap-1">
+              <span className="h-[6px] w-[6px] rounded-full bg-white" />
+              <span className="h-[6px] w-[6px] rounded-full bg-white/50" />
+              <span className="h-[6px] w-[6px] rounded-full bg-white/50" />
+            </div>
+
+            <div className="absolute bottom-3 left-4 right-4 text-white">
+              <div className="mb-1.5 flex items-start justify-between gap-3">
+                <h3 className="max-w-[210px] text-[14px] font-semibold leading-tight capitalize">
+                  {report.title}
+                </h3>
+                <div className="rounded-full bg-black/45 px-3 py-1 text-xs font-medium lowercase leading-none">
+                  {report.status}
+                </div>
+              </div>
+
+              <div className="space-y-1 text-xs font-medium text-[#d7d7d7]">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  <span>{report.location}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>{report.date}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {visibleReports.length === 0 && (
+        <div className="mb-6 rounded-[20px] border border-dashed border-gray-300 px-6 py-10 text-center text-gray-500">
+          Không có đơn tiếp nhận phù hợp.
+        </div>
+      )}
+
+      <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 pb-0.5 text-sm font-semibold text-[#4b4b4b]">
+        <button
+          type="button"
+          className="rounded-md px-2 py-1 hover:bg-[#f5f5f5] hover:text-black"
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={safePage === 1}
+        >
+          Trước
+        </button>
+
+        {pageNumbers[0] > 1 && (
+          <>
+            <button
+              type="button"
+              className="h-7 min-w-7 rounded-[6px] px-2"
+              onClick={() => setPage(1)}
+            >
+              1
+            </button>
+            {pageNumbers[0] > 2 && <span className="px-1">...</span>}
+            </>
+        )}
+
+        {pageNumbers.map((pageNumber) => (
+          <button
+            key={pageNumber}
+            type="button"
+            className={`h-7 min-w-7 rounded-[6px] px-2 ${
+              safePage === pageNumber
+                ? "bg-[#f5f5f5] text-black"
+                : "hover:bg-[#f5f5f5]"
+            }`}
+            onClick={() => setPage(pageNumber)}
+          >
+            {pageNumber}
+          </button>
+        ))}
+
+        {pageNumbers[pageNumbers.length - 1] < totalPages && (
+          <>
+            {pageNumbers[pageNumbers.length - 1] < totalPages - 1 && (
+              <span className="px-1">...</span>
+            )}
+            <button
+              type="button"
+              className="h-7 min-w-7 rounded-[6px] px-2"
+              onClick={() => setPage(totalPages)}
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+
+        <button
+          type="button"
+          className="rounded-md px-2 py-1 hover:bg-[#f5f5f5] hover:text-black"
+          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={safePage === totalPages}
+        >
+          Sau
+        </button>
+      </div>
+    </div>
   );
 };
 
