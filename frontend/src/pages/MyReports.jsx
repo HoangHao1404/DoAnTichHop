@@ -7,6 +7,7 @@ import UserSidebar from "../components/UserSidebar";
 import { SidebarProvider } from "../components/ui/sidebar";
 import { reportApi } from "../services/api/reportApi";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "sonner";
 const TYPE_COLOR = {
   "Giao Thông": "bg-orange-400",
   Điện: "bg-yellow-400",
@@ -123,9 +124,12 @@ export default function MyReports() {
           <UserSidebar />
         </SidebarProvider>
       </div>
-      
+
       {/* MAIN CONTENT */}
-      <div className="flex-1 overflow-y-auto p-6" style={{ marginLeft: '7rem' }}>
+      <div
+        className="flex-1 overflow-y-auto p-6"
+        style={{ marginLeft: "7rem" }}
+      >
         {/* HEADER - Title + Search */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-4xl font-bold">Báo Cáo Của Tôi</h1>
@@ -215,7 +219,7 @@ export default function MyReports() {
               Công trình công cộng
             </button>
           </div>
-          
+
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -284,8 +288,12 @@ export default function MyReports() {
 
           {/* PAGINATION */}
           <div className="mt-6 flex justify-between items-center">
-            <button className="px-4 py-2 text-gray-500 hover:text-gray-700">Previous</button>
-            <button className="px-4 py-2 text-gray-500 hover:text-gray-700">Next</button>
+            <button className="px-4 py-2 text-gray-500 hover:text-gray-700">
+              Previous
+            </button>
+            <button className="px-4 py-2 text-gray-500 hover:text-gray-700">
+              Next
+            </button>
           </div>
         </div>
       </div>
@@ -305,7 +313,7 @@ export default function MyReports() {
         <ReportReviews
           close={() => setShowReview(false)}
           submit={(rating, text) => {
-            alert("Đánh giá thành công!");
+            toast.success("Đánh giá thành công!");
             setShowReview(false);
           }}
         />

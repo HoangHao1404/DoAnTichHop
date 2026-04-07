@@ -46,6 +46,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const TYPE_OPTIONS = ["all", "Giao Thông", "Điện", "Cây Xanh", "CTCC"];
 const STATUS_OPTIONS = ["all", "Đang Chờ", "Đang Xử Lý", "Đã Giải Quyết"];
@@ -84,7 +85,7 @@ const CARD_STYLES = [
 ];
 
 const useTestWorkflow =
-  (import.meta.env.VITE_USE_TEST_REPORT_WORKFLOW ?? "true") === "true";
+  (import.meta.env.VITE_USE_TEST_REPORT_WORKFLOW ?? "false") === "true";
 
 function normalizeReport(report) {
   const hasKnownType = TYPE_OPTIONS.includes(report?.type);
@@ -159,7 +160,11 @@ export default function MyReports() {
       setLoading(true);
       setError(null);
 
-      const response = useTestWorkflow
+      const useTestEndpoint =
+        useTestWorkflow &&
+        typeof reportApi.getTestReportsByUserId === "function";
+
+      const response = useTestEndpoint
         ? await reportApi.getTestReportsByUserId(userId)
         : await reportApi.getReportsByUserId(userId);
 
@@ -621,7 +626,7 @@ export default function MyReports() {
         <ReportReviews
           close={() => setShowReview(false)}
           submit={() => {
-            alert("Đánh giá thành công!");
+            toast.success("Đánh giá thành công!");
             setShowReview(false);
           }}
         />

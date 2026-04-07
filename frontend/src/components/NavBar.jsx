@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, MapPin, LogOut, Settings, User, BookOpen, Folder, Zap, AlertCircle, Trees, Building2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import Toast from "./Toast";
+import { toast } from "sonner";
+import { reportApi } from "../services/api/reportApi";
 
 // const Avatar = ({ src, alt }) => (
 //   <img
@@ -22,6 +23,46 @@ const CATEGORIES = [
   { id: "public", label: "Công Trình Công Cộng", icon: "🏗️", color: "purple" },
 ];
 
+function formatNotificationTime(inputDate) {
+  if (!inputDate) return "Vừa xong";
+
+  const date = new Date(inputDate);
+  if (Number.isNaN(date.getTime())) return "Vừa xong";
+
+  const diffMs = Date.now() - date.getTime();
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+
+  if (diffMs < minute) return "Vừa xong";
+  if (diffMs < hour) return `${Math.floor(diffMs / minute)} phút trước`;
+  if (diffMs < day) return `${Math.floor(diffMs / hour)} giờ trước`;
+  if (diffMs < 2 * day) return "Hôm qua";
+  return `${Math.floor(diffMs / day)} ngày trước`;
+}
+
+function mapStatusToSeverity(status) {
+  if (status === "Đang Xử Lý") return "warning";
+  if (status === "Đã Giải Quyết") return "success";
+  return "info";
+}
+
+function mapReportToNotification(report) {
+  const reportId = report?.id || report?.report_id || report?._id || "N/A";
+  const status = report?.status || "Đang Chờ";
+
+  return {
+    id: `NTF-${reportId}`,
+    title: `Báo cáo #${reportId}: ${status}`,
+    message:
+      report?.description ||
+      `Vị trí: ${report?.location || "Chưa có vị trí"} | Loại: ${report?.type || "Khác"}`,
+    severity: mapStatusToSeverity(status),
+    createdAt: formatNotificationTime(report?.createdAt || report?.time),
+    unread: false,
+  };
+}
+
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -30,7 +71,6 @@ export default function Navbar() {
   const [openUser, setOpenUser] = useState(false);
   const [openNoti, setOpenNoti] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [toast, setToast] = useState(null);
 
   // Refs để detect click outside
   const userRef = useRef(null);
@@ -111,30 +151,38 @@ export default function Navbar() {
   // ===============================
   // 🔔 NOTIFICATION
   // ===============================
-  const [noti, setNoti] = useState([
-    {
-      id: "1",
-      title: "Báo cáo mới được gửi",
-      message: "Hư hỏng đường tại Quận Hải Châu - Đang chờ xử lý",
-      severity: "info",
-      createdAt: new Date().toISOString(),
-      unread: true,
-    },
-    {
-      id: "2",
-      title: "Báo cáo đã được phê duyệt",
-      message: "Báo cáo về hư hỏng cầu đã được xác nhận bởi quản trị viên",
-      severity: "success",
-      createdAt: new Date(Date.now() - 3600e3).toISOString(),
-      unread: true,
-    },
-  ]);
+  const [noti, setNoti] = useState([]);
+  const [loadingNoti, setLoadingNoti] = useState(false);
+  const userId = user?._id || user?.user_id;
+
+  const fetchUserNotifications = useCallback(async () => {
+    if (!userId) {
+      setNoti([]);
+      return;
+    }
+
+    try {
+      setLoadingNoti(true);
+      const response = await reportApi.getReportsByUserId(userId);
+      const reports = Array.isArray(response?.data) ? response.data : [];
+      setNoti(reports.slice(0, 30).map(mapReportToNotification));
+    } catch (error) {
+      console.error("Không tải được thông báo người dùng:", error);
+      setNoti([]);
+    } finally {
+      setLoadingNoti(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchUserNotifications();
+  }, [fetchUserNotifications]);
 
   const markAllRead = () =>
     setNoti((prev) => prev.map((n) => ({ ...n, unread: false })));
 
   const handleLogout = () => {
-    setToast({ message: 'Đăng xuất thành công!', type: 'success' });
+    toast.success("Đăng xuất thành công!");
     setOpenUser(false);
     setTimeout(() => {
       logout();
@@ -147,14 +195,6 @@ export default function Navbar() {
   // ===============================
   return (
     <>
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
       {/* Popup xác nhận đăng xuất */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
@@ -229,7 +269,15 @@ export default function Navbar() {
           {/* 🔔 Notification */}
           <div className="relative" ref={notiRef}>
             <button
-              onClick={() => setOpenNoti((v) => !v)}
+              onClick={() =>
+                setOpenNoti((v) => {
+                  const next = !v;
+                  if (next) {
+                    fetchUserNotifications();
+                  }
+                  return next;
+                })
+              }
               className="relative h-10 w-10 rounded-full 
                        bg-white 
                        border border-gray-200 
@@ -257,7 +305,11 @@ export default function Navbar() {
                 </div>
 
                 <div className="max-h-80 overflow-auto pr-1">
-                  {noti.length === 0 ? (
+                  {loadingNoti && noti.length === 0 ? (
+                    <p className="text-xs text-gray-500 px-3 py-6 text-center">
+                      Đang tải thông báo...
+                    </p>
+                  ) : noti.length === 0 ? (
                     <p className="text-xs text-gray-500 px-3 py-6 text-center">
                       Không có thông báo
                     </p>
@@ -290,9 +342,7 @@ export default function Navbar() {
                                 {n.message}
                               </p>
                             )}
-                            <p className="text-[10px] text-gray-400 mt-1">
-                              {new Date(n.createdAt).toLocaleString()}
-                            </p>
+                            <p className="text-[10px] text-gray-400 mt-1">{n.createdAt}</p>
                           </div>
                         </li>
                       ))}
@@ -370,7 +420,6 @@ export function NavbarAdmin() {
   const [openUser, setOpenUser] = useState(false);
   const [openNoti, setOpenNoti] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [toast, setToast] = useState(null);
 
   // Refs để detect click outside
   const userRef = useRef(null);
@@ -438,30 +487,32 @@ export function NavbarAdmin() {
     }
   }, []);
 
-  const [noti, setNoti] = useState([
-    {
-      id: "1",
-      title: "Báo cáo mới được gửi",
-      message: "Hư hỏng đường tại Quận Hải Châu - Đang chờ xử lý",
-      severity: "info",
-      createdAt: new Date().toISOString(),
-      unread: true,
-    },
-    {
-      id: "2",
-      title: "Báo cáo đã được phê duyệt",
-      message: "Báo cáo về hư hỏng cầu đã được xác nhận bởi quản trị viên",
-      severity: "success",
-      createdAt: new Date(Date.now() - 3600e3).toISOString(),
-      unread: true,
-    },
-  ]);
+  const [noti, setNoti] = useState([]);
+  const [loadingNoti, setLoadingNoti] = useState(false);
+
+  const fetchAdminNotifications = useCallback(async () => {
+    try {
+      setLoadingNoti(true);
+      const response = await reportApi.getAllReports();
+      const reports = Array.isArray(response?.data) ? response.data : [];
+      setNoti(reports.slice(0, 30).map(mapReportToNotification));
+    } catch (error) {
+      console.error("Không tải được thông báo admin:", error);
+      setNoti([]);
+    } finally {
+      setLoadingNoti(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAdminNotifications();
+  }, [fetchAdminNotifications]);
 
   const markAllRead = () =>
     setNoti((prev) => prev.map((n) => ({ ...n, unread: false })));
 
   const handleLogout = () => {
-    setToast({ message: 'Đăng xuất thành công!', type: 'success' });
+    toast.success("Đăng xuất thành công!");
     setOpenUser(false);
     setTimeout(() => {
       logout();
@@ -478,14 +529,6 @@ export function NavbarAdmin() {
 
   return (
     <>
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
@@ -558,7 +601,15 @@ export function NavbarAdmin() {
             {/* 🔔 Notification */}
             <div className="relative" ref={notiRef}>
               <button
-                onClick={() => setOpenNoti((v) => !v)}
+                onClick={() =>
+                  setOpenNoti((v) => {
+                    const next = !v;
+                    if (next) {
+                      fetchAdminNotifications();
+                    }
+                    return next;
+                  })
+                }
                 className="relative h-10 w-10 rounded-full 
                        bg-white 
                        border border-gray-200 
@@ -586,7 +637,11 @@ export function NavbarAdmin() {
                   </div>
 
                   <div className="max-h-80 overflow-auto pr-1">
-                    {noti.length === 0 ? (
+                    {loadingNoti && noti.length === 0 ? (
+                      <p className="text-xs text-gray-500 px-3 py-6 text-center">
+                        Đang tải thông báo...
+                      </p>
+                    ) : noti.length === 0 ? (
                       <p className="text-xs text-gray-500 px-3 py-6 text-center">
                         Không có thông báo
                       </p>
@@ -619,9 +674,7 @@ export function NavbarAdmin() {
                                   {n.message}
                                 </p>
                               )}
-                              <p className="text-[10px] text-gray-400 mt-1">
-                                {new Date(n.createdAt).toLocaleString()}
-                              </p>
+                              <p className="text-[10px] text-gray-400 mt-1">{n.createdAt}</p>
                             </div>
                           </li>
                         ))}

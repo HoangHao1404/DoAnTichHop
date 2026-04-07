@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { LibraryBig, Folder, Bell, LogOut, Settings } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import Toast from "./Toast";
+import { toast } from "sonner";
 
 const menuItems = [
   {
@@ -29,10 +29,9 @@ const SidebarAdmin = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [toast, setToast] = useState(null);
 
   const handleLogout = () => {
-    setToast({ message: 'Đăng xuất thành công!', type: 'success' });
+    toast.success("Đăng xuất thành công!");
     setTimeout(() => {
       logout();
       navigate("/signin");
@@ -41,14 +40,6 @@ const SidebarAdmin = () => {
 
   return (
     <>
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
       {/* Popup xác nhận đăng xuất */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
@@ -101,9 +92,10 @@ const SidebarAdmin = () => {
                   title={item.label}
                   className={({ isActive }) =>
                     `flex items-center justify-center w-12 h-12 rounded-[14px] transition-all duration-200 relative group
-                     ${isActive 
-                       ? "bg-black text-white" 
-                       : "text-gray-800 hover:bg-gray-100"
+                     ${
+                       isActive
+                         ? "bg-black text-white"
+                         : "text-gray-800 hover:bg-gray-100"
                      }`
                   }
                 >
@@ -119,7 +111,7 @@ const SidebarAdmin = () => {
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center cursor-pointer hover:shadow-md transition-all">
               <span className="text-white text-lg font-bold">👤</span>
             </div>
-            
+
             {/* Logout Button */}
             <button
               onClick={() => setShowLogoutConfirm(true)}
@@ -136,4 +128,3 @@ const SidebarAdmin = () => {
 };
 
 export default SidebarAdmin;
-

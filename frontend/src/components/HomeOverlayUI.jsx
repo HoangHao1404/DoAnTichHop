@@ -9,10 +9,10 @@ import {
   X,
 } from "lucide-react";
 import ReportForm from "./Report";
-import Toast from "./Toast";
 import { useNavigate } from "react-router-dom";
 import UserSidebar from "./UserSidebar";
 import { SidebarProvider } from "./ui/sidebar";
+import { toast } from "sonner";
 
 const categories = [
   {
@@ -62,7 +62,6 @@ export default function HomeOverlayUI({
   const [showCameraOnly, setShowCameraOnly] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [stream, setStream] = useState(null);
-  const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -92,7 +91,9 @@ export default function HomeOverlayUI({
       }, 100);
     } catch (error) {
       console.error(error);
-      alert("Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.");
+      toast.error(
+        "Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.",
+      );
     }
   };
 
@@ -117,7 +118,7 @@ export default function HomeOverlayUI({
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const imageData = canvas.toDataURL("image/jpeg");
-    
+
     // Đóng camera, lưu ảnh và mở form Report
     closeCamera();
     setCapturedImage(imageData);
@@ -126,20 +127,10 @@ export default function HomeOverlayUI({
 
   return (
     <>
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
       <div className="w-full h-screen flex flex-col bg-background relative overflow-hidden">
         {/* MAP AREA - Background */}
         {mapElement && (
-          <div className="absolute inset-0 z-0 w-full h-full">
-            {mapElement}
-          </div>
+          <div className="absolute inset-0 z-0 w-full h-full">{mapElement}</div>
         )}
 
         {/* Floating Sidebar - Left Top (aligned with categories) */}
@@ -159,7 +150,7 @@ export default function HomeOverlayUI({
             style={{
               backgroundColor: "#2563EB",
               color: "#ffffff",
-              border: "none"
+              border: "none",
             }}
           >
             <span>📍</span>
@@ -175,7 +166,7 @@ export default function HomeOverlayUI({
               style={{
                 backgroundColor: c.bgColor,
                 color: "#ffffff",
-                border: "none"
+                border: "none",
               }}
             >
               <span className="icon-wrap">{c.icon}</span>
@@ -209,11 +200,11 @@ export default function HomeOverlayUI({
       {/* Report Form Modal */}
       {isReportOpen && (
         <div className="interactive">
-          <ReportForm 
+          <ReportForm
             onClose={() => {
               setIsReportOpen(false);
               setCapturedImage(null);
-            }} 
+            }}
             initialImage={capturedImage}
           />
         </div>

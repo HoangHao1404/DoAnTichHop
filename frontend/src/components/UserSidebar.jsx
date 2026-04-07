@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -16,7 +16,8 @@ import {
   Clock3,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import Toast from "./Toast";
+import { toast } from "sonner";
+import { reportApi } from "../services/api/reportApi";
 import {
   Sidebar,
   SidebarContent,
@@ -28,58 +29,89 @@ import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
 
-const MOCK_NOTIFICATIONS = [
-  {
-    id: "NTF-1001",
-    title: "Báo cáo #RPT-2201 đang được xử lý",
-    message:
-      "Đội bảo trì đã tiếp nhận phản ánh của bạn và đang kiểm tra khu vực.",
-    level: "normal",
-    type: "report",
-    isRead: false,
-    createdAt: "10 phút trước",
-  },
-  {
-    id: "NTF-1002",
-    title: "Cảnh báo khẩn tại khu vực Quận 1",
-    message: "Nhiều điểm hư hại mặt đường được ghi nhận sau mưa lớn.",
-    level: "critical",
-    type: "warning",
-    isRead: false,
-    createdAt: "38 phút trước",
-  },
-  {
-    id: "NTF-1003",
-    title: "Báo cáo #RPT-2168 đã hoàn tất",
-    message: "Yêu cầu của bạn đã được xử lý. Cảm ơn bạn đã cộng tác.",
-    level: "low",
-    type: "system",
-    isRead: true,
-    createdAt: "Hôm qua",
-  },
-  {
-    id: "NTF-1004",
-    title: "Thông báo bảo trì hệ thống",
-    message: "Hệ thống sẽ tối ưu hiệu năng từ 23:00 đến 23:20 tối nay.",
-    level: "normal",
-    type: "system",
-    isRead: true,
-    createdAt: "2 ngày trước",
-  },
-];
+function formatRelativeTime(inputDate) {
+  if (!inputDate) return "Vừa xong";
+
+  const date = new Date(inputDate);
+  if (Number.isNaN(date.getTime())) return "Vừa xong";
+
+  const diffMs = Date.now() - date.getTime();
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+
+  if (diffMs < minute) return "Vừa xong";
+  if (diffMs < hour) return `${Math.floor(diffMs / minute)} phút trước`;
+  if (diffMs < day) return `${Math.floor(diffMs / hour)} giờ trước`;
+  if (diffMs < 2 * day) return "Hôm qua";
+  return `${Math.floor(diffMs / day)} ngày trước`;
+}
+
+function mapStatusToNotificationMeta(status) {
+  if (status === "Đang Xử Lý") {
+    return { level: "critical", type: "warning" };
+  }
+  if (status === "Đã Giải Quyết") {
+    return { level: "low", type: "system" };
+  }
+  return { level: "normal", type: "report" };
+}
 
 const UserSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const [showNotificationsPopup, setShowNotificationsPopup] = useState(false);
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
   const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [toast, setToast] = useState(null);
 
+  const userId = useMemo(() => user?._id || user?.user_id, [user]);
   const unreadCount = notifications.filter((item) => !item.isRead).length;
   const portalTarget = typeof document !== "undefined" ? document.body : null;
+
+  const fetchNotifications = useCallback(async () => {
+    if (!userId) {
+      setNotifications([]);
+      return;
+    }
+
+    try {
+      setLoadingNotifications(true);
+      const response = await reportApi.getReportsByUserId(userId);
+      const reports = Array.isArray(response?.data) ? response.data : [];
+
+      const mapped = reports.slice(0, 30).map((report) => {
+        const reportId = report?.id || report?.report_id || report?._id || "N/A";
+        const status = report?.status || "Đang Chờ";
+        const meta = mapStatusToNotificationMeta(status);
+
+        return {
+          id: `NTF-${reportId}`,
+          title: `Báo cáo #${reportId}: ${status}`,
+          message:
+            report?.description ||
+            `Vị trí: ${report?.location || "Chưa có vị trí"} | Loại: ${report?.type || "Khác"}`,
+          level: meta.level,
+          type: meta.type,
+          isRead: false,
+          createdAt: formatRelativeTime(report?.createdAt || report?.time),
+        };
+      });
+
+      setNotifications(mapped);
+    } catch (error) {
+      console.error("Không tải được thông báo từ MongoDB:", error);
+      setNotifications([]);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   const mainMenuItems = [
     {
@@ -110,7 +142,7 @@ const UserSidebar = () => {
 
   const handleLogout = () => {
     setShowLogoutConfirm(false);
-    setToast({ message: "Đăng xuất thành công!", type: "success" });
+    toast.success("Đăng xuất thành công!");
     setTimeout(() => {
       logout();
       navigate("/signin");
@@ -120,7 +152,13 @@ const UserSidebar = () => {
   const handleMainMenuClick = (item) => {
     if (item.id === "notifications") {
       setShowAvatarMenu(false);
-      setShowNotificationsPopup((prev) => !prev);
+      setShowNotificationsPopup((prev) => {
+        const next = !prev;
+        if (next) {
+          fetchNotifications();
+        }
+        return next;
+      });
       return;
     }
 
@@ -162,14 +200,6 @@ const UserSidebar = () => {
 
   return (
     <>
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
       {showLogoutConfirm && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]"
@@ -397,6 +427,22 @@ const UserSidebar = () => {
 
               <ScrollArea className="h-[430px]">
                 <div className="space-y-3 p-3">
+                  {loadingNotifications && notifications.length === 0 && (
+                    <Card size="sm" className="border bg-white py-0">
+                      <CardContent className="px-3 py-4 text-xs text-gray-500">
+                        Đang tải thông báo...
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {!loadingNotifications && notifications.length === 0 && (
+                    <Card size="sm" className="border bg-white py-0">
+                      <CardContent className="px-3 py-4 text-xs text-gray-500">
+                        Chưa có thông báo nào từ dữ liệu báo cáo.
+                      </CardContent>
+                    </Card>
+                  )}
+
                   {notifications.map((item) => {
                     const NoticeIcon = getNotificationIcon(item.type);
 
