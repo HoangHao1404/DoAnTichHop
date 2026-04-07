@@ -21,11 +21,7 @@ const UserSchema = new mongoose.Schema({
 
   role: {
     type: String,
-<<<<<<< HEAD
-    enum: ["citizen", "handling_team", "admin"],
-=======
     enum: ["citizen", "manager", "maintenance", "admin"],
->>>>>>> Quoc
     default: "citizen",
   },
 

@@ -61,7 +61,6 @@ function App() {
               }
             />
 
-<<<<<<< HEAD
             {/* Admin */}
             <Route
               path="/admin"
@@ -82,25 +81,6 @@ function App() {
               <Route path="statistics" element={<ThongKe />} />
               <Route path="users" element={<AdminUserManagement />} />
             </Route>
-=======
-          {/* Admin */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute requiredRole={["admin", "manager", "maintenance"]}>
-                <LayoutAdmin />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="overview" element={<AdminOverview />} />
-            <Route path="recept-form" element={<ReceptForm />} />
-            <Route path="reports" element={<ReportManagement />} />
-            <Route path="maintenanceteam" element={<Maintenanceteam_Management/>} />
-            <Route path="incident-types" element={<IncidentManagement />} />
-            <Route path="statistics" element={<ThongKe />} />
-            <Route path="users" element={<AdminUserManagement />} />
-          </Route>
->>>>>>> Quoc
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

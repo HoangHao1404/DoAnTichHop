@@ -10,7 +10,6 @@ const connectDB = async () => {
   }
 
   try {
-<<<<<<< HEAD
     const mongoURI = process.env.MONGO_URI;
 
     if (!mongoURI) {
@@ -21,10 +20,6 @@ const connectDB = async () => {
     const conn = await mongoose.connect(mongoURI);
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-=======
-    const conn = await mongoose.connect(mongoUri);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
->>>>>>> Quoc
   } catch (err) {
     console.error("❌ MongoDB Connection Error:", err.message);
     process.exit(1);
