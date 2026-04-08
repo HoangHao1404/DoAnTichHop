@@ -11,6 +11,8 @@ import "./App.css";
 import PublicPage from "./pages/Public_page.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import MyReports from "./components/MyReports.jsx";
+import MaintenanceDashboard from "./pages/MaintenanceDashboard.jsx";
+import MaintenanceMyReports from "./components/MaintenanceMyReports.jsx";
 import SignIn from "./pages/SignIn.jsx";
 import Register from "./pages/Register.jsx";
 
@@ -57,6 +59,25 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MyReports />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Maintenance */ }
+            <Route
+              path="/maintenance/dashboard"
+              element={
+                <ProtectedRoute requiredRole="maintenance">
+                  <MaintenanceDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/maintenance/assigned_report"
+              element={
+                <ProtectedRoute requiredRole="maintenance">
+                  <AssignedReport />
                 </ProtectedRoute>
               }
             />

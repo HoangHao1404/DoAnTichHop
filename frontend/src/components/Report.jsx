@@ -26,7 +26,7 @@ import {
 } from "./ui/select";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5050/api";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 const incidentOptions = [
   { value: "infrastructure", label: "Hạ tầng giao thông" },
@@ -197,7 +197,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
         try {
           const response = await fetch(
-            `http://localhost:5001/api/geocode/reverse?lat=${latitude}&lon=${longitude}`,
+            `${API_BASE_URL}/geocode/reverse?lat=${latitude}&lon=${longitude}`
           );
 
           if (!response.ok) {
