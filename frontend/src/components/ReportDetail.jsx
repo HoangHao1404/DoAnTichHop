@@ -17,12 +17,43 @@ import { Separator } from "./ui/separator";
 
 function getTypeLabel(type) {
   if (!type) return "khac";
-  return String(type).toLowerCase();
+  return String(type);
+}
+
+function normalizeTypeKey(type) {
+  return String(type || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d");
+}
+
+function getTypeBadgeClass(type) {
+  const normalizedType = normalizeTypeKey(type);
+
+  if (normalizedType === "giao thong") {
+    return "bg-[#F97316] text-white hover:bg-[#F97316]";
+  }
+
+  if (normalizedType === "dien") {
+    return "bg-[#FDCA00] text-white hover:bg-[#FDCA00]";
+  }
+
+  if (normalizedType === "cay xanh") {
+    return "bg-[#74C365] text-white hover:bg-[#74C365]";
+  }
+
+  if (normalizedType === "ctcc" || normalizedType === "cong trinh cong cong") {
+    return "bg-[#B78FF2] text-white hover:bg-[#B78FF2]";
+  }
+
+  return "bg-orange-500 text-white hover:bg-orange-500";
 }
 
 function getStatusLabel(status) {
   if (!status) return "dang cho";
-  return String(status).toLowerCase();
+  return String(status);
 }
 
 function resolveImage(data, index) {
@@ -98,7 +129,9 @@ export default function ReportDetail({ data, close }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <Badge className="h-8 rounded-full bg-orange-500 px-4 text-xs font-semibold text-white hover:bg-orange-500 sm:text-sm">
+            <Badge
+              className={`h-8 rounded-full px-4 text-xs font-semibold sm:text-sm ${getTypeBadgeClass(data.type)}`}
+            >
               {getTypeLabel(data.type)}
             </Badge>
             <Badge className="h-8 rounded-full bg-[#d5d5d5] px-4 text-xs font-semibold text-zinc-800 hover:bg-[#d5d5d5] sm:text-sm">
