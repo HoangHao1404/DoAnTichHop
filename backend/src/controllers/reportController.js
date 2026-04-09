@@ -1,9 +1,18 @@
 const ReportRepository = require("../repositories/ReportRepository");
+const {
+  verifyImageWithModel,
+} = require("../services/ai/aiVerification.service");
 
 class ReportController {
   async getManagementReports(req, res) {
     try {
-      const { search = "", type = "all", status = "all", page = 1, limit = 10 } = req.query;
+      const {
+        search = "",
+        type = "all",
+        status = "all",
+        page = 1,
+        limit = 10,
+      } = req.query;
 
       const result = await ReportRepository.getManagementList({
         search,
@@ -70,7 +79,7 @@ class ReportController {
     try {
       const { userId } = req.params;
       console.log("🔍 Getting reports for userId:", userId);
-      
+
       const reports = await ReportRepository.getByUserId(userId);
       console.log("✅ Found reports:", reports.length);
 
@@ -108,6 +117,16 @@ class ReportController {
         timeZone: "Asia/Ho_Chi_Minh",
       });
 
+      const firstImage =
+        Array.isArray(images) && images.length > 0 ? images[0] : "";
+      const aiResult = await verifyImageWithModel(firstImage);
+
+      if (!aiResult.aiVerified && aiResult.aiError) {
+        console.warn(
+          `⚠️ AI verify failed for ${reportId}: ${aiResult.aiError}`,
+        );
+      }
+
       const reportData = {
         report_id: reportId,
         id: reportId,
@@ -120,6 +139,11 @@ class ReportController {
         image: images && images.length > 0 ? images[0] : "",
         status: "Đang Chờ",
         time: currentTime,
+        aiPercent: aiResult.aiPercent,
+        aiVerified: aiResult.aiVerified,
+        aiLabel: aiResult.aiLabel,
+        aiTotalObjects: aiResult.aiTotalObjects,
+        aiSource: aiResult.aiSource || "",
       };
 
       const newReport = await ReportRepository.create(reportData);

@@ -115,10 +115,17 @@ function normalizeReport(report) {
     return parsed;
   };
 
-  const aiPercent = Number(normalizeAiPercent(report?.aiPercent).toFixed(2));
+  const hasAiValue =
+    report?.aiPercent !== null && report?.aiPercent !== undefined;
+  const aiPercent = hasAiValue
+    ? Number(normalizeAiPercent(report?.aiPercent).toFixed(2))
+    : 0;
+  const aiVerified =
+    typeof report?.aiVerified === "boolean" ? report.aiVerified : hasAiValue;
+  const inferredDamageLevel =
+    aiPercent >= 70 ? "Nặng" : aiPercent >= 30 ? "Trung bình" : "Nhẹ";
   const damageLevel =
-    report?.damageLevel ||
-    (aiPercent >= 70 ? "Nặng" : aiPercent >= 30 ? "Trung bình" : "Nhẹ");
+    report?.damageLevel || (aiVerified ? inferredDamageLevel : "Chưa xác thực");
 
   return {
     id: report?.id || report?.report_id || report?._id || "N/A",
@@ -133,6 +140,7 @@ function normalizeReport(report) {
     images: report?.images || [],
     image: report?.image || "",
     aiPercent,
+    aiVerified,
     damageLevel,
   };
 }
@@ -514,40 +522,58 @@ export default function MyReports() {
                               </Badge>
                             </TableCell>
                             <TableCell className="px-4 py-3">
-                              <Badge
-                                variant={
-                                  item.damageLevel === "Nặng"
-                                    ? "destructive"
-                                    : "outline"
-                                }
-                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
-                                  item.damageLevel === "Trung bình"
-                                    ? "bg-amber-100 text-amber-700"
-                                    : item.damageLevel === "Nhẹ"
-                                      ? "bg-emerald-100 text-emerald-700"
-                                      : ""
-                                }`}
-                              >
-                                {item.damageLevel}
-                              </Badge>
+                              {item.aiVerified ? (
+                                <Badge
+                                  variant={
+                                    item.damageLevel === "Nặng"
+                                      ? "destructive"
+                                      : "outline"
+                                  }
+                                  className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
+                                    item.damageLevel === "Trung bình"
+                                      ? "bg-amber-100 text-amber-700"
+                                      : item.damageLevel === "Nhẹ"
+                                        ? "bg-emerald-100 text-emerald-700"
+                                        : ""
+                                  }`}
+                                >
+                                  {item.damageLevel}
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant="outline"
+                                  className="h-auto border-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+                                >
+                                  Chưa xác thực
+                                </Badge>
+                              )}
                             </TableCell>
                             <TableCell className="px-4 py-3">
-                              <Badge
-                                variant={
-                                  item.aiPercent >= 70
-                                    ? "destructive"
-                                    : "outline"
-                                }
-                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
-                                  item.aiPercent >= 70
-                                    ? ""
-                                    : item.aiPercent >= 30
-                                      ? "bg-amber-100 text-amber-700"
-                                      : "bg-emerald-100 text-emerald-700"
-                                }`}
-                              >
-                                {Number(item.aiPercent || 0).toFixed(2)}%
-                              </Badge>
+                              {item.aiVerified ? (
+                                <Badge
+                                  variant={
+                                    item.aiPercent >= 70
+                                      ? "destructive"
+                                      : "outline"
+                                  }
+                                  className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
+                                    item.aiPercent >= 70
+                                      ? ""
+                                      : item.aiPercent >= 30
+                                        ? "bg-amber-100 text-amber-700"
+                                        : "bg-emerald-100 text-emerald-700"
+                                  }`}
+                                >
+                                  {Number(item.aiPercent || 0).toFixed(2)}%
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant="outline"
+                                  className="h-auto border-0 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700"
+                                >
+                                  Đang xác thực
+                                </Badge>
+                              )}
                             </TableCell>
                             <TableCell className="px-4 py-3 text-gray-600">
                               {item.time}

@@ -56,10 +56,30 @@ const ReportSchema = new mongoose.Schema(
     afterImg: {
       type: String,
     },
+    aiPercent: {
+      type: Number,
+      default: null,
+    },
+    aiVerified: {
+      type: Boolean,
+      default: false,
+    },
+    aiLabel: {
+      type: String,
+      default: "",
+    },
+    aiTotalObjects: {
+      type: Number,
+      default: 0,
+    },
+    aiSource: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 module.exports = mongoose.model("Report", ReportSchema);
