@@ -45,6 +45,17 @@ export const reportApi = {
     }
   },
 
+  // Alias cho test workflow (dùng cùng endpoint hiện tại)
+  getTestReportsByUserId: async (userId) => {
+    try {
+      const response = await axiosClient.get(`/reports/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi lấy báo cáo test của user:", error);
+      throw error;
+    }
+  },
+
   // Tạo báo cáo mới
   createReport: async (reportData) => {
     try {

@@ -69,7 +69,7 @@ const MOCK_NOTIFICATIONS = [
   },
 ];
 
-const UserSidebar = () => {
+const MaintenanceUserSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
@@ -86,13 +86,13 @@ const UserSidebar = () => {
   const mainMenuItems = [
     {
       id: "dashboard",
-      path: "/dashboard",
+      path: "/maintenance/dashboard",
       icon: <Map className="h-5 w-5" />,
       title: "Trang chủ",
     },
     {
       id: "myreports",
-      path: "/myreport",
+      path: "/maintenance/assigned_report",
       icon: <FolderOpen className="h-5 w-5" />,
       title: "Báo cáo của tôi",
     },
@@ -492,4 +492,4 @@ const UserSidebar = () => {
   );
 };
 
-export default UserSidebar;
+export default MaintenanceUserSidebar;
