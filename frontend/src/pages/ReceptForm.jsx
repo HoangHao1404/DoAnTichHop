@@ -174,9 +174,9 @@ const ReceptForm = () => {
   }, [safePage, totalPages]);
 
   return (
-    <div className="min-h-full rounded-[22px] border border-gray-200 bg-white p-3 sm:p-4 flex flex-col">
-      <div className="mb-2.5 rounded-[10px] bg-[#f5f5f5] px-3 py-2.5">
-        <div className="flex min-w-max items-center gap-8 overflow-x-auto scrollbar-hide px-1">
+    <div className="h-full overflow-hidden rounded-[24px] border border-gray-200 bg-white p-4 sm:p-5 flex flex-col">
+      <div className="mb-3 rounded-[10px] bg-[#f5f5f5] px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           {DISTRICTS.map((district) => {
             const active = district === activeDistrict;
             return (
@@ -198,8 +198,8 @@ const ReceptForm = () => {
         </div>
       </div>
 
-      <div className="relative z-30 mb-2.5 flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
-        <div className="relative w-full xl:max-w-[560px]">
+      <div className="mb-3 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+        <div className="relative w-full xl:max-w-[541px]">
           <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#969696]" />
           <Input
             value={query}
@@ -208,11 +208,11 @@ const ReceptForm = () => {
               setPage(1);
             }}
             placeholder="Tìm kiếm theo mã sự cố, tiêu đề sự cố..."
-            className="h-[44px] rounded-full border border-[#dfe3e8] bg-[#f5f5f5] pl-12 pr-4 text-sm text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] placeholder:text-[#969696] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]"
+            className="h-[45px] rounded-full border-0 bg-[#f5f5f5] pl-12 text-sm text-gray-700 placeholder:text-[#969696]"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <Select
             value={typeFilter}
             onValueChange={(value) => {
@@ -220,15 +220,10 @@ const ReceptForm = () => {
               setPage(1);
             }}
           >
-            <SelectTrigger className="h-[44px] min-w-[158px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
+            <SelectTrigger className="h-[45px] rounded-[10px] border-0 bg-[#f5f5f5] px-[15px] text-gray-700">
               <SelectValue placeholder="Loại sự cố" />
             </SelectTrigger>
-            <SelectContent
-              position="popper"
-              align="start"
-              sideOffset={8}
-              className="z-[120] min-w-[190px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
-            >
+            <SelectContent>
               <SelectItem value="all">Loại sự cố</SelectItem>
               <SelectItem value="Giao Thông">Giao thông</SelectItem>
               <SelectItem value="Điện">Điện</SelectItem>
@@ -244,15 +239,10 @@ const ReceptForm = () => {
               setPage(1);
             }}
           >
-            <SelectTrigger className="h-[44px] min-w-[158px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
+            <SelectTrigger className="h-[45px] rounded-[10px] border-0 bg-[#f5f5f5] px-[15px] text-gray-700">
               <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
-            <SelectContent
-              position="popper"
-              align="start"
-              sideOffset={8}
-              className="z-[120] min-w-[190px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
-            >
+            <SelectContent>
               <SelectItem value="all">Trạng thái</SelectItem>
               {STATUS_OPTIONS.filter((option) => option !== "all").map(
                 (option) => (
@@ -265,15 +255,10 @@ const ReceptForm = () => {
           </Select>
 
           <Select value={dateFilter} onValueChange={setDateFilter}>
-            <SelectTrigger className="h-[44px] min-w-[146px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
+            <SelectTrigger className="h-[45px] rounded-[10px] border-0 bg-[#f5f5f5] px-[15px] text-gray-700">
               <SelectValue placeholder="Chọn ngày" />
             </SelectTrigger>
-            <SelectContent
-              position="popper"
-              align="start"
-              sideOffset={8}
-              className="z-[120] min-w-[170px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
-            >
+            <SelectContent>
               <SelectItem value="all">Chọn ngày</SelectItem>
               <SelectItem value="recent">Mới nhất</SelectItem>
               <SelectItem value="old">Cũ hơn</SelectItem>
@@ -282,11 +267,11 @@ const ReceptForm = () => {
         </div>
       </div>
 
-      <div className="relative z-10 mb-2.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
         {visibleReports.map((report, index) => (
           <div
             key={`${report.id}-${report.location}-${index}`}
-            className="relative h-[214px] overflow-hidden rounded-[22px]"
+            className="relative h-[220px] overflow-hidden rounded-[24px]"
           >
             <div
               className="absolute inset-0 bg-cover bg-center"
@@ -346,7 +331,7 @@ const ReceptForm = () => {
         </div>
       )}
 
-      <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 pb-0.5 text-sm font-semibold text-[#4b4b4b]">
+      <div className="mt-auto flex items-center justify-center gap-2 pb-0.5 text-sm font-semibold text-[#4b4b4b]">
         <button
           type="button"
           className="rounded-md px-2 py-1 hover:bg-[#f5f5f5] hover:text-black"
@@ -366,7 +351,7 @@ const ReceptForm = () => {
               1
             </button>
             {pageNumbers[0] > 2 && <span className="px-1">...</span>}
-            </>
+          </>
         )}
 
         {pageNumbers.map((pageNumber) => (
