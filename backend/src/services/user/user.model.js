@@ -4,7 +4,7 @@ const UserSchema = new mongoose.Schema({
   user_id: { type: Number, unique: true },
 
   full_name: String,
-  email: { type: String, default: "" },
+  email: { type: String, trim: true, lowercase: true },
   gender: {
     type: String,
     enum: ["Nam", "Nữ", "Khác"],
@@ -24,6 +24,16 @@ const UserSchema = new mongoose.Schema({
 
   created_at: { type: Date, default: Date.now },
 });
+
+// Chỉ áp unique khi email có giá trị thực tế (không rỗng).
+UserSchema.index(
+  { email: 1 },
+  {
+    name: "email_1",
+    unique: true,
+    sparse: true,
+  },
+);
 
 const User = mongoose.model("User", UserSchema);
 module.exports = User;

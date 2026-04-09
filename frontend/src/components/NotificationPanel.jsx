@@ -56,7 +56,7 @@ const NotificationPanel = ({
       <div className="fixed inset-0 z-[3990] bg-black/20" onClick={onClose} />
 
       <div
-        className="fixed left-24 top-20 z-[4000] w-[420px] max-w-[calc(100vw-7.5rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl"
+        className="fixed left-2 right-2 top-16 z-[4000] w-auto overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl md:left-24 md:right-auto md:top-20 md:w-[420px] md:max-w-[calc(100vw-7.5rem)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="border-b border-gray-100 bg-gradient-to-r from-slate-50 via-white to-blue-50 px-4 py-3">
@@ -99,7 +99,7 @@ const NotificationPanel = ({
           </div>
         </div>
 
-        <ScrollArea className="h-[430px]">
+        <ScrollArea className="h-[min(60vh,430px)] md:h-[430px]">
           <div className="space-y-3 p-3">
             {loading && notifications.length === 0 && (
               <Card size="sm" className="border bg-white py-0">

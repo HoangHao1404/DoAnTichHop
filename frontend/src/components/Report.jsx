@@ -431,7 +431,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
           }
         }}
       >
-        <div className="relative w-full max-w-5xl overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+        <div className="relative max-h-[94vh] w-full max-w-5xl overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
           <Button
             type="button"
             variant="ghost"
@@ -442,10 +442,13 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
             <X className="h-6 w-6" />
           </Button>
 
-          <form onSubmit={handleSubmit}>
+          <form
+            onSubmit={handleSubmit}
+            className="max-h-[94vh] overflow-y-auto"
+          >
             <div className="grid grid-cols-1 lg:grid-cols-2">
               {/* LEFT */}
-              <div className="bg-[#f8f8f8] px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
+              <div className="bg-[#f8f8f8] px-4 py-5 sm:px-6 sm:py-6 lg:min-h-[560px] lg:px-8 lg:py-7">
                 <div className="max-w-[520px]">
                   <h2 className="text-[24px] font-bold leading-tight text-[#111111] sm:text-[28px]">
                     Tạo báo cáo sự cố
@@ -519,7 +522,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
               </div>
 
               {/* RIGHT */}
-              <div className="flex flex-col bg-white px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
+              <div className="flex flex-col bg-white px-4 py-5 sm:px-6 sm:py-6 lg:min-h-[560px] lg:px-8 lg:py-7">
                 <div className="mx-auto flex h-full w-full max-w-[520px] flex-col">
                   <div>
                     <h3 className="text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
@@ -593,12 +596,12 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                         </p>
                       </div>
                     ) : (
-                      <div className="flex min-h-[200px] flex-col items-center justify-center text-center">
+                      <div className="flex min-h-[180px] flex-col items-center justify-center text-center sm:min-h-[200px]">
                         <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#dcebff]">
                           <CloudUpload className="h-7 w-7 text-[#2d7ef7]" />
                         </div>
 
-                        <h4 className="text-[20px] font-bold text-[#151515]">
+                        <h4 className="text-lg font-bold text-[#151515] sm:text-[20px]">
                           Tải ảnh lên hoặc Chụp ảnh
                         </h4>
 
@@ -668,7 +671,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                     </div>
                   </div>
 
-                  <div className="mt-auto flex flex-col-reverse gap-2 pt-6 sm:flex-row sm:justify-end">
+                  <div className="mt-auto flex flex-col-reverse gap-2 pt-5 sm:flex-row sm:justify-end sm:pt-6">
                     <Button
                       type="button"
                       variant="ghost"
@@ -692,8 +695,8 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
         </div>
 
         {showCamera && (
-          <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/90 p-4">
-            <div className="w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/90 p-3 sm:p-4">
+            <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl sm:rounded-3xl">
               <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-6">
                 <div>
                   <h2 className="text-lg font-semibold text-[#111]">
@@ -720,7 +723,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                   ref={videoRef}
                   autoPlay
                   playsInline
-                  className="h-auto max-h-[68vh] w-full object-cover"
+                  className="h-auto max-h-[64vh] w-full object-cover sm:max-h-[68vh]"
                 />
                 <canvas ref={canvasRef} className="hidden" />
               </div>

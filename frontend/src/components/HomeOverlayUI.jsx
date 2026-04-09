@@ -9,7 +9,6 @@ import {
   X,
 } from "lucide-react";
 import ReportForm from "./Report";
-import { useNavigate } from "react-router-dom";
 import UserSidebar from "./UserSidebar";
 import { SidebarProvider } from "./ui/sidebar";
 import { toast } from "sonner";
@@ -57,12 +56,10 @@ export default function HomeOverlayUI({
   userName,
   mapElement,
 }) {
-  const navigate = useNavigate();
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [showCameraOnly, setShowCameraOnly] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [stream, setStream] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -134,17 +131,17 @@ export default function HomeOverlayUI({
         )}
 
         {/* Floating Sidebar - Left Top (aligned with categories) */}
-        <div className="absolute left-6 top-4 z-10">
+        <div className="absolute left-3 top-3 z-20 md:left-6 md:top-4">
           <SidebarProvider>
             <UserSidebar />
           </SidebarProvider>
         </div>
 
         {/* Floating Categories - Right Top (next to sidebar) */}
-        <div className="absolute left-28 top-4 right-4 z-10 flex gap-2 overflow-x-auto scrollbar-hide">
+        <div className="absolute left-3 right-3 top-[4.25rem] z-20 flex gap-2 overflow-x-auto rounded-2xl bg-white/85 p-2 shadow-sm backdrop-blur md:left-28 md:right-4 md:top-4 md:rounded-none md:bg-transparent md:p-0 md:shadow-none">
           <button
             onClick={() => setSelectedCategory("all")}
-            className={`flex items-center gap-1.5 px-4 h-10 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+            className={`flex h-9 flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-xs font-medium transition-all md:h-10 md:px-4 ${
               selectedCategory === "all" ? "shadow-md" : "hover:shadow-sm"
             }`}
             style={{
@@ -160,7 +157,7 @@ export default function HomeOverlayUI({
             <button
               key={c.id}
               onClick={() => setSelectedCategory(c.id)}
-              className={`flex items-center gap-1.5 px-4 h-10 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+              className={`flex h-9 flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-xs font-medium transition-all md:h-10 md:px-4 ${
                 selectedCategory === c.id ? "shadow-md" : "hover:shadow-sm"
               }`}
               style={{
@@ -176,23 +173,23 @@ export default function HomeOverlayUI({
         </div>
 
         {/* Floating Buttons - Bottom Right */}
-        <div className="absolute bottom-6 right-6 z-30 flex flex-col gap-3 pointer-events-auto">
+        <div className="pointer-events-auto absolute bottom-20 right-4 z-30 flex flex-col gap-2 md:bottom-6 md:right-6 md:gap-3">
           {/* Camera Button */}
           <button
-            className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center bg-black text-white hover:bg-gray-800 transition-all"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-black text-white shadow-lg transition-all hover:bg-gray-800 md:h-14 md:w-14"
             onClick={openCamera}
             title="Chụp ảnh"
           >
-            <Camera size={20} />
+            <Camera size={18} className="md:h-5 md:w-5" />
           </button>
 
           {/* Plus Button */}
           <button
-            className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center bg-black text-white hover:bg-gray-800 transition-all"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-black text-white shadow-lg transition-all hover:bg-gray-800 md:h-14 md:w-14"
             onClick={() => setIsReportOpen((prev) => !prev)}
             title="Tạo báo cáo mới"
           >
-            <Plus size={20} />
+            <Plus size={18} className="md:h-5 md:w-5" />
           </button>
         </div>
       </div>

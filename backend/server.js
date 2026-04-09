@@ -8,7 +8,7 @@ const reportRoutes = require("./src/routes/reportRoutes");
 const geocodeRoutes = require("./src/routes/geocodeRoutes");
 
 const app = express();
-const PORT = process.env.BACKEND_PORT || 5000;
+const PORT = process.env.BACKEND_PORT || 5050;
 const ENABLE_MONGO = process.env.ENABLE_MONGO !== "false";
 
 // CORS - Phải đặt trước các middleware khác
@@ -23,7 +23,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 // Middleware - Tăng limit cho JSON và URL encoded để nhận ảnh base64

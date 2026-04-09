@@ -205,19 +205,71 @@ const UserSidebar = () => {
           portalTarget,
         )}
 
-      {/* ICON-ONLY SIDEBAR - Floating */}
-      <Sidebar
-        className="w-20 rounded-2xl border border-gray-200 overflow-hidden shadow-lg"
-        style={{ height: "calc(100vh - 40px)" }}
-      >
-        <SidebarHeader className="flex items-center justify-center pb-4">
-          <div className="flex items-center gap-0.5">
-            <span className="text-2xl font-bold text-blue-600">S</span>
-            <span className="text-lg font-semibold text-black">afin</span>
-          </div>
-        </SidebarHeader>
+      {/* Desktop sidebar */}
+      <div className="hidden md:block">
+        <Sidebar
+          className="w-20 overflow-hidden rounded-2xl border border-gray-200 shadow-lg"
+          style={{ height: "calc(100vh - 40px)" }}
+        >
+          <SidebarHeader className="flex items-center justify-center pb-4">
+            <div className="flex items-center gap-0.5">
+              <span className="text-2xl font-bold text-blue-600">S</span>
+              <span className="text-lg font-semibold text-black">afin</span>
+            </div>
+          </SidebarHeader>
 
-        <SidebarContent className="flex flex-col items-center py-4 gap-4">
+          <SidebarContent className="flex flex-col items-center gap-4 py-4">
+            {mainMenuItems.map((item) => {
+              const isNotificationItem = item.id === "notifications";
+              const isActive = isNotificationItem
+                ? showNotificationsPopup
+                : !showNotificationsPopup && location.pathname === item.path;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleMainMenuClick(item)}
+                  title={item.title}
+                  className={`relative flex h-10 w-10 items-center justify-center rounded-lg transition-all ${
+                    isActive
+                      ? "bg-black text-white shadow-md"
+                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                  }`}
+                >
+                  {item.icon}
+                  {isNotificationItem && unreadCount > 0 && (
+                    <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </SidebarContent>
+
+          <SidebarFooter className="relative flex flex-col items-center gap-2 py-4">
+            <button
+              onClick={() => setShowAvatarMenu(!showAvatarMenu)}
+              title={userInfo.name}
+              className="relative z-40 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-sm font-semibold text-white transition-all hover:shadow-md"
+            >
+              {userInfo.avatar ? (
+                <img
+                  src={userInfo.avatar}
+                  alt={userInfo.name}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                userInfo.name.charAt(0).toUpperCase()
+              )}
+            </button>
+          </SidebarFooter>
+        </Sidebar>
+      </div>
+
+      {/* Mobile bottom navigation */}
+      <div className="fixed inset-x-0 bottom-0 z-[1800] border-t border-gray-200 bg-white/95 backdrop-blur md:hidden">
+        <div className="mx-auto flex h-16 w-full max-w-lg items-center justify-between px-4">
           {mainMenuItems.map((item) => {
             const isNotificationItem = item.id === "notifications";
             const isActive = isNotificationItem
@@ -229,7 +281,7 @@ const UserSidebar = () => {
                 key={item.id}
                 onClick={() => handleMainMenuClick(item)}
                 title={item.title}
-                className={`relative w-10 h-10 flex items-center justify-center rounded-lg transition-all ${
+                className={`relative flex h-11 w-11 items-center justify-center rounded-xl transition-all ${
                   isActive
                     ? "bg-black text-white shadow-md"
                     : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
@@ -244,27 +296,24 @@ const UserSidebar = () => {
               </button>
             );
           })}
-        </SidebarContent>
 
-        <SidebarFooter className="flex flex-col items-center gap-2 py-4 relative">
-          {/* User Avatar Button */}
           <button
             onClick={() => setShowAvatarMenu(!showAvatarMenu)}
             title={userInfo.name}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold text-sm hover:shadow-md transition-all relative z-40"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-sm font-semibold text-white"
           >
             {userInfo.avatar ? (
               <img
                 src={userInfo.avatar}
                 alt={userInfo.name}
-                className="w-full h-full object-cover rounded-full"
+                className="h-full w-full rounded-full object-cover"
               />
             ) : (
               userInfo.name.charAt(0).toUpperCase()
             )}
           </button>
-        </SidebarFooter>
-      </Sidebar>
+        </div>
+      </div>
 
       {/* Dropdown Menu - Positioned outside sidebar */}
       {showAvatarMenu &&
@@ -279,7 +328,7 @@ const UserSidebar = () => {
 
             {/* Dropdown */}
             <div
-              className="fixed bottom-[4.5rem] left-24 z-[2000] w-56 rounded-xl border border-gray-100 bg-white shadow-lg"
+              className="fixed bottom-20 right-4 z-[2000] w-56 rounded-xl border border-gray-100 bg-white shadow-lg md:bottom-[4.5rem] md:left-24 md:right-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* User Info Header */}

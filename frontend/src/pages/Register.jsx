@@ -47,30 +47,49 @@ const Register = () => {
   };
 
   return (
-    <div className="w-full h-screen flex select-none overflow-hidden">
+    <div className="flex min-h-screen w-full select-none flex-col overflow-hidden md:flex-row">
       {/* LEFT */}
-      <div className="w-1/2 h-full relative flex justify-center items-center">
-        <img src={banner} alt="Background banner" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-black/10"></div>
-        <h1 className="text-white font-bold drop-shadow-2xl italic" style={{ fontSize: "150px", letterSpacing: "3px" }}>Safin</h1>
+      <div className="relative hidden min-h-screen w-1/2 items-center justify-center overflow-hidden md:flex">
+        <img
+          src={banner}
+          alt="Background banner"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/10" />
+        <h1
+          className="relative text-white italic font-bold drop-shadow-2xl"
+          style={{ fontSize: "150px", letterSpacing: "3px" }}
+        >
+          Safin
+        </h1>
       </div>
 
       {/* RIGHT */}
-      <div className="w-1/2 h-full bg-white relative flex overflow-hidden">
-        <img src={comle} alt="" className="absolute top-4 -right-20 w-56 opacity-90 pointer-events-none z-0" />
-        <img src={cone} alt="" className="absolute bottom-0 -left-10 w-56 opacity-90 pointer-events-none z-0" />
+      <div className="relative flex min-h-screen w-full overflow-hidden bg-white md:w-1/2">
+        <img
+          src={comle}
+          alt=""
+          className="pointer-events-none absolute -right-12 top-3 hidden w-40 opacity-90 sm:block md:-right-20 md:top-4 md:w-56"
+        />
+        <img
+          src={cone}
+          alt=""
+          className="pointer-events-none absolute -bottom-6 -left-8 hidden w-32 opacity-90 sm:block md:bottom-0 md:-left-10 md:w-56"
+        />
 
-        <div className="w-full flex flex-col items-center pt-24 relative z-10">
-          <div className="w-[85%] max-w-[550px]">
+        <div className="relative z-10 flex w-full flex-col items-center px-5 py-8 sm:px-8 sm:py-10 md:justify-center md:px-10">
+          <div className="w-full max-w-[550px]">
+            <h2 className="mb-2 text-3xl font-semibold sm:text-4xl">
+              Welcome, Sign up
+            </h2>
+            <h2 className="mb-6 text-3xl font-semibold sm:mb-8 sm:text-4xl">
+              to get started
+            </h2>
 
-            <h2 className="text-4xl font-semibold mb-2">Welcome, Sign up</h2>
-            <h2 className="text-4xl font-semibold mb-8">to get started</h2>
-
-            {message && <p className="text-red-600 mb-4">{message}</p>}
+            {message && <p className="mb-4 text-sm text-red-600">{message}</p>}
 
             <form onSubmit={handleSubmit}>
-              {/* NAME */}
-              <div className="mb-5">
+              <div className="mb-4 sm:mb-5">
                 <label className="text-sm font-medium">Name</label>
                 <input
                   type="text"
@@ -78,12 +97,11 @@ const Register = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  className="w-full mt-1 px-4 py-3 border rounded-xl"
+                  className="mt-1 w-full rounded-xl border px-4 py-3"
                 />
               </div>
 
-              {/* PHONE */}
-              <div className="mb-5">
+              <div className="mb-4 sm:mb-5">
                 <label className="text-sm font-medium">Phone</label>
                 <input
                   type="text"
@@ -91,12 +109,11 @@ const Register = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
-                  className="w-full mt-1 px-4 py-3 border rounded-xl"
+                  className="mt-1 w-full rounded-xl border px-4 py-3"
                 />
               </div>
 
-              {/* PASSWORD */}
-              <div className="mb-7 relative">
+              <div className="relative mb-5 sm:mb-7">
                 <label className="text-sm font-medium">Password</label>
                 <input
                   type={showPass ? "text" : "password"}
@@ -104,15 +121,18 @@ const Register = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full mt-1 px-4 py-3 border rounded-xl pr-12"
+                  className="mt-1 w-full rounded-xl border px-4 py-3 pr-12"
                 />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 bottom-4">
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute bottom-3.5 right-4"
+                >
                   {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
 
-              {/* CONFIRM PASS */}
-              <div className="mb-7 relative">
+              <div className="relative mb-6 sm:mb-7">
                 <label className="text-sm font-medium">Confirm Password</label>
                 <input
                   type={showConfirmPass ? "text" : "password"}
@@ -120,18 +140,21 @@ const Register = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full mt-1 px-4 py-3 border rounded-xl pr-12"
+                  className="mt-1 w-full rounded-xl border px-4 py-3 pr-12"
                 />
-                <button type="button" onClick={() => setShowConfirmPass(!showConfirmPass)} className="absolute right-4 bottom-4">
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPass(!showConfirmPass)}
+                  className="absolute bottom-3.5 right-4"
+                >
                   {showConfirmPass ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
 
-              <button className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
+              <button className="w-full rounded-lg bg-blue-600 py-3 text-white transition hover:bg-blue-700">
                 Sign Up
               </button>
             </form>
-
           </div>
         </div>
       </div>
