@@ -63,7 +63,7 @@ function App() {
               }
             />
 
-            {/* Maintenance */ }
+            {/* Maintenance */}
             <Route
               path="/maintenance/dashboard"
               element={

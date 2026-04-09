@@ -14,6 +14,7 @@ import { SidebarProvider } from "../components/ui/sidebar";
 import { reportApi } from "../services/api/reportApi";
 import { useAuth } from "../context/AuthContext";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Select,
@@ -46,6 +47,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const TYPE_OPTIONS = ["all", "Giao Thông", "Điện", "Cây Xanh", "CTCC"];
 const STATUS_OPTIONS = ["all", "Đang Chờ", "Đang Xử Lý", "Đã Giải Quyết"];
@@ -82,6 +84,15 @@ const CARD_STYLES = [
   "from-amber-50 to-yellow-100/60",
   "from-lime-50 to-green-100/60",
 ];
+
+const truncateLocation = (value, maxLength = 24) => {
+  const text = (value || "").trim();
+  if (!text || text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength)}...`;
+};
 
 const useTestWorkflow =
   (import.meta.env.VITE_USE_TEST_REPORT_WORKFLOW ?? "false") === "true";
@@ -159,7 +170,11 @@ export default function MyReports() {
       setLoading(true);
       setError(null);
 
-      const response = useTestWorkflow
+      const useTestEndpoint =
+        useTestWorkflow &&
+        typeof reportApi.getTestReportsByUserId === "function";
+
+      const response = useTestEndpoint
         ? await reportApi.getTestReportsByUserId(userId)
         : await reportApi.getReportsByUserId(userId);
 
@@ -244,46 +259,38 @@ export default function MyReports() {
   ];
 
   return (
-    <div className="w-full h-screen overflow-hidden bg-[#f3f4f6] flex flex-col relative">
-      <div className="absolute left-6 top-4 z-10">
+    <div className="relative flex min-h-screen w-full flex-col bg-[#f3f4f6] md:h-screen md:overflow-hidden">
+      <div className="absolute left-6 top-4 z-20">
         <SidebarProvider>
           <UserSidebar />
         </SidebarProvider>
       </div>
 
-      <div
-        className="h-full overflow-hidden p-4 sm:p-6"
-        style={{ marginLeft: "7rem" }}
-      >
-        <div className="flex h-full w-full flex-col rounded-[24px] border border-gray-200 bg-white p-5 sm:p-6">
+      <div className="h-full overflow-y-auto p-3 pb-24 sm:p-4 sm:pb-24 md:overflow-hidden md:p-6 md:pl-[7rem] md:pb-6">
+        <div className="flex h-full w-full flex-col rounded-[24px] border border-gray-200 bg-white p-4 sm:p-5 md:p-6">
           <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <h1 className="text-4xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
               Báo Cáo Của Tôi
             </h1>
-            <div className="flex items-center gap-3">
-              <div className="relative w-full min-w-[320px] max-w-[460px]">
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 lg:w-auto">
+              <div className="relative w-full min-w-0 sm:min-w-[280px] sm:max-w-[460px]">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                {/* <input
+                <Input
                   type="text"
                   placeholder="Nhập mã báo cáo, tiêu đề,..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="h-12 w-full rounded-full border border-gray-200 bg-white pl-11 pr-4 text-sm text-gray-700 focus:border-blue-300 focus:outline-none"
-                /> */}
-                <input
-                  type="text"
-                  placeholder="Nhập mã báo cáo, tiêu đề,..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="h-12 w-full rounded-full border border-gray-200 bg-white pl-11 pr-4 text-sm text-gray-700 focus:border-blue-300 focus:outline-none"
+                  className="h-12 w-full rounded-full border-gray-200 bg-white pl-11 pr-4 text-sm text-gray-700"
                 />
               </div>
-              <button
+              <Button
                 type="button"
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500"
+                variant="outline"
+                size="icon-lg"
+                className="h-11 w-full rounded-full border-gray-200 bg-white text-gray-500 sm:h-12 sm:w-12"
               >
                 <SlidersHorizontal className="h-5 w-5" />
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -360,7 +367,7 @@ export default function MyReports() {
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value || "all")}
             >
-              <div className="min-w-[190px]">
+              <div className="w-full min-w-0 sm:min-w-[190px] xl:w-auto">
                 <SelectTrigger className="h-11 w-full rounded-xl border-gray-200 bg-white px-3 text-sm text-gray-600 data-[state=open]:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-100">
                   <SelectValue placeholder="Tất cả trạng thái" />
                 </SelectTrigger>
@@ -414,141 +421,147 @@ export default function MyReports() {
 
           <div className="flex flex-1 min-h-0 flex-col">
             <div className="flex-1 overflow-hidden rounded-2xl border border-gray-200">
-              <div className="h-10 border-b border-gray-200 bg-gray-100" />
-              <div className="h-full overflow-y-auto bg-white">
+              <div className="h-full overflow-auto bg-white">
                 {loading ? (
                   <div className="flex h-full min-h-[240px] items-center justify-center">
                     <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-blue-500" />
                   </div>
                 ) : (
-                  <Table className="min-w-full text-left text-sm">
-                    <TableHeader className="sticky top-0 z-10 bg-white text-gray-700">
-                      <TableRow className="border-b border-gray-100 hover:bg-white">
-                        <TableHead className="px-4 py-3 font-semibold">
-                          Mã báo cáo
-                        </TableHead>
-                        <TableHead className="px-4 py-3 font-semibold">
-                          Tiêu đề
-                        </TableHead>
-                        <TableHead className="px-4 py-3 font-semibold">
-                          Loại
-                        </TableHead>
-                        <TableHead className="px-4 py-3 font-semibold">
-                          Vị trí
-                        </TableHead>
-                        <TableHead className="px-4 py-3 font-semibold">
-                          Trạng thái
-                        </TableHead>
-                        <TableHead className="px-4 py-3 font-semibold">
-                          Độ hư hại
-                        </TableHead>
-                        <TableHead className="px-4 py-3 font-semibold">
-                          % AI
-                        </TableHead>
-                        <TableHead className="px-4 py-3 font-semibold">
-                          Thời gian
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {visibleReports.length === 0 && (
-                        <TableRow>
-                          <TableCell
-                            colSpan={8}
-                            className="px-4 py-10 text-center text-gray-400"
-                          >
-                            Chưa có dữ liệu báo cáo phù hợp.
-                          </TableCell>
+                  <div className="min-w-[900px]">
+                    <Table className="min-w-full text-left text-sm">
+                      <TableHeader className="sticky top-0 z-10 bg-white text-gray-700">
+                        <TableRow className="border-b border-gray-100 hover:bg-white">
+                          <TableHead className="px-4 py-3 font-semibold">
+                            Mã báo cáo
+                          </TableHead>
+                          <TableHead className="px-4 py-3 font-semibold">
+                            Tiêu đề
+                          </TableHead>
+                          <TableHead className="px-4 py-3 font-semibold">
+                            Loại
+                          </TableHead>
+                          <TableHead className="px-4 py-3 font-semibold">
+                            Vị trí
+                          </TableHead>
+                          <TableHead className="px-4 py-3 font-semibold">
+                            Trạng thái
+                          </TableHead>
+                          <TableHead className="px-4 py-3 font-semibold">
+                            Độ hư hại
+                          </TableHead>
+                          <TableHead className="px-4 py-3 font-semibold">
+                            % AI
+                          </TableHead>
+                          <TableHead className="px-4 py-3 font-semibold">
+                            Thời gian
+                          </TableHead>
                         </TableRow>
-                      )}
+                      </TableHeader>
+                      <TableBody>
+                        {visibleReports.length === 0 && (
+                          <TableRow>
+                            <TableCell
+                              colSpan={8}
+                              className="px-4 py-10 text-center text-gray-400"
+                            >
+                              Chưa có dữ liệu báo cáo phù hợp.
+                            </TableCell>
+                          </TableRow>
+                        )}
 
-                      {visibleReports.map((item) => (
-                        <TableRow
-                          key={item.id}
-                          className="cursor-pointer border-b border-gray-100 transition hover:bg-gray-50"
-                          onClick={() => {
-                            setSelected(item);
-                            setShowDetail(true);
-                          }}
-                        >
-                          <TableCell className="px-4 py-3 font-semibold text-gray-700">
-                            {item.id}
-                          </TableCell>
-                          <TableCell className="px-4 py-3 text-gray-700">
-                            {item.title}
-                          </TableCell>
-                          <TableCell className="px-4 py-3">
-                            <Badge
-                              variant="outline"
-                              className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${TYPE_BADGE[item.type] || TYPE_BADGE.Khác}`}
+                        {visibleReports.map((item) => (
+                          <TableRow
+                            key={item.id}
+                            className="cursor-pointer border-b border-gray-100 transition hover:bg-gray-50"
+                            onClick={() => {
+                              setSelected(item);
+                              setShowDetail(true);
+                            }}
+                          >
+                            <TableCell className="px-4 py-3 font-semibold text-gray-700">
+                              {item.id}
+                            </TableCell>
+                            <TableCell className="px-4 py-3 text-gray-700">
+                              {item.title}
+                            </TableCell>
+                            <TableCell className="px-4 py-3">
+                              <Badge
+                                variant="outline"
+                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${TYPE_BADGE[item.type] || TYPE_BADGE.Khác}`}
+                              >
+                                {item.type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell
+                              className="px-4 py-3 text-gray-600"
+                              title={item.location}
                             >
-                              {item.type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="px-4 py-3 text-gray-600">
-                            {item.location}
-                          </TableCell>
-                          <TableCell className="px-4 py-3">
-                            <Badge
-                              variant={
-                                (item.status || "Đang Chờ") === "Đang Chờ"
-                                  ? "secondary"
-                                  : "outline"
-                              }
-                              className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
-                                STATUS_BADGE[item.status] ||
-                                STATUS_BADGE["Đang Chờ"]
-                              }`}
-                            >
-                              {STATUS_LABEL[item.status] || "Đang Chờ"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="px-4 py-3">
-                            <Badge
-                              variant={
-                                item.damageLevel === "Nặng"
-                                  ? "destructive"
-                                  : "outline"
-                              }
-                              className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
-                                item.damageLevel === "Trung bình"
-                                  ? "bg-amber-100 text-amber-700"
-                                  : item.damageLevel === "Nhẹ"
-                                    ? "bg-emerald-100 text-emerald-700"
-                                    : ""
-                              }`}
-                            >
-                              {item.damageLevel}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="px-4 py-3">
-                            <Badge
-                              variant={
-                                item.aiPercent >= 70 ? "destructive" : "outline"
-                              }
-                              className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
-                                item.aiPercent >= 70
-                                  ? ""
-                                  : item.aiPercent >= 30
+                              {truncateLocation(item.location, 24)}
+                            </TableCell>
+                            <TableCell className="px-4 py-3">
+                              <Badge
+                                variant={
+                                  (item.status || "Đang Chờ") === "Đang Chờ"
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
+                                  STATUS_BADGE[item.status] ||
+                                  STATUS_BADGE["Đang Chờ"]
+                                }`}
+                              >
+                                {STATUS_LABEL[item.status] || "Đang Chờ"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="px-4 py-3">
+                              <Badge
+                                variant={
+                                  item.damageLevel === "Nặng"
+                                    ? "destructive"
+                                    : "outline"
+                                }
+                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
+                                  item.damageLevel === "Trung bình"
                                     ? "bg-amber-100 text-amber-700"
-                                    : "bg-emerald-100 text-emerald-700"
-                              }`}
-                            >
-                              {Number(item.aiPercent || 0).toFixed(2)}%
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="px-4 py-3 text-gray-600">
-                            {item.time}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                                    : item.damageLevel === "Nhẹ"
+                                      ? "bg-emerald-100 text-emerald-700"
+                                      : ""
+                                }`}
+                              >
+                                {item.damageLevel}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="px-4 py-3">
+                              <Badge
+                                variant={
+                                  item.aiPercent >= 70
+                                    ? "destructive"
+                                    : "outline"
+                                }
+                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
+                                  item.aiPercent >= 70
+                                    ? ""
+                                    : item.aiPercent >= 30
+                                      ? "bg-amber-100 text-amber-700"
+                                      : "bg-emerald-100 text-emerald-700"
+                                }`}
+                              >
+                                {Number(item.aiPercent || 0).toFixed(2)}%
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="px-4 py-3 text-gray-600">
+                              {item.time}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </div>
             </div>
 
-            <Pagination className="mt-4 justify-end">
+            <Pagination className="mt-4 justify-center md:justify-end">
               <PaginationContent className="gap-2">
                 <PaginationItem>
                   <PaginationPrevious
@@ -605,7 +618,6 @@ export default function MyReports() {
           </div>
         </div>
       </div>
-
       {showDetail && (
         <ReportDetail
           data={selected}
@@ -616,12 +628,11 @@ export default function MyReports() {
           }}
         />
       )}
-
       {showReview && (
         <ReportReviews
           close={() => setShowReview(false)}
           submit={() => {
-            alert("Đánh giá thành công!");
+            toast.success("Đánh giá thành công!");
             setShowReview(false);
           }}
         />
