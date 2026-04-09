@@ -63,6 +63,25 @@ function App() {
               }
             />
 
+            {/* Maintenance */}
+            <Route
+              path="/maintenance/dashboard"
+              element={
+                <ProtectedRoute requiredRole="maintenance">
+                  <MaintenanceDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/maintenance/assigned_report"
+              element={
+                <ProtectedRoute requiredRole="maintenance">
+                  <AssignedReport />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Admin */}
             <Route
               path="/admin"

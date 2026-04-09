@@ -49,7 +49,7 @@ const IncidentManagement = () => {
 
   // Lọc theo search query
   const filteredIncidents = incidentTypes.filter((type) =>
-    type.name.toLowerCase().includes(searchQuery.toLowerCase())
+    type.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Handle edit incident
@@ -62,16 +62,18 @@ const IncidentManagement = () => {
 
   const handleSaveEdit = () => {
     // Cập nhật dữ liệu
-    setIncidentTypes(prev => prev.map(item => 
-      item.id === editingIncident.id 
-        ? { 
-            ...item, 
-            name: editName, 
-            color: editColor,
-            bgColor: editColor + '33' // Thêm opacity cho background
-          }
-        : item
-    ));
+    setIncidentTypes((prev) =>
+      prev.map((item) =>
+        item.id === editingIncident.id
+          ? {
+              ...item,
+              name: editName,
+              color: editColor,
+              bgColor: editColor + "33", // Thêm opacity cho background
+            }
+          : item,
+      ),
+    );
     setShowEditModal(false);
     setEditingIncident(null);
   };
@@ -79,17 +81,17 @@ const IncidentManagement = () => {
   // Handle add incident
   const handleAddIncident = () => {
     if (!newName.trim()) return;
-    
+
     const newIncident = {
-      id: Math.max(...incidentTypes.map(t => t.id)) + 1,
+      id: Math.max(...incidentTypes.map((t) => t.id)) + 1,
       name: newName,
       icon: Building2, // Icon mặc định
       color: newColor,
-      bgColor: newColor + '33', // Thêm opacity
+      bgColor: newColor + "33", // Thêm opacity
       count: 0,
     };
-    
-    setIncidentTypes(prev => [...prev, newIncident]);
+
+    setIncidentTypes((prev) => [...prev, newIncident]);
     setShowAddModal(false);
     setNewName("");
     setNewColor("#f97316");
@@ -144,14 +146,10 @@ const IncidentManagement = () => {
                 className="flex items-center gap-3 px-4 py-2.5 rounded-full transition-all hover:shadow-md cursor-pointer"
                 style={{ backgroundColor: type.bgColor }}
               >
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center bg-white"
-                >
+                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white">
                   <type.icon size={18} style={{ color: type.color }} />
                 </div>
-                <span className="font-semibold text-gray-800">
-                  {type.name}
-                </span>
+                <span className="font-semibold text-gray-800">{type.name}</span>
               </button>
             ))}
           </div>
@@ -169,7 +167,7 @@ const IncidentManagement = () => {
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Thêm Loại Sự Cố Mới
             </h3>
-            
+
             <div className="space-y-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -189,12 +187,21 @@ const IncidentManagement = () => {
                   Màu sắc
                 </label>
                 <div className="flex gap-3">
-                  {["#f97316", "#eab308", "#22c55e", "#a855f7", "#06b6d4", "#ef4444"].map((color) => (
+                  {[
+                    "#f97316",
+                    "#eab308",
+                    "#22c55e",
+                    "#a855f7",
+                    "#06b6d4",
+                    "#ef4444",
+                  ].map((color) => (
                     <button
                       key={color}
                       onClick={() => setNewColor(color)}
                       className={`w-10 h-10 rounded-full border-2 transition-colors ${
-                        newColor === color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300 hover:border-blue-400'
+                        newColor === color
+                          ? "border-blue-500 ring-2 ring-blue-200"
+                          : "border-gray-300 hover:border-blue-400"
                       }`}
                       style={{ backgroundColor: color }}
                     />
@@ -232,7 +239,7 @@ const IncidentManagement = () => {
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Chỉnh Sửa Loại Sự Cố
             </h3>
-            
+
             <div className="space-y-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -252,12 +259,21 @@ const IncidentManagement = () => {
                   Màu sắc
                 </label>
                 <div className="flex gap-3">
-                  {["#f97316", "#eab308", "#22c55e", "#a855f7", "#06b6d4", "#ef4444"].map((color) => (
+                  {[
+                    "#f97316",
+                    "#eab308",
+                    "#22c55e",
+                    "#a855f7",
+                    "#06b6d4",
+                    "#ef4444",
+                  ].map((color) => (
                     <button
                       key={color}
                       onClick={() => setEditColor(color)}
                       className={`w-10 h-10 rounded-full border-2 transition-colors ${
-                        editColor === color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300 hover:border-blue-400'
+                        editColor === color
+                          ? "border-blue-500 ring-2 ring-blue-200"
+                          : "border-gray-300 hover:border-blue-400"
                       }`}
                       style={{ backgroundColor: color }}
                     />
