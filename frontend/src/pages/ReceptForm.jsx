@@ -123,6 +123,7 @@ const ReceptForm = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [page, setPage] = useState(2);
+  const [selectedReport, setSelectedReport] = useState(null);
 
   const filteredReports = useMemo(() => {
     const searchTerm = query.trim().toLowerCase();
@@ -172,6 +173,24 @@ const ReceptForm = () => {
       (_, index) => adjustedStart + index,
     );
   }, [safePage, totalPages]);
+
+  const detailData = selectedReport
+    ? {
+        id:
+          selectedReport.code ||
+          `BC-${String(selectedReport.id).padStart(4, "0")}`,
+        title: selectedReport.title,
+        type: selectedReport.category,
+        status: selectedReport.status,
+        time: selectedReport.time || selectedReport.date,
+        district: selectedReport.district,
+        team: selectedReport.team,
+        reporter: selectedReport.reporter,
+        location: `${selectedReport.reporter}, ${selectedReport.district}, Đà Nẵng`,
+        description: selectedReport.description,
+        images: [selectedReport.image, selectedReport.afterImage || ""],
+      }
+    : null;
 
   return (
     <div className="h-full overflow-hidden rounded-[24px] border border-gray-200 bg-white p-4 sm:p-5 flex flex-col">
@@ -271,7 +290,8 @@ const ReceptForm = () => {
         {visibleReports.map((report, index) => (
           <div
             key={`${report.id}-${report.location}-${index}`}
-            className="relative h-[220px] overflow-hidden rounded-[24px]"
+            className="relative h-[220px] overflow-hidden rounded-[24px] cursor-pointer"
+            onClick={() => setSelectedReport(report)}
           >
             <div
               className="absolute inset-0 bg-cover bg-center"

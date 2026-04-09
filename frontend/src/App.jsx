@@ -36,7 +36,7 @@ function App() {
   return (
     <AuthProvider>
       <TooltipProvider>
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             {/* Public */}
             <Route path="/" element={<PublicPage />} />
@@ -59,25 +59,6 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MyReports />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Maintenance */}
-            <Route
-              path="/maintenance/dashboard"
-              element={
-                <ProtectedRoute requiredRole="maintenance">
-                  <MaintenanceDashboard />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/maintenance/assigned_report"
-              element={
-                <ProtectedRoute requiredRole="maintenance">
-                  <AssignedReport />
                 </ProtectedRoute>
               }
             />
