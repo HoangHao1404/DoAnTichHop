@@ -5,6 +5,7 @@ import { Map, FolderOpen, Bell, LogOut, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { reportApi } from "../services/api/reportApi";
+import InfoManagement from "../pages/Info_Management";
 import {
   Sidebar,
   SidebarContent,
@@ -46,6 +47,7 @@ const UserSidebar = () => {
   const location = useLocation();
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const [showNotificationsPopup, setShowNotificationsPopup] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const { user, logout } = useAuth();
@@ -308,7 +310,7 @@ const UserSidebar = () => {
                 <button
                   onClick={() => {
                     setShowAvatarMenu(false);
-                    navigate("/profile");
+                    setShowProfileModal(true);
                   }}
                   className="w-full px-4 py-2 flex items-center gap-3 text-gray-700 hover:bg-gray-50 transition-colors text-left"
                 >
@@ -341,6 +343,10 @@ const UserSidebar = () => {
         onMarkAllRead={markAllRead}
         onMarkRead={markNotificationRead}
       />
+
+      {showProfileModal && (
+        <InfoManagement onClose={() => setShowProfileModal(false)} />
+      )}
     </>
   );
 };

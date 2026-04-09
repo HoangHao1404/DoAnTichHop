@@ -5,16 +5,22 @@ import {
   Upload,
   MapPin,
   X,
-  ChevronDown,
   AlertCircle,
-  Image,
+  CloudUpload,
 } from "lucide-react";
-import { toast } from "sonner";
+import Toast from "./Toast";
 import { reportApi } from "../services/api/reportApi";
 import { useAuth } from "../context/AuthContext";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5050/api";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 const incidentOptions = [
   { value: "infrastructure", label: "Hạ tầng giao thông" },
@@ -24,8 +30,11 @@ const incidentOptions = [
   { value: "electricity", label: "Điện lực" },
   { value: "other", label: "Khác" },
 ];
+
 function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
   const [title, setTitle] = useState("");
   const [incidentType, setIncidentType] = useState("");
   const [description, setDescription] = useState("");
@@ -37,86 +46,205 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const [showCamera, setShowCamera] = useState(false);
   const [stream, setStream] = useState(null);
   const [hasFetchedLocation, setHasFetchedLocation] = useState(false);
-  const [openIncidentDropdown, setOpenIncidentDropdown] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  // Auto open camera khi prop autoOpenCamera = true
   useEffect(() => {
     if (autoOpenCamera) {
       openCamera();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoOpenCamera]);
 
-  // Auto fetch location khi có initialImage
   useEffect(() => {
-    if (initialImage && !hasFetchedLocation) {
-      getLocation();
+    if (!hasFetchedLocation && !location) {
       setHasFetchedLocation(true);
+      getLocation();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialImage]);
+  }, [hasFetchedLocation, location]);
 
-  // ========= IMAGE + GPS =========
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-
-    // chỉ lấy vị trí nếu đây là lần đầu tiên có ảnh
-    const shouldGetLocation =
-      !hasFetchedLocation && uploadedImages.length === 0;
-
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setUploadedImages((prev) => [...prev, ev.target.result]);
-        if (shouldGetLocation) {
-          getLocation();
-          setHasFetchedLocation(true);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+  const showErrorToast = (message) => {
+    setToast({ message, type: "error" });
   };
 
-  // Lấy vị trí GPS
+  const showSuccessToast = (message) => {
+    setToast({ message, type: "success" });
+  };
+
+  const validateFiles = (files) => {
+    const currentCount = uploadedImages.length;
+    const remainingSlots = 5 - currentCount;
+
+    if (remainingSlots <= 0) {
+      showErrorToast("Bạn chỉ được tải tối đa 5 ảnh.");
+      return [];
+    }
+
+    const selectedFiles = Array.from(files || []).slice(0, remainingSlots);
+    const validFiles = [];
+
+    for (const file of selectedFiles) {
+      if (!file.type.startsWith("image/")) {
+        showErrorToast(`File "${file.name}" không phải là hình ảnh.`);
+        continue;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        showErrorToast(`Ảnh "${file.name}" vượt quá 10MB.`);
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    return validFiles;
+  };
+
+  const convertFilesToBase64 = (files) => {
+    return Promise.all(
+      files.map(
+        (file) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => resolve(ev.target.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          }),
+      ),
+    );
+  };
+
+  // Upload ảnh chỉ thêm ảnh, vị trí hiện tại đã được lấy tự động khi mở form
+  const handleImageUpload = async (e) => {
+    const files = validateFiles(e.target.files || []);
+    if (!files.length) return;
+
+    try {
+      const base64Images = await convertFilesToBase64(files);
+      setUploadedImages((prev) => [...prev, ...base64Images]);
+    } catch (error) {
+      console.error("Error reading files:", error);
+      showErrorToast("Không thể đọc ảnh tải lên.");
+    } finally {
+      if (e.target) e.target.value = "";
+    }
+  };
+
+  const handleDropFiles = async (files) => {
+    const validFiles = validateFiles(files);
+    if (!validFiles.length) return;
+
+    try {
+      const base64Images = await convertFilesToBase64(validFiles);
+      setUploadedImages((prev) => [...prev, ...base64Images]);
+    } catch (error) {
+      console.error("Error reading dropped files:", error);
+      showErrorToast("Không thể đọc ảnh kéo thả.");
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    const files = e.dataTransfer?.files;
+    if (files?.length) {
+      await handleDropFiles(files);
+    }
+  };
+
+  const removeImage = (index) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const isCoordinateString = (value) => {
+    if (!value || typeof value !== "string") return false;
+    return /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(value.trim());
+  };
+
+  const resolveAddress = async (latitude, longitude) => {
+    try {
+      const response = await fetch(
+        `/api/geocode/reverse?lat=${latitude}&lon=${longitude}`,
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        const candidates = [
+          result?.data?.address,
+          result?.data?.fullAddress,
+          result?.data?.details?.display_name,
+        ].filter((item) => typeof item === "string" && item.trim().length > 0);
+
+        const address = candidates.find((item) => !isCoordinateString(item));
+        if (address) {
+          return address;
+        }
+      }
+    } catch (error) {
+      console.error("Backend reverse geocode failed:", error);
+    }
+
+    try {
+      const nominatimResponse = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&accept-language=vi`,
+      );
+
+      if (nominatimResponse.ok) {
+        const nominatimData = await nominatimResponse.json();
+        if (nominatimData?.display_name) {
+          return nominatimData.display_name;
+        }
+      }
+    } catch (error) {
+      console.error("Direct Nominatim reverse geocode failed:", error);
+    }
+
+    return "";
+  };
+
   const getLocation = async () => {
     if (!navigator.geolocation) {
-      toast.error("Trình duyệt không hỗ trợ GPS");
+      alert("Trình duyệt không hỗ trợ GPS");
       return;
     }
 
     setLocationLoading(true);
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        console.log("📍 GPS OK:", position);
         const { latitude, longitude } = position.coords;
 
         try {
-          // Gọi API backend để reverse geocode (tránh CORS)
-          console.log("🌍 Calling backend geocode API...");
-          const response = await fetch(
-            `${API_BASE_URL}/geocode/reverse?lat=${latitude}&lon=${longitude}`,
-          );
-
-          if (!response.ok) {
-            throw new Error(`Backend API error: ${response.status}`);
-          }
-
-          const result = await response.json();
-          console.log("📡 Backend response:", result);
-
-          if (result.success && result.data.address) {
-            console.log("✅ Address found:", result.data.address);
-            setLocation(result.data.address);
+          const address = await resolveAddress(latitude, longitude);
+          if (address) {
+            setLocation(address);
           } else {
-            console.warn("⚠️ No address in response");
-            setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+            showErrorToast(
+              "Không thể tự động lấy địa chỉ cụ thể. Vui lòng nhập vị trí thủ công.",
+            );
           }
         } catch (err) {
-          console.error("❌ Error getting address:", err);
-          setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-          toast.warning("Không thể lấy địa chỉ. Vui lòng nhập thủ công.");
+          console.error("Error getting address:", err);
+          showErrorToast("Không thể lấy địa chỉ. Vui lòng nhập thủ công.");
         }
 
         setLocationLoading(false);
@@ -126,21 +254,19 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
         setLocationLoading(false);
 
         if (error.code === 1) {
-          toast.error(
+          alert(
             "Bạn đã chặn quyền truy cập vị trí. Hãy cho phép lại trong trình duyệt (biểu tượng ổ khóa bên cạnh URL).",
           );
         } else if (error.code === 2) {
-          toast.error(
+          alert(
             "Không xác định được vị trí. Vui lòng thử lại hoặc nhập địa chỉ thủ công.",
           );
         } else if (error.code === 3) {
-          toast.error(
+          alert(
             "Lấy vị trí quá lâu (timeout). Vui lòng thử lại hoặc nhập địa chỉ thủ công.",
           );
         } else {
-          toast.error(
-            "Không thể lấy vị trí GPS. Vui lòng nhập địa chỉ thủ công.",
-          );
+          alert("Không thể lấy vị trí GPS. Vui lòng nhập địa chỉ thủ công.");
         }
       },
       {
@@ -151,28 +277,39 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     );
   };
 
-  // ========= CAMERA =========
   const openCamera = async () => {
     try {
+      if (uploadedImages.length >= 5) {
+        showErrorToast("Bạn chỉ được tải tối đa 5 ảnh.");
+        return;
+      }
+
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" },
         audio: false,
       });
+
       setStream(mediaStream);
       setShowCamera(true);
+
       setTimeout(() => {
-        if (videoRef.current) videoRef.current.srcObject = mediaStream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+        }
       }, 100);
     } catch (error) {
       console.error(error);
-      toast.error(
-        "Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.",
-      );
+      alert("Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.");
     }
   };
 
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
+    if (uploadedImages.length >= 5) {
+      showErrorToast("Bạn chỉ được tải tối đa 5 ảnh.");
+      return;
+    }
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -187,6 +324,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
       !hasFetchedLocation && uploadedImages.length === 0;
 
     setUploadedImages((prev) => [...prev, imageData]);
+
     if (shouldGetLocation) {
       getLocation();
       setHasFetchedLocation(true);
@@ -197,14 +335,11 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
   const closeCamera = () => {
     if (stream) {
-      stream.getTracks().forEach((t) => t.stop());
+      stream.getTracks().forEach((track) => track.stop());
       setStream(null);
     }
     setShowCamera(false);
   };
-
-  // ========= FORM =========
-  const { user } = useAuth();
 
   const resetForm = () => {
     setTitle("");
@@ -213,28 +348,35 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     setUploadedImages([]);
     setLocation("");
     setHasFetchedLocation(false);
+    setDragActive(false);
+  };
+
+  const handleCancel = () => {
+    closeCamera();
+    resetForm();
+    onClose && onClose();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!title || !incidentType || uploadedImages.length === 0) {
-      toast.warning("Vui lòng điền đầy đủ các trường bắt buộc");
+      alert("Vui lòng điền đầy đủ các trường bắt buộc");
       return;
     }
 
     if (!location) {
-      toast.warning("Vui lòng nhập vị trí hoặc cho phép truy cập GPS");
+      alert("Vui lòng nhập vị trí hoặc cho phép truy cập GPS");
       return;
     }
 
     const userId = user?._id || user?.user_id;
     if (!userId) {
-      toast.error("Bạn cần đăng nhập để gửi báo cáo");
+      alert("Bạn cần đăng nhập để gửi báo cáo");
       return;
     }
 
     try {
-      // Map incident type to Vietnamese
       const typeMapping = {
         infrastructure: "Giao Thông",
         lighting: "Điện",
@@ -245,7 +387,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
       };
 
       const reportData = {
-        userId: userId,
+        userId,
         title,
         type: typeMapping[incidentType] || "CTCC",
         location,
@@ -256,317 +398,350 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
       const response = await reportApi.createReport(reportData);
 
       if (response.success) {
-        toast.success("Đã gửi báo cáo thành công!");
+        showSuccessToast("Đã gửi báo cáo thành công!");
         setTimeout(() => {
           resetForm();
           onClose && onClose();
-          // Navigate về MyReports để reload data thay vì reload page
           navigate("/myreport", { replace: true });
         }, 1500);
       } else {
-        toast.error("Gửi báo cáo thất bại!");
+        showErrorToast("Gửi báo cáo thất bại!");
       }
     } catch (error) {
       console.error("Error creating report:", error);
-      toast.error(error.response?.data?.message || "Lỗi khi gửi báo cáo!");
+      showErrorToast(error.response?.data?.message || "Lỗi khi gửi báo cáo!");
     }
   };
 
-  const handleCancel = () => {
-    resetForm();
-    onClose && onClose();
-  };
-
   return (
-    // OVERLAY popup
     <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 9999,
-          backgroundColor: "rgba(0,0,0,0.4)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "12px",
-        }}
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-3 sm:p-4"
         onClick={(e) => {
-          if (e.target === e.currentTarget && onClose) onClose();
+          if (e.target === e.currentTarget && onClose) {
+            handleCancel();
+          }
         }}
       >
-        <div
-          style={{
-            backgroundColor: "white",
-            borderRadius: "20px",
-            boxShadow: "0 15px 40px rgba(0,0,0,0.25)",
-            width: "100%",
-            maxWidth: "640px",
-            maxHeight: "88vh",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-          }}
-        >
-          {/* Header */}
-          <div className="bg-gradient-to-r from-blue-500 to-blue-400 px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between sticky top-0 z-10">
-            <h1 className="text-white text-lg sm:text-xl md:text-2xl font-semibold">
-              Báo cáo sự cố
-            </h1>
-            <button
-              onClick={handleCancel}
-              className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
+        <div className="relative w-full max-w-5xl overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={handleCancel}
+            className="absolute right-4 top-4 z-20 h-10 w-10 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          >
+            <X className="h-6 w-6" />
+          </Button>
 
-          {/* Nội dung */}
-          <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 overflow-y-auto">
-            <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
-              {/* Tiêu đề */}
-              <div>
-                <label className="block text-gray-800 font-medium mb-2 text-sm sm:text-base">
-                  Tiêu đề sự cố <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Mô tả ngắn gọn sự cố"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                />
-              </div>
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 lg:grid-cols-2">
+              {/* LEFT */}
+              <div className="bg-[#f8f8f8] px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
+                <div className="max-w-[520px]">
+                  <h2 className="text-[24px] font-bold leading-tight text-[#111111] sm:text-[28px]">
+                    Tạo báo cáo sự cố
+                  </h2>
 
-              {/* Loại sự cố */}
-              <div>
-                <label className="block text-gray-800 font-medium mb-2 text-sm sm:text-base">
-                  Loại sự cố <span className="text-red-500">*</span>
-                </label>
+                  <p className="mt-2.5 text-sm leading-5 text-[#707070]">
+                    Vui lòng cung cấp thông tin chi tiết về sự cố hạ tầng để đội
+                    ngũ kỹ thuật kịp thời xử lý.
+                  </p>
 
-                <div className="relative">
-                  {/* Nút mở dropdown */}
-                  <button
-                    type="button"
-                    onClick={() => setOpenIncidentDropdown((prev) => !prev)}
-                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border rounded-xl bg-white flex items-center justify-between text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      incidentType
-                        ? "border-gray-300 text-gray-800"
-                        : "border-gray-300 text-gray-400"
-                    }`}
-                  >
-                    <span>
-                      {incidentType
-                        ? incidentOptions.find((o) => o.value === incidentType)
-                            ?.label
-                        : "Chọn loại sự cố"}
-                    </span>
-
-                    <ChevronDown
-                      className={`w-4 h-4 text-gray-400 transition-transform ${
-                        openIncidentDropdown ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {/* Menu dropdown */}
-                  {openIncidentDropdown && (
-                    <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-20">
-                      {incidentOptions.map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => {
-                            setIncidentType(opt.value);
-                            setOpenIncidentDropdown(false);
-                          }}
-                          className={`w-full text-left px-4 py-2.5 text-sm sm:text-base hover:bg-blue-50 ${
-                            incidentType === opt.value
-                              ? "bg-blue-50 font-medium"
-                              : "text-gray-700"
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+                  <div className="mt-6 space-y-5">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                        Tiêu đề sự cố
+                      </label>
+                      <Input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Mô tả ngắn gọn sự cố"
+                        className="h-11 rounded-xl border-transparent bg-[#ececec] px-4 text-sm text-[#222] placeholder:text-[#9b9b9b] focus-visible:border-[#5d5fef] focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-[#5d5fef]/10"
+                      />
                     </div>
-                  )}
+
+                    <div>
+                      <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                        Loại sự cố
+                      </label>
+
+                      <Select
+                        value={incidentType}
+                        onValueChange={setIncidentType}
+                      >
+                        <SelectTrigger
+                          size="default"
+                          className="h-11 w-full rounded-xl border-transparent bg-[#ececec] px-4 text-sm text-[#222] data-[placeholder]:text-[#9b9b9b] focus-visible:border-[#5d5fef] focus-visible:ring-4 focus-visible:ring-[#5d5fef]/10 [&>svg]:text-[#9b9b9b]"
+                        >
+                          <SelectValue placeholder="Chọn loại sự cố" />
+                        </SelectTrigger>
+                        <SelectContent
+                          position="popper"
+                          className="z-[10020] w-[var(--radix-select-trigger-width)] max-h-[260px] rounded-xl border border-gray-100 bg-white p-1 text-sm shadow-[0_12px_30px_rgba(0,0,0,0.12)]"
+                        >
+                          {incidentOptions.map((option) => (
+                            <SelectItem
+                              key={option.value}
+                              value={option.value}
+                              className="rounded-lg py-2 text-sm font-normal text-[#222] focus:bg-[#f5f6ff] focus:text-[#3b3df5] data-[state=checked]:font-medium"
+                            >
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                        Mô tả chi tiết
+                      </label>
+                      <Textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        rows={6}
+                        placeholder="Mô tả chi tiết về sự cố: Tình trạng hiện tại, mức độ nghiêm trọng, các yếu tố liên quan...."
+                        className="w-full resize-none rounded-2xl border-transparent bg-[#ececec] px-4 py-3.5 text-sm leading-5 text-[#222] placeholder:text-[#9b9b9b] focus-visible:border-[#5d5fef] focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-[#5d5fef]/10"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Hình ảnh */}
-              <div>
-                <label className="block text-gray-800 font-medium mb-2 text-sm sm:text-base">
-                  Hình ảnh sự cố <span className="text-red-500">*</span>
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 md:p-8">
-                  <div className="flex flex-col items-center w-full">
-                    {uploadedImages.length === 0 ? (
-                      // Trạng thái chưa có ảnh
-                      <div className="flex flex-col items-center mb-4">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-blue-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                          <Image className="w-8 h-8 sm:w-10 sm:h-10 text-blue-500" />
+              {/* RIGHT */}
+              <div className="flex flex-col bg-white px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
+                <div className="mx-auto flex h-full w-full max-w-[520px] flex-col">
+                  <div>
+                    <h3 className="text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                      Hình ảnh sự cố
+                    </h3>
+                    <p className="mt-0.5 text-xs text-[#8b8b8b]">
+                      Định dạng JPG, PNG (Tối đa 10MB)
+                    </p>
+                  </div>
+
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`mt-4 rounded-[20px] border-2 border-dashed bg-[#fcfcfc] p-5 transition sm:p-6 ${
+                      dragActive
+                        ? "border-[#5d5fef] bg-[#f7f7ff]"
+                        : "border-[#d7d7d7]"
+                    }`}
+                  >
+                    {uploadedImages.length > 0 ? (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                          {uploadedImages.map((img, index) => (
+                            <div
+                              key={index}
+                              className="group relative overflow-hidden rounded-xl bg-[#f2f2f2]"
+                            >
+                              <img
+                                src={img}
+                                alt={`uploaded-${index}`}
+                                className="h-24 w-full object-cover sm:h-28"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => removeImage(index)}
+                                className="absolute right-1.5 top-1.5 rounded-full bg-black/65 text-white opacity-100 hover:bg-red-500 sm:opacity-0 sm:group-hover:opacity-100"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          ))}
                         </div>
-                        <h3 className="text-gray-800 font-medium mb-1 text-sm sm:text-base text-center">
-                          Thêm hình ảnh sự cố
-                        </h3>
-                        <p className="text-gray-500 text-xs sm:text-sm mb-2 sm:mb-3 text-center px-2">
-                          Chụp ảnh trực tiếp hoặc tải lên từ thiết bị
+
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={openCamera}
+                            className="h-11 flex-1 rounded-xl border-[#dddddd] bg-white text-sm font-medium text-[#333] hover:border-[#5d5fef] hover:text-[#5d5fef]"
+                          >
+                            <Camera className="h-4 w-4" />
+                            Camera
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="h-11 flex-1 rounded-xl border-[#dddddd] bg-white text-sm font-medium text-[#333] hover:border-[#5d5fef] hover:text-[#5d5fef]"
+                          >
+                            <Upload className="h-4 w-4" />
+                            Upload
+                          </Button>
+                        </div>
+
+                        <p className="text-center text-[11px] text-[#8b8b8b]">
+                          Đã tải {uploadedImages.length}/5 ảnh
                         </p>
                       </div>
                     ) : (
-                      // Grid ảnh đã tải
-                      <div className="w-full mb-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {uploadedImages.map((img, index) => (
-                          <div key={index} className="relative group">
-                            <img
-                              src={img}
-                              alt={`Uploaded ${index + 1}`}
-                              className="w-full h-32 sm:h-36 object-cover rounded-lg"
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setUploadedImages((prev) =>
-                                  prev.filter((_, i) => i !== index),
-                                )
-                              }
-                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors opacity-90 group-hover:opacity-100"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
+                      <div className="flex min-h-[200px] flex-col items-center justify-center text-center">
+                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#dcebff]">
+                          <CloudUpload className="h-7 w-7 text-[#2d7ef7]" />
+                        </div>
+
+                        <h4 className="text-[20px] font-bold text-[#151515]">
+                          Tải ảnh lên hoặc Chụp ảnh
+                        </h4>
+
+                        <p className="mt-2 max-w-[280px] text-[13px] leading-5 text-[#8c8c8c]">
+                          Kéo thả file vào đây hoặc nhấp để chọn từ thư viện
+                        </p>
+
+                        <div className="mt-5 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={openCamera}
+                            className="h-11 min-w-[130px] rounded-xl border-[#e2e2e2] bg-white px-4 text-sm font-medium text-[#333] shadow-sm hover:border-[#5d5fef] hover:text-[#5d5fef]"
+                          >
+                            <Camera className="h-4 w-4" />
+                            Camera
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="h-11 min-w-[130px] rounded-xl border-[#e2e2e2] bg-white px-4 text-sm font-medium text-[#333] shadow-sm hover:border-[#5d5fef] hover:text-[#5d5fef]"
+                          >
+                            <Upload className="h-4 w-4" />
+                            Upload
+                          </Button>
+                        </div>
                       </div>
                     )}
 
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
-                      <button
-                        type="button"
-                        onClick={openCamera}
-                        className="bg-blue-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-700 transition-colors text-sm sm:text-base w-full sm:w-auto"
-                      >
-                        <Camera className="w-5 h-5" />
-                        <span>
-                          {uploadedImages.length === 0
-                            ? "Chụp ảnh"
-                            : "Chụp thêm ảnh"}
-                        </span>
-                      </button>
-                      <label className="bg-blue-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-700 transition-colors text-sm sm:text-base w-full sm:w-auto">
-                        <Upload className="w-5 h-5" />
-                        <span>
-                          {uploadedImages.length === 0
-                            ? "Tải ảnh lên"
-                            : "Thêm ảnh từ thiết bị"}
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Vị trí */}
-              <div>
-                <label className="block text-gray-800 font-medium mb-2 text-sm sm:text-base">
-                  Vị trí sự cố <span className="text-red-500">*</span>
-                </label>
-                <div className="space-y-2 sm:space-y-3">
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-3 sm:left-4 flex items-center justify-center pointer-events-none">
-                      <MapPin className="w-5 h-5 text-cyan-500" />
-                    </div>
                     <input
-                      type="text"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="Nhập vị trí sự cố (VD: 345 Hoàng Diệu, Hải Châu, Đà Nẵng)"
-                      className="w-full pl-11 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base text-gray-700"
-                      disabled={locationLoading}
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="hidden"
                     />
                   </div>
 
-                  <div className="flex items-start gap-2 sm:gap-3 p-2.5 sm:p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-amber-700 text-xs sm:text-sm">
-                      Vui lòng nhập địa chỉ chi tiết hoặc mở tính năng GPS để
-                      chúng tôi có thể đến xử lý.
-                    </p>
+                  <div className="mt-5">
+                    <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                      Vị trí sự cố
+                    </label>
+
+                    <div className="relative">
+                      <div className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center">
+                        <MapPin className="h-4 w-4 text-[#8a8a8a]" />
+                      </div>
+                      <Input
+                        type="text"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        disabled={locationLoading}
+                        placeholder="Nhập vị trí sự cố (Ví dụ: 03 Quang Trung...)"
+                        className="h-11 rounded-xl border-transparent bg-[#f2f2f2] pl-10 pr-4 text-sm text-[#222] placeholder:text-[#9b9b9b] focus-visible:border-[#5d5fef] focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-[#5d5fef]/10 disabled:cursor-not-allowed disabled:opacity-70"
+                      />
+                    </div>
+
+                    <div className="mt-2.5 flex items-start gap-1.5 text-[11px] leading-4 text-[#8d8d8d]">
+                      <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[#9b9b9b]" />
+                      <p>
+                        Vui lòng nhập chính xác vị trí của sự cố để thuận tiện
+                        cho đội xử lý.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-auto flex flex-col-reverse gap-2 pt-6 sm:flex-row sm:justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={handleCancel}
+                      className="h-11 rounded-xl px-5 text-sm font-semibold text-[#555] hover:bg-gray-100"
+                    >
+                      Huỷ bỏ
+                    </Button>
+
+                    <Button
+                      type="submit"
+                      className="h-11 rounded-xl bg-[#3f39f5] px-7 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(63,57,245,0.28)] hover:bg-[#322cf0]"
+                    >
+                      Gửi báo cáo
+                    </Button>
                   </div>
                 </div>
               </div>
-
-              {/* Mô tả */}
-              <div>
-                <label className="block text-gray-800 font-medium mb-2 text-sm sm:text-base">
-                  Mô tả chi tiết (tùy chọn)
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Mô tả chi tiết về sự cố..."
-                  rows={4}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm sm:text-base"
-                />
-              </div>
-
-              {/* Buttons */}
-              <div className="flex gap-3 sm:gap-4 pt-2">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm sm:text-base"
-                >
-                  Gửi báo cáo
-                </button>
-              </div>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
 
-        {/* Camera overlay giữ nguyên */}
         {showCamera && (
-          <div className="fixed inset-0 bg-black bg-opacity-90 z-[10000] flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-2xl">
-              <div className="bg-white rounded-t-lg p-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Chụp ảnh sự cố</h2>
-                <button
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/90 p-4">
+            <div className="w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-[#111]">
+                    Chụp ảnh sự cố
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Sau khi chụp ảnh, hệ thống sẽ tự động lấy GPS hiện tại.
+                  </p>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={closeCamera}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="h-10 w-10 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                 >
-                  <X className="w-6 h-6" />
-                </button>
+                  <X className="h-6 w-6" />
+                </Button>
               </div>
-              <div className="relative bg-black">
+
+              <div className="bg-black">
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
-                  className="w-full h-auto max-h-[60vh] object-cover"
+                  className="h-auto max-h-[68vh] w-full object-cover"
                 />
                 <canvas ref={canvasRef} className="hidden" />
               </div>
-              <div className="bg-white rounded-b-lg p-4">
-                <button
-                  onClick={capturePhoto}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors font-medium"
+
+              <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeCamera}
+                  className="h-12 rounded-xl border-gray-300 px-5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
-                  <Camera className="w-5 h-5" />
-                  <span>Chụp ảnh</span>
-                </button>
+                  Huỷ
+                </Button>
+                <Button
+                  type="button"
+                  onClick={capturePhoto}
+                  className="h-12 rounded-xl bg-[#3f39f5] px-6 text-sm font-semibold text-white hover:bg-[#322cf0]"
+                >
+                  <Camera className="h-5 w-5" />
+                  Chụp ảnh
+                </Button>
               </div>
             </div>
           </div>

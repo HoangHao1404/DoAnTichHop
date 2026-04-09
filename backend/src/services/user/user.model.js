@@ -4,6 +4,12 @@ const UserSchema = new mongoose.Schema({
   user_id: { type: Number, unique: true },
 
   full_name: String,
+  email: { type: String, default: "" },
+  gender: {
+    type: String,
+    enum: ["Nam", "Nữ", "Khác"],
+    default: "Nam",
+  },
 
   phone: { type: String, unique: true, required: true },
   password: { type: String, required: true }, // hash

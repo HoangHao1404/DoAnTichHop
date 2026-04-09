@@ -1,288 +1,438 @@
-import React, { useState } from "react";
-import { Search, Plus, Car, Zap, TreePine, Building2 } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Search, Plus, Building2, Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import IncidentTypePopup, {
+  INCIDENT_ICON_MAP,
+} from "@/components/IncidentTypePopup";
+
+const PAGE_SIZE = 6;
+
+const hexToRgb = (hexColor) => {
+  const hex = (hexColor || "").replace("#", "");
+  if (hex.length !== 6) return { r: 59, g: 130, b: 246 };
+
+  return {
+    r: Number.parseInt(hex.slice(0, 2), 16),
+    g: Number.parseInt(hex.slice(2, 4), 16),
+    b: Number.parseInt(hex.slice(4, 6), 16),
+  };
+};
+
+const getCardShadow = (hexColor) => {
+  const { r, g, b } = hexToRgb(hexColor);
+  return `0 14px 32px rgba(${r}, ${g}, ${b}, 0.16), 0 2px 10px rgba(15, 23, 42, 0.06)`;
+};
 
 const IncidentManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingIncident, setDeletingIncident] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [editingIncident, setEditingIncident] = useState(null);
   const [editName, setEditName] = useState("");
-  const [editColor, setEditColor] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editIconKey, setEditIconKey] = useState("car");
+  const [editColor, setEditColor] = useState("#f97316");
   const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newIconKey, setNewIconKey] = useState("public");
   const [newColor, setNewColor] = useState("#f97316");
 
-  // Danh sách loại sự cố - chuyển thành state
   const [incidentTypes, setIncidentTypes] = useState([
     {
       id: 1,
       name: "Giao Thông",
-      icon: Car,
+      iconKey: "car",
       color: "#f97316",
-      bgColor: "#fed7aa",
+      description:
+        "Quản lý các sự cố liên quan đến các vấn đề như đường xá,...",
       count: 245,
     },
     {
       id: 2,
       name: "Điện",
-      icon: Zap,
-      color: "#eab308",
-      bgColor: "#fef3c7",
+      iconKey: "electric",
+      color: "#fdca00",
+      description: "Các sự cố liên quan đến đèn giao thông, đèn tín hiệu...",
       count: 156,
     },
     {
       id: 3,
       name: "Cây Xanh",
-      icon: TreePine,
-      color: "#22c55e",
-      bgColor: "#bbf7d0",
+      iconKey: "tree",
+      color: "#74c365",
+      description: "Các sự cố liên quan đến các vấn đề như cây xanh,...",
       count: 89,
     },
     {
       id: 4,
       name: "Công Trình Công Cộng",
-      icon: Building2,
-      color: "#a855f7",
-      bgColor: "#e9d5ff",
+      iconKey: "public",
+      color: "#b78ff2",
+      description: "Các sự cố liên quan đến các công trình công cộng,...",
       count: 132,
+    },
+    {
+      id: 5,
+      name: "Môi Trường",
+      iconKey: "weather",
+      color: "#06b6d4",
+      description: "Các sự cố liên quan đến môi trường và khí hậu đô thị,...",
+      count: 64,
+    },
+    {
+      id: 6,
+      name: "Khẩn Cấp",
+      iconKey: "alert",
+      color: "#ef4444",
+      description: "Các sự cố cần xử lý khẩn cấp để bảo đảm an toàn,...",
+      count: 41,
     },
   ]);
 
-  // Lọc theo search query
-  const filteredIncidents = incidentTypes.filter((type) =>
-    type.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredIncidents = useMemo(
+    () =>
+      incidentTypes.filter((type) =>
+        type.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    [incidentTypes, searchQuery],
   );
 
-  // Handle edit incident
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredIncidents.length / PAGE_SIZE),
+  );
+
+  const pageIncidents = useMemo(() => {
+    const page = Math.min(currentPage, totalPages);
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredIncidents.slice(start, start + PAGE_SIZE);
+  }, [filteredIncidents, currentPage, totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const handleEditClick = (incident) => {
     setEditingIncident(incident);
     setEditName(incident.name);
-    setEditColor(incident.color);
+    setEditDescription(incident.description || "");
+    setEditIconKey(incident.iconKey || "public");
+    setEditColor(incident.color || "#f97316");
     setShowEditModal(true);
   };
 
   const handleSaveEdit = () => {
-    // Cập nhật dữ liệu
-    setIncidentTypes(prev => prev.map(item => 
-      item.id === editingIncident.id 
-        ? { 
-            ...item, 
-            name: editName, 
-            color: editColor,
-            bgColor: editColor + '33' // Thêm opacity cho background
-          }
-        : item
-    ));
+    if (!editingIncident || !editName.trim()) return;
+
+    setIncidentTypes((prev) =>
+      prev.map((item) =>
+        item.id === editingIncident.id
+          ? {
+              ...item,
+              name: editName.trim(),
+              description: editDescription.trim(),
+              iconKey: editIconKey,
+              color: editColor,
+            }
+          : item,
+      ),
+    );
+
     setShowEditModal(false);
     setEditingIncident(null);
   };
 
-  // Handle add incident
   const handleAddIncident = () => {
     if (!newName.trim()) return;
-    
+
+    const nextId =
+      incidentTypes.length > 0
+        ? Math.max(...incidentTypes.map((type) => type.id)) + 1
+        : 1;
+
     const newIncident = {
-      id: Math.max(...incidentTypes.map(t => t.id)) + 1,
-      name: newName,
-      icon: Building2, // Icon mặc định
+      id: nextId,
+      name: newName.trim(),
+      iconKey: newIconKey,
       color: newColor,
-      bgColor: newColor + '33', // Thêm opacity
+      description:
+        newDescription.trim() ||
+        "Các sự cố liên quan đến các công trình công cộng,...",
       count: 0,
     };
-    
-    setIncidentTypes(prev => [...prev, newIncident]);
+
+    setIncidentTypes((prev) => [...prev, newIncident]);
     setShowAddModal(false);
     setNewName("");
+    setNewDescription("");
+    setNewIconKey("public");
     setNewColor("#f97316");
   };
 
+  const handleDeleteIncident = (incident) => {
+    setDeletingIncident(incident);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteIncident = () => {
+    if (!deletingIncident) return;
+
+    setIncidentTypes((prev) =>
+      prev.filter((item) => item.id !== deletingIncident.id),
+    );
+    setShowDeleteConfirm(false);
+    setDeletingIncident(null);
+  };
+
+  const cancelDeleteIncident = () => {
+    setShowDeleteConfirm(false);
+    setDeletingIncident(null);
+  };
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header with Search and Add Button */}
-      <div className="mx-4 sm:mx-6 mt-4 mb-6 p-4">
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center sm:justify-between">
-          {/* Search */}
-          <div className="relative">
+    <div className="h-full bg-transparent px-2 py-2 sm:px-3 sm:py-3">
+      <div className="mx-auto flex h-full w-full max-w-[1322px] flex-col">
+        <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative w-full lg:w-[410px]">
             <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
               size={20}
             />
-            <input
+            <Input
               type="text"
-              placeholder="Nhập tên loại sự cố để tìm kiếm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-96 pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              placeholder="Nhập tên loại sự cố để tìm kiếm"
+              className="h-[50px] rounded-[10px] border-gray-200 bg-[#fcfcff] pl-10 pr-4"
             />
           </div>
 
-          {/* Add Button */}
-          <button
+          <Button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap"
+            className="h-[45px] rounded-[10px] bg-blue-600 px-5 text-white hover:bg-blue-700"
           >
-            <Plus size={20} />
-            <span>Thêm Loại Sự Cố</span>
-          </button>
+            <Plus size={18} />
+            Thêm Loại Sự Cố
+          </Button>
         </div>
-      </div>
 
-      {/* Title */}
-      <div className="px-4 sm:px-6 mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-400">
-          Danh Sách Các Loại Sự Cố
-        </h2>
-      </div>
-
-      {/* Incident Type Pills */}
-      <div className="px-4 sm:px-6">
         {filteredIncidents.length > 0 ? (
-          <div className="flex flex-wrap gap-3 sm:gap-4">
-            {filteredIncidents.map((type) => (
-              <button
-                key={type.id}
-                onClick={() => handleEditClick(type)}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-full transition-all hover:shadow-md cursor-pointer"
-                style={{ backgroundColor: type.bgColor }}
-              >
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center bg-white"
-                >
-                  <type.icon size={18} style={{ color: type.color }} />
-                </div>
-                <span className="font-semibold text-gray-800">
-                  {type.name}
-                </span>
-              </button>
-            ))}
-          </div>
+          <>
+            <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2">
+              {pageIncidents.map((type) => {
+                const IconComponent =
+                  INCIDENT_ICON_MAP[type.iconKey] || Building2;
+
+                return (
+                  <Card
+                    key={type.id}
+                    className="h-full min-h-[240px] gap-0 overflow-hidden rounded-[34px] border border-[#eceef3] bg-white py-0 shadow-none ring-0"
+                    style={{ boxShadow: getCardShadow(type.color) }}
+                  >
+                    <CardContent className="flex h-full flex-col items-center gap-3 px-5 py-5 text-center">
+                      <div
+                        className="flex h-14 w-14 items-center justify-center rounded-full"
+                        style={{ backgroundColor: type.color }}
+                      >
+                        <IconComponent size={24} className="text-white" />
+                      </div>
+
+                      <h3 className="text-[28px] font-semibold leading-tight text-gray-800 sm:text-[30px] md:text-[28px] lg:text-[24px] xl:text-[28px]">
+                        {type.name}
+                      </h3>
+                      <p className="line-clamp-2 min-h-[42px] max-w-[330px] text-[13px] text-gray-500 md:text-[12px] xl:text-[13px]">
+                        {type.description}
+                      </p>
+
+                      <div className="mt-auto flex h-[44px] w-full max-w-[343px] items-center justify-center gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => handleEditClick(type)}
+                          className="h-full flex-1 rounded-[10px] border-gray-200 bg-white text-[14px] font-medium text-gray-800 hover:bg-gray-50"
+                        >
+                          <Pencil size={14} />
+                          chỉnh sửa
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon-lg"
+                          className="h-full w-[50px] rounded-[10px] border-gray-200 bg-white text-gray-500 hover:bg-red-50 hover:text-red-600"
+                          onClick={() => handleDeleteIncident(type)}
+                        >
+                          <Trash2 size={15} />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            <div className="mt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      text="Trước"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage((prev) => Math.max(prev - 1, 1));
+                      }}
+                      className={
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }
+                    />
+                  </PaginationItem>
+
+                  {Array.from({ length: totalPages }, (_, idx) => {
+                    const page = idx + 1;
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          href="#"
+                          isActive={currentPage === page}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(page);
+                          }}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      text="Sau"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage((prev) =>
+                          Math.min(prev + 1, totalPages),
+                        );
+                      }}
+                      className={
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          </>
         ) : (
-          <div className="text-center py-12 text-gray-500">
+          <div className="rounded-2xl border border-dashed border-gray-200 py-16 text-center text-gray-500">
             Không tìm thấy loại sự cố nào
           </div>
         )}
       </div>
 
-      {/* Add Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Thêm Loại Sự Cố Mới
-            </h3>
-            
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tên loại sự cố
-                </label>
-                <input
-                  type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Nhập tên loại sự cố"
-                />
-              </div>
+      <IncidentTypePopup
+        open={showAddModal}
+        title="Thêm/sửa loại sự cố"
+        subtitle="Cập nhật thông tin chi tiết cho danh mục hạ tầng"
+        submitLabel="Lưu thay đổi"
+        name={newName}
+        description={newDescription}
+        selectedIcon={newIconKey}
+        selectedColor={newColor}
+        onNameChange={setNewName}
+        onDescriptionChange={setNewDescription}
+        onIconChange={setNewIconKey}
+        onColorChange={setNewColor}
+        onClose={() => {
+          setShowAddModal(false);
+          setNewName("");
+          setNewDescription("");
+          setNewIconKey("public");
+          setNewColor("#f97316");
+        }}
+        onSubmit={handleAddIncident}
+      />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Màu sắc
-                </label>
-                <div className="flex gap-3">
-                  {["#f97316", "#eab308", "#22c55e", "#a855f7", "#06b6d4", "#ef4444"].map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => setNewColor(color)}
-                      className={`w-10 h-10 rounded-full border-2 transition-colors ${
-                        newColor === color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300 hover:border-blue-400'
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
+      <IncidentTypePopup
+        open={showEditModal && Boolean(editingIncident)}
+        title="Thêm/sửa loại sự cố"
+        subtitle="Cập nhật thông tin chi tiết cho danh mục hạ tầng"
+        submitLabel="Lưu thay đổi"
+        name={editName}
+        description={editDescription}
+        selectedIcon={editIconKey}
+        selectedColor={editColor}
+        onNameChange={setEditName}
+        onDescriptionChange={setEditDescription}
+        onIconChange={setEditIconKey}
+        onColorChange={setEditColor}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingIncident(null);
+        }}
+        onSubmit={handleSaveEdit}
+      />
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[145] bg-black/55 p-4 backdrop-blur-[1px]">
+          <div className="mx-auto flex min-h-full max-w-md items-center justify-center">
+            <Card className="w-full overflow-hidden rounded-2xl border-0 bg-white py-0 shadow-2xl ring-1 ring-black/5">
+              <CardContent className="space-y-5 p-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Xác nhận xóa
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Bạn có chắc chắn muốn xóa loại sự cố
+                    <span className="font-semibold text-gray-800">
+                      {` ${deletingIncident?.name || "này"}`}
+                    </span>
+                    ? Hành động này không thể hoàn tác.
+                  </p>
                 </div>
-              </div>
-            </div>
 
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => {
-                  setShowAddModal(false);
-                  setNewName("");
-                  setNewColor("#f97316");
-                }}
-                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-medium"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleAddIncident}
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium"
-              >
-                Thêm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Modal */}
-      {showEditModal && editingIncident && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Chỉnh Sửa Loại Sự Cố
-            </h3>
-            
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tên loại sự cố
-                </label>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Nhập tên loại sự cố"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Màu sắc
-                </label>
-                <div className="flex gap-3">
-                  {["#f97316", "#eab308", "#22c55e", "#a855f7", "#06b6d4", "#ef4444"].map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => setEditColor(color)}
-                      className={`w-10 h-10 rounded-full border-2 transition-colors ${
-                        editColor === color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300 hover:border-blue-400'
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={cancelDeleteIncident}
+                    className="h-10 w-full rounded-lg border-gray-200 px-4 sm:w-auto"
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={confirmDeleteIncident}
+                    className="h-10 w-full rounded-lg bg-red-600 px-4 text-white hover:bg-red-700 sm:w-auto"
+                  >
+                    Xóa
+                  </Button>
                 </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setEditingIncident(null);
-                }}
-                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-medium"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium"
-              >
-                Lưu
-              </button>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       )}

@@ -14,6 +14,7 @@ import { SidebarProvider } from "../components/ui/sidebar";
 import { reportApi } from "../services/api/reportApi";
 import { useAuth } from "../context/AuthContext";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Select,
@@ -83,6 +84,15 @@ const CARD_STYLES = [
   "from-amber-50 to-yellow-100/60",
   "from-lime-50 to-green-100/60",
 ];
+
+const truncateLocation = (value, maxLength = 24) => {
+  const text = (value || "").trim();
+  if (!text || text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength)}...`;
+};
 
 const useTestWorkflow =
   (import.meta.env.VITE_USE_TEST_REPORT_WORKFLOW ?? "false") === "true";
@@ -268,27 +278,22 @@ export default function MyReports() {
             <div className="flex items-center gap-3">
               <div className="relative w-full min-w-[320px] max-w-[460px]">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                {/* <input
+                <Input
                   type="text"
                   placeholder="Nhập mã báo cáo, tiêu đề,..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="h-12 w-full rounded-full border border-gray-200 bg-white pl-11 pr-4 text-sm text-gray-700 focus:border-blue-300 focus:outline-none"
-                /> */}
-                <input
-                  type="text"
-                  placeholder="Nhập mã báo cáo, tiêu đề,..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="h-12 w-full rounded-full border border-gray-200 bg-white pl-11 pr-4 text-sm text-gray-700 focus:border-blue-300 focus:outline-none"
+                  className="h-12 w-full rounded-full border-gray-200 bg-white pl-11 pr-4 text-sm text-gray-700"
                 />
               </div>
-              <button
+              <Button
                 type="button"
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500"
+                variant="outline"
+                size="icon-lg"
+                className="h-12 w-12 rounded-full border-gray-200 bg-white text-gray-500"
               >
                 <SlidersHorizontal className="h-5 w-5" />
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -419,7 +424,6 @@ export default function MyReports() {
 
           <div className="flex flex-1 min-h-0 flex-col">
             <div className="flex-1 overflow-hidden rounded-2xl border border-gray-200">
-              <div className="h-10 border-b border-gray-200 bg-gray-100" />
               <div className="h-full overflow-y-auto bg-white">
                 {loading ? (
                   <div className="flex h-full min-h-[240px] items-center justify-center">
@@ -490,8 +494,11 @@ export default function MyReports() {
                               {item.type}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-4 py-3 text-gray-600">
-                            {item.location}
+                          <TableCell
+                            className="px-4 py-3 text-gray-600"
+                            title={item.location}
+                          >
+                            {truncateLocation(item.location, 24)}
                           </TableCell>
                           <TableCell className="px-4 py-3">
                             <Badge
@@ -610,7 +617,6 @@ export default function MyReports() {
           </div>
         </div>
       </div>
-
       {showDetail && (
         <ReportDetail
           data={selected}
@@ -621,7 +627,6 @@ export default function MyReports() {
           }}
         />
       )}
-
       {showReview && (
         <ReportReviews
           close={() => setShowReview(false)}

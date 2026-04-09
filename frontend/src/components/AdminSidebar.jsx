@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
+import InfoManagement from "../pages/Info_Management";
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +25,7 @@ const AdminSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const portalTarget = typeof document !== "undefined" ? document.body : null;
@@ -215,7 +217,7 @@ const AdminSidebar = () => {
                 <button
                   onClick={() => {
                     setShowAvatarMenu(false);
-                    navigate("/profile");
+                    setShowProfileModal(true);
                   }}
                   className="w-full px-4 py-2 flex items-center gap-3 text-gray-700 hover:bg-gray-50 transition-colors text-left"
                 >
@@ -238,6 +240,10 @@ const AdminSidebar = () => {
           </>,
           portalTarget,
         )}
+
+      {showProfileModal && (
+        <InfoManagement onClose={() => setShowProfileModal(false)} />
+      )}
     </>
   );
 };
