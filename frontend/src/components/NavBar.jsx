@@ -476,7 +476,7 @@ export function NavbarAdmin() {
     <>
       <header className="relative z-40">
         <div
-          className="bg-white border border-gray-200 rounded-[30px] shadow-sm
+          className="bg-white border border-gray-200 rounded-[20px] shadow-sm
                    px-5 py-2.5 flex items-center justify-end"
           style={{ minHeight: "60px" }}
         >

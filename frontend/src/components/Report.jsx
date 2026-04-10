@@ -90,12 +90,12 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     setLocationLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        console.log("📍 GPS OK:", position);
+        console.log("GPS OK:", position);
         const { latitude, longitude } = position.coords;
 
         try {
           // Gọi API backend để reverse geocode (tránh CORS)
-          console.log("🌍 Calling backend geocode API...");
+          console.log("Calling backend geocode API...");
           const response = await fetch(
             `${API_BASE_URL}/geocode/reverse?lat=${latitude}&lon=${longitude}`
           );
@@ -105,17 +105,17 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
           }
           
           const result = await response.json();
-          console.log("📡 Backend response:", result);
+          console.log("Backend response:", result);
 
           if (result.success && result.data.address) {
-            console.log("✅ Address found:", result.data.address);
+            console.log("Address found:", result.data.address);
             setLocation(result.data.address);
           } else {
-            console.warn("⚠️ No address in response");
+            console.warn("No address in response");
             setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
           }
         } catch (err) {
-          console.error("❌ Error getting address:", err);
+          console.error("Error getting address:", err);
           setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
           alert("Không thể lấy địa chỉ. Vui lòng nhập thủ công.");
         }

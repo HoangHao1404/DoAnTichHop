@@ -69,13 +69,13 @@ export default function MyReports() {
 
       if (response.success) {
         setReports(response.data);
-        console.log("✅ Reports loaded:", response.data.length);
+        console.log("Reports loaded:", response.data.length);
       } else {
         setError("Không thể tải báo cáo");
       }
     } catch (error) {
       setError("Lỗi khi tải dữ liệu");
-      console.error("❌ Lỗi khi tải dữ liệu:", error);
+      console.error("Lỗi khi tải dữ liệu:", error);
       console.error("Error details:", error.response?.data || error.message);
     } finally {
       setLoading(false);
@@ -103,7 +103,7 @@ export default function MyReports() {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
-          <p className="text-red-500 mb-4">❌ {error}</p>
+          <p className="text-red-500 mb-4">{error}</p>
           <button
             onClick={fetchReports}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"

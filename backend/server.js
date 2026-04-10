@@ -5,6 +5,7 @@ const connectDB = require("./src/config/database");
 const authRoutes = require("./src/services/auth/auth.routes");
 const reportRoutes = require("./src/routes/reportRoutes");
 const geocodeRoutes = require("./src/routes/geocodeRoutes");
+const maintenanceTeamRoutes = require("./src/routes/maintenanceTeamRoutes");
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 5000;
@@ -42,6 +43,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/geocode", geocodeRoutes);
+app.use("/api/maintenance-teams", maintenanceTeamRoutes);
 
 // Start server
 app.listen(PORT, () => {

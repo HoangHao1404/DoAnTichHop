@@ -25,6 +25,17 @@ const UserSchema = new mongoose.Schema({
     default: "citizen",
   },
 
+  area: {
+    type: String,
+    default: "",
+  },
+
+  account_status: {
+    type: String,
+    enum: ["active", "locked", "banned"],
+    default: "active",
+  },
+
   created_at: { type: Date, default: Date.now },
 });
 

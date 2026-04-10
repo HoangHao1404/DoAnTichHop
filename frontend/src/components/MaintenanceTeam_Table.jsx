@@ -1,73 +1,6 @@
-import React, { useState } from 'react'
-import { Search, Plus, X, Lock, Pencil, Trash2 } from 'lucide-react'
-
-//Mock data maintenance teams
-const initialMaintenanceTeams = [
-    {
-        id: "Team-001",
-        name: "Đội A - Phản ứng nhanh",
-        leader: "VLong",
-        memberCount: 5,
-        area: "Hải Châu",
-        status: "active"
-    },
-    {
-        id: "Team-002",
-        name: "Đội B - Phản ứng nhanh",
-        leader: "VLong",
-        memberCount: 5,
-        area: "Hải Châu",
-        status: "active"
-    },
-    {
-        id: "Team-003",
-        name: "Đội C - Phản ứng nhanh",
-        leader: "VLong",
-        memberCount: 4,
-        area: "Hải Châu",
-        status: "active"
-    },
-    {
-        id: "Team-004",
-        name: "Đội D - Phản ứng nhanh",
-        leader: "VLong",
-        memberCount: 4,
-        area: "Hải Châu",
-        status: "active"
-    },
-    {
-        id: "Team-005",
-        name: "Đội E - Phản ứng nhanh",
-        leader: "VLong",
-        memberCount: 3,
-        area: "Hải Châu",
-        status: "inactive"
-    },
-    {
-        id: "Team-006",
-        name: "Đội F - Phản ứng nhanh",
-        leader: "VLong",
-        memberCount: 3,
-        area: "Hải Châu",
-        status: "inactive"
-    },
-    {
-        id: "Team-007",
-        name: "Đội G - Phản ứng nhanh",
-        leader: "VLong",
-        memberCount: 3,
-        area: "Hải Châu",
-        status: "inactive"
-    },
-    {
-        id: "Team-008",
-        name: "Đội H - Phản ứng nhanh",
-        leader: "VLong",
-        memberCount: 2,
-        area: "Hải Châu",
-        status: "inactive"
-    },
-];
+import React, { useCallback, useEffect, useState } from "react";
+import { Search, Plus, X, Lock, Pencil, Trash2 } from "lucide-react";
+import { maintenanceTeamApi } from "../services/api/maintenanceTeamApi";
 
 const AREA_OPTIONS = [
     { value: "", label: "Tất cả khu vực" },
@@ -89,8 +22,26 @@ const statusStyle = {
     inactive: "bg-amber-100 text-amber-800"
 };
 
+const emptyForm = {
+  id: "",
+  name: "",
+  leader: "",
+  memberCount: 1,
+  area: "Hải Châu",
+  status: "active",
+};
+
+const normalizeTeam = (team) => ({
+  id: team.team_id || team.id,
+  name: team.name || "",
+  leader: team.leader || "",
+  memberCount: team.memberCount ?? team.member_count ?? 1,
+  area: team.area || "",
+  status: team.status || "active",
+});
+
 const MaintenanceTeam_Table = () => {
-  const [teams, setTeams] = useState(initialMaintenanceTeams);
+  const [teams, setTeams] = useState([]);
   const [search, setSearch] = useState("");
   const [areaFilter, setAreaFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -98,33 +49,66 @@ const MaintenanceTeam_Table = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const itemsPerPage = 10;
 
-  const [formData, setFormData] = useState({
-    id: "",
-    name: "",
-    leader: "",
-    memberCount: 1,
-    area: "Hải Châu",
-    status: "active",
-  });
+  const [formData, setFormData] = useState(emptyForm);
 
-  const handleAddTeam = () => {
-    if (formData.name && formData.leader && formData.id) {
-      const newTeam = {
-        ...formData,
-        memberCount: parseInt(formData.memberCount) || 1
-      };
-      setTeams([...teams, newTeam]);
-      setShowAddModal(false);
-      setFormData({
-        id: "",
-        name: "",
-        leader: "",
-        memberCount: 1,
-        area: "Hải Châu",
-        status: "active",
+  const fetchTeams = useCallback(async () => {
+    try {
+      setLoading(true);
+      setErrorMessage("");
+
+      const response = await maintenanceTeamApi.getTeams({
+        search,
+        area: areaFilter || "all",
+        status: statusFilter || "all",
+        page: currentPage,
+        limit: itemsPerPage,
       });
+
+      setTeams((response?.data || []).map(normalizeTeam));
+      setTotalPages(response?.pagination?.totalPages || 1);
+    } catch (error) {
+      setTeams([]);
+      setTotalPages(1);
+      setErrorMessage(
+        error?.response?.data?.message || "Không tải được danh sách đội xử lý"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [search, areaFilter, statusFilter, currentPage]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchTeams();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [fetchTeams]);
+
+  const handleAddTeam = async () => {
+    try {
+      if (!formData.name || !formData.leader || !formData.id) {
+        return;
+      }
+
+      await maintenanceTeamApi.createTeam({
+        id: formData.id,
+        name: formData.name,
+        leader: formData.leader,
+        memberCount: parseInt(formData.memberCount, 10) || 1,
+        area: formData.area,
+        status: formData.status,
+      });
+
+      setShowAddModal(false);
+      setFormData(emptyForm);
+      await fetchTeams();
+    } catch (error) {
+      alert(error?.response?.data?.message || "Không thể thêm đội xử lý");
     }
   };
 
@@ -134,44 +118,53 @@ const MaintenanceTeam_Table = () => {
     setShowEditModal(true);
   };
 
-  const handleSaveEdit = () => {
-    if (editingTeam) {
-      setTeams(teams.map(t => t.id === editingTeam.id ? {...formData, memberCount: parseInt(formData.memberCount) || 1} : t));
+  const handleSaveEdit = async () => {
+    try {
+      if (!editingTeam) {
+        return;
+      }
+
+      await maintenanceTeamApi.updateTeam(editingTeam.id, {
+        name: formData.name,
+        leader: formData.leader,
+        memberCount: parseInt(formData.memberCount, 10) || 1,
+        area: formData.area,
+        status: formData.status,
+      });
+
       setShowEditModal(false);
       setEditingTeam(null);
-      setFormData({
-        id: "",
-        name: "",
-        leader: "",
-        memberCount: 1,
-        area: "Hải Châu",
-        status: "active",
-      });
+      setFormData(emptyForm);
+      await fetchTeams();
+    } catch (error) {
+      alert(error?.response?.data?.message || "Không thể cập nhật đội xử lý");
     }
   };
 
-  const handleDelete = (id) => {
-    setTeams(teams.filter(t => t.id !== id));
+  const handleDelete = async (id) => {
+    try {
+      if (!window.confirm("Bạn có chắc muốn xóa đội xử lý này?")) {
+        return;
+      }
+      await maintenanceTeamApi.deleteTeam(id);
+      await fetchTeams();
+    } catch (error) {
+      alert(error?.response?.data?.message || "Không thể xóa đội xử lý");
+    }
   };
 
-  const handleToggleLock = (id) => {
-    setTeams(teams.map(t => 
-      t.id === id ? {...t, status: t.status === "inactive" ? "active" : "inactive"} : t
-    ));
+  const handleToggleLock = async (id, currentStatus) => {
+    try {
+      const nextStatus = currentStatus === "inactive" ? "active" : "inactive";
+      await maintenanceTeamApi.updateTeamStatus(id, nextStatus);
+      await fetchTeams();
+    } catch (error) {
+      alert(error?.response?.data?.message || "Không thể đổi trạng thái đội xử lý");
+    }
   };
 
-  // Filter logic
-  const filteredTeams = teams.filter(t => {
-    return (
-      (search === "" || t.name.toLowerCase().includes(search.toLowerCase()) || t.id.includes(search)) &&
-      (areaFilter === "" || t.area === areaFilter) &&
-      (statusFilter === "" || t.status === statusFilter)
-    );
-  });
-
-  const totalPages = Math.ceil(filteredTeams.length / itemsPerPage);
   const safePage = Math.min(currentPage, totalPages || 1);
-  const pageTeams = filteredTeams.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
+  const pageTeams = teams;
 
   const handleNext = () => {
     if (safePage < totalPages) setCurrentPage(safePage + 1);
@@ -257,14 +250,7 @@ const MaintenanceTeam_Table = () => {
               <button
                 onClick={() => {
                   setShowAddModal(false);
-                  setFormData({
-                    id: "",
-                    name: "",
-                    leader: "",
-                    memberCount: 1,
-                    area: "Hải Châu",
-                    status: "active",
-                  });
+                  setFormData(emptyForm);
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -362,14 +348,7 @@ const MaintenanceTeam_Table = () => {
               <button
                 onClick={() => {
                   setShowAddModal(false);
-                  setFormData({
-                    id: "",
-                    name: "",
-                    leader: "",
-                    memberCount: 1,
-                    area: "Hải Châu",
-                    status: "active",
-                  });
+                  setFormData(emptyForm);
                 }}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
               >
@@ -396,14 +375,7 @@ const MaintenanceTeam_Table = () => {
                 onClick={() => {
                   setShowEditModal(false);
                   setEditingTeam(null);
-                  setFormData({
-                    id: "",
-                    name: "",
-                    leader: "",
-                    memberCount: 1,
-                    area: "Hải Châu",
-                    status: "active",
-                  });
+                  setFormData(emptyForm);
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -489,14 +461,7 @@ const MaintenanceTeam_Table = () => {
                 onClick={() => {
                   setShowEditModal(false);
                   setEditingTeam(null);
-                  setFormData({
-                    id: "",
-                    name: "",
-                    leader: "",
-                    memberCount: 1,
-                    area: "Hải Châu",
-                    status: "active",
-                  });
+                  setFormData(emptyForm);
                 }}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
               >
@@ -528,18 +493,29 @@ const MaintenanceTeam_Table = () => {
             </tr>
           </thead>
           <tbody>
-            {pageTeams.length === 0 && (
+            {loading && (
               <tr>
                 <td
                   colSpan={7}
                   className="px-4 py-6 text-center text-gray-400 text-sm"
                 >
-                  Không tìm thấy đội phù hợp.
+                  Đang tải dữ liệu...
                 </td>
               </tr>
             )}
 
-            {pageTeams.map((team) => (
+            {!loading && pageTeams.length === 0 && (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-4 py-6 text-center text-gray-400 text-sm"
+                >
+                  {errorMessage || "Không tìm thấy đội phù hợp."}
+                </td>
+              </tr>
+            )}
+
+            {!loading && pageTeams.map((team) => (
               <tr
                 key={team.id}
                 className="border-t border-gray-100 hover:bg-gray-50"
@@ -570,7 +546,7 @@ const MaintenanceTeam_Table = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleToggleLock(team.id)}
+                      onClick={() => handleToggleLock(team.id, team.status)}
                       className="text-amber-500 hover:text-amber-600"
                       title="Khóa / mở khóa"
                     >
