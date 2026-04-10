@@ -9,6 +9,7 @@ import {
   AlertCircle,
   Image as ImageIcon,
   CloudUpload,
+  Loader2,
 } from "lucide-react";
 import Toast from "./Toast";
 import { reportApi } from "../services/api/reportApi";
@@ -54,6 +55,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const [hasFetchedLocation, setHasFetchedLocation] = useState(false);
   const [toast, setToast] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -127,7 +129,14 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     );
   };
 
-  // Upload ảnh: KHÔNG auto GPS, đúng yêu cầu giao diện mới
+  const triggerAutoLocationOnFirstImage = () => {
+    if (!hasFetchedLocation && uploadedImages.length === 0) {
+      setHasFetchedLocation(true);
+      getLocation();
+    }
+  };
+
+  // Upload ảnh: auto lấy GPS ở lần thêm ảnh đầu tiên
   const handleImageUpload = async (e) => {
     const files = validateFiles(e.target.files || []);
     if (!files.length) return;
@@ -135,6 +144,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     try {
       const base64Images = await convertFilesToBase64(files);
       setUploadedImages((prev) => [...prev, ...base64Images]);
+      triggerAutoLocationOnFirstImage();
     } catch (error) {
       console.error("Error reading files:", error);
       showErrorToast("Không thể đọc ảnh tải lên.");
@@ -150,6 +160,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     try {
       const base64Images = await convertFilesToBase64(validFiles);
       setUploadedImages((prev) => [...prev, ...base64Images]);
+      triggerAutoLocationOnFirstImage();
     } catch (error) {
       console.error("Error reading dropped files:", error);
       showErrorToast("Không thể đọc ảnh kéo thả.");
@@ -210,9 +221,12 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
           const result = await response.json();
           console.log("Backend response:", result);
 
-          if (result.success && result.data.address) {
-            console.log("Address found:", result.data.address);
-            setLocation(result.data.address);
+          const resolvedAddress =
+            result?.data?.address || result?.data?.fullAddress || "";
+
+          if (result.success && resolvedAddress) {
+            console.log("Address found:", resolvedAddress);
+            setLocation(resolvedAddress);
           } else {
             console.warn("No address in response");
             setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
@@ -336,6 +350,10 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (isSubmitting) {
+      return;
+    }
+
     if (!title || !incidentType || uploadedImages.length === 0) {
       alert("Vui lòng điền đầy đủ các trường bắt buộc");
       return;
@@ -351,6 +369,9 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
       alert("Bạn cần đăng nhập để gửi báo cáo");
       return;
     }
+
+    setIsSubmitting(true);
+    let keepSubmitting = false;
 
     try {
       const typeMapping = {
@@ -374,9 +395,11 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
       const response = await reportApi.createReport(reportData);
 
       if (response.success) {
+        keepSubmitting = true;
         showSuccessToast("Đã gửi báo cáo thành công!");
         setTimeout(() => {
           resetForm();
+          setIsSubmitting(false);
           onClose && onClose();
           navigate("/myreport", { replace: true });
         }, 1500);
@@ -386,6 +409,10 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     } catch (error) {
       console.error("Error creating report:", error);
       showErrorToast(error.response?.data?.message || "Lỗi khi gửi báo cáo!");
+    } finally {
+      if (!keepSubmitting) {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -642,16 +669,25 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                       type="button"
                       variant="ghost"
                       onClick={handleCancel}
-                      className="inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold text-[#555] transition hover:bg-gray-100 hover:text-gray-600 bg-transparent"
+                      disabled={isSubmitting}
+                      className="inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold text-[#555] transition hover:bg-gray-100 hover:text-gray-600 bg-transparent disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Huỷ bỏ
                     </Button>
 
                     <Button
                       type="submit"
-                      className="inline-flex h-11 items-center justify-center rounded-xl bg-[#3f39f5] px-7 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(63,57,245,0.28)] transition hover:bg-[#322cf0] hover:text-white"
+                      disabled={isSubmitting}
+                      className="inline-flex h-11 items-center justify-center rounded-xl bg-[#3f39f5] px-7 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(63,57,245,0.28)] transition hover:bg-[#322cf0] hover:text-white disabled:cursor-not-allowed disabled:opacity-80"
                     >
-                      Gửi báo cáo
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Đang gửi...
+                        </>
+                      ) : (
+                        "Gửi báo cáo"
+                      )}
                     </Button>
                   </div>
                 </div>

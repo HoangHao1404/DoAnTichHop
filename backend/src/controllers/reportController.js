@@ -282,6 +282,17 @@ class ReportController {
         storedImages = await uploadImagesToCloudinary(inputImages, userId);
       }
 
+      const persistedImages = storedImages.filter(
+        (image) => typeof image === "string" && isHttpUrl(image),
+      );
+
+      if (inputImages.length > 0 && persistedImages.length === 0) {
+        return res.status(500).json({
+          success: false,
+          message: "Upload ảnh lên Cloudinary thất bại",
+        });
+      }
+
       const reportData = {
         id: reportStringId,
         userId: String(userId),
@@ -291,10 +302,8 @@ class ReportController {
         type,
         location,
         description: description || "",
-        images: storedImages,
-        image: storedImages.length > 0 ? storedImages[0] : "",
-        images: Array.isArray(images) ? images : [],
-        image: Array.isArray(images) && images.length > 0 ? images[0] : "",
+        images: persistedImages,
+        image: persistedImages.length > 0 ? persistedImages[0] : "",
         status: "Đang Chờ",
         time: currentTime,
       };
