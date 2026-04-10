@@ -256,7 +256,7 @@ const ReceptForm = () => {
               setPage(1);
             }}
             placeholder="Tìm kiếm theo mã sự cố, tiêu đề sự cố..."
-            className="h-[45px] rounded-full border-0 bg-[#f5f5f5] pl-12 text-sm text-gray-700 placeholder:text-[#969696]"
+            className="h-[45px] rounded-full border border-[#dfe3e8] bg-[#f5f5f5] pl-12 text-sm text-gray-700 placeholder:text-[#969696] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]"
           />
         </div>
 
@@ -268,7 +268,7 @@ const ReceptForm = () => {
               setPage(1);
             }}
           >
-            <SelectTrigger className="h-[45px] rounded-[10px] border-0 bg-[#f5f5f5] px-[15px] text-gray-700">
+            <SelectTrigger className="h-[45px] rounded-[10px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
               <SelectValue placeholder="Loại sự cố" />
             </SelectTrigger>
             <SelectContent>
@@ -287,7 +287,7 @@ const ReceptForm = () => {
               setPage(1);
             }}
           >
-            <SelectTrigger className="h-[45px] rounded-[10px] border-0 bg-[#f5f5f5] px-[15px] text-gray-700">
+            <SelectTrigger className="h-[45px] rounded-[10px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
               <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
             <SelectContent>
