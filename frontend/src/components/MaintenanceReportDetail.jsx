@@ -36,9 +36,9 @@ export default function MaintenanceReportDetail({ isOpen, onClose, report }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 sm:p-6">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-3 backdrop-blur-sm sm:items-center sm:p-6">
       {/* Modal Container */}
-      <div className="relative w-full max-w-[540px] bg-white rounded-[24px] p-5 shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh] overflow-hidden mx-auto">
+      <div className="relative mx-auto my-3 flex max-h-[calc(100dvh-1.5rem)] w-full max-w-[620px] flex-col overflow-hidden rounded-[24px] bg-white p-4 shadow-2xl sm:my-0 sm:max-h-[90vh] sm:p-5">
         {/* Header */}
         <div className="flex items-center justify-between mb-1.5 border-b border-gray-50/50 pb-1.5 shrink-0">
           <h2 className="text-[18px] md:text-[20px] font-bold text-gray-900">
@@ -54,7 +54,7 @@ export default function MaintenanceReportDetail({ isOpen, onClose, report }) {
         </div>
 
         {/* Content Body - Shrinkable */}
-        <div className="flex flex-col flex-1 min-h-0 gap-2">
+        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
           {/* Title Section */}
           <div className="flex flex-col items-start gap-1 shrink-0">
             <Badge className="inline-flex items-center rounded-full bg-[#FF7F1F] hover:bg-[#FF7F1F] px-2 py-0.5 h-auto border-0 text-[9px] font-semibold text-white tracking-wide shadow-sm">
@@ -137,7 +137,7 @@ export default function MaintenanceReportDetail({ isOpen, onClose, report }) {
           </div>
 
           {/* Photo Section - This block will flexibly shrink vertically if short on space */}
-          <div className="grid grid-cols-2 gap-3 mt-0 flex-1 min-h-[150px] max-h-[260px]">
+          <div className="mt-0 grid min-h-[130px] max-h-[240px] flex-1 grid-cols-2 gap-3 sm:min-h-[150px] sm:max-h-[260px]">
             {/* Ảnh sự cố */}
             <div className="flex flex-col h-full bg-gray-100 rounded-2xl p-2.5 flex-1 min-h-0">
               <div className="flex items-center gap-1.5 mb-1.5 px-0.5 shrink-0">

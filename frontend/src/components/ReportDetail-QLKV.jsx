@@ -22,7 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { ScrollArea } from "./ui/scroll-area";
 
 function normalizeTypeKey(type) {
   return String(type || "")
@@ -164,7 +163,7 @@ function InfoBlock({
           {label}
         </p>
         <p
-          className={`mt-0.5 text-[15px] font-semibold leading-tight text-zinc-900 ${valueClassName}`}
+          className={`mt-0.5 break-words text-[15px] font-semibold leading-tight text-zinc-900 ${valueClassName}`}
         >
           {normalizedValue}
         </p>
@@ -201,18 +200,18 @@ export default function ReportDetailQLKV({
     <Dialog open={isOpen} onOpenChange={(open) => !open && close?.()}>
       <DialogContent
         showCloseButton={false}
-        className="z-[70] w-[min(90vw,760px)] max-w-none overflow-hidden rounded-[20px] border border-[#e5e7eb] bg-[#f3f4f6] p-0 shadow-2xl"
+        className="z-[70] flex max-h-[90vh] w-[calc(100vw-1.5rem)] max-w-[620px] flex-col gap-0 overflow-hidden rounded-[24px] border border-[#e5e7eb] bg-[#f3f4f6] p-0 shadow-2xl sm:w-[calc(100vw-3rem)] sm:!max-w-[620px]"
       >
-        <DialogHeader className="px-5 pb-2 pt-5 sm:px-6 sm:pt-6">
+        <DialogHeader className="px-4 pb-2 pt-4 sm:px-5 sm:pt-5">
           <div className="flex items-start justify-between gap-3">
-            <DialogTitle className="text-[38px] font-semibold leading-tight text-zinc-900 sm:text-[32px]">
+            <DialogTitle className="text-[18px] font-bold leading-tight text-zinc-900 sm:text-[20px]">
               Chi tiết báo cáo
             </DialogTitle>
             <DialogClose asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 shrink-0 rounded-full bg-[#ebebeb] text-zinc-500 hover:bg-zinc-200"
+                className="h-7 w-7 shrink-0 rounded-full bg-[#ebebeb] text-zinc-500 hover:bg-zinc-200"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -220,25 +219,25 @@ export default function ReportDetailQLKV({
           </div>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[min(80vh,860px)] px-5 pb-4 sm:px-6">
-          <div className="flex flex-col gap-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-5">
+          <div className="flex flex-col gap-3.5">
             <Badge
-              className={`w-fit rounded-full px-5 py-1.5 text-sm font-semibold leading-none ${getTypeBadgeClass(data.type)}`}
+              className={`w-fit rounded-full px-3 py-1 text-[11px] font-semibold leading-none ${getTypeBadgeClass(data.type)}`}
             >
               {data.type || "Khác"}
             </Badge>
 
-            <h3 className="text-xl font-semibold leading-tight text-[#3D3D3D] sm:text-[32px]">
+            <h3 className="text-[18px] font-bold leading-tight text-[#3D3D3D] sm:text-[21px]">
               {issueTitle}
             </h3>
 
-            <div className="rounded-[10px] bg-[#e7e7ea] px-4 py-3">
-              <p className="text-base italic text-zinc-600">
+            <div className="rounded-[10px] bg-[#e7e7ea] px-3 py-2.5">
+              <p className="text-[12px] italic text-zinc-600 sm:text-[13px]">
                 {data.description || "Chưa có mô tả cho báo cáo này."}
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3.5 sm:grid-cols-2">
               <InfoBlock
                 icon={Hash}
                 label="Mã báo cáo"
@@ -271,7 +270,7 @@ export default function ReportDetailQLKV({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <div className="mx-auto h-[190px] w-full overflow-hidden rounded-[10px] bg-[#dcdcdf]">
+                  <div className="mx-auto h-[170px] w-full overflow-hidden rounded-[10px] bg-[#dcdcdf] sm:h-[180px]">
                     {beforeImage ? (
                       <img
                         src={beforeImage}
@@ -295,7 +294,7 @@ export default function ReportDetailQLKV({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
-                  <div className="mx-auto h-[190px] w-full overflow-hidden rounded-[10px] bg-[#dcdcdf]">
+                  <div className="mx-auto h-[170px] w-full overflow-hidden rounded-[10px] bg-[#dcdcdf] sm:h-[180px]">
                     {showAfterImage ? (
                       <img
                         src={afterImage}
@@ -311,19 +310,19 @@ export default function ReportDetailQLKV({
               </Card>
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
-        <DialogFooter className="items-center justify-end gap-3 px-5 pb-5 pt-3 sm:flex-row sm:px-6">
+        <DialogFooter className="!mx-0 !mb-0 !border-t border-[#d8dde5] shrink-0 items-center justify-end gap-2.5 px-4 pb-4 pt-3 sm:flex-row sm:px-5">
           <Button
             variant="outline"
-            className="h-11 w-full rounded-[10px] border-[#b8bcc5] bg-[#f7f7f8] px-5 text-base font-semibold text-[#2f64da] hover:bg-[#eceef2] sm:w-auto"
+            className="h-10 w-full rounded-[10px] border-[#b8bcc5] bg-[#f7f7f8] px-5 text-sm font-semibold text-[#2f64da] hover:bg-[#eceef2] sm:h-11 sm:w-auto sm:text-base"
             onClick={() => onUpdateStatus?.(data)}
           >
             <RefreshCcw className="mr-2 h-4 w-4" />
             Cập nhật trạng thái
           </Button>
           <Button
-            className="h-11 w-full rounded-[10px] bg-[#2f64da] px-7 text-base font-semibold text-white hover:bg-[#2555c7] sm:w-auto"
+            className="h-10 w-full rounded-[10px] bg-[#2f64da] px-7 text-sm font-semibold text-white hover:bg-[#2555c7] sm:h-11 sm:w-auto sm:text-base"
             onClick={() => onSendProcess?.(data)}
           >
             Gửi xử lý

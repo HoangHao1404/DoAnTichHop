@@ -110,11 +110,11 @@ export default function ReportDetail({ data, close }) {
     <Dialog open={isOpen} onOpenChange={(open) => !open && close?.()}>
       <DialogContent
         showCloseButton={false}
-        className="z-[60] w-[min(80vw,750px)] max-w-none overflow-hidden rounded-[18px] border border-[#d8e6ff] bg-white p-0 shadow-2xl"
+        className="z-[60] flex max-h-[90vh] w-[min(92vw,760px)] flex-col gap-0 overflow-hidden rounded-[18px] border border-[#d8e6ff] bg-white p-0 shadow-2xl sm:w-[min(88vw,760px)] sm:max-w-[760px]"
       >
-        <DialogHeader className="rounded-t-[18px] bg-white px-4 pt-4 sm:px-5 sm:pt-5 md:px-6 md:pt-6">
+        <DialogHeader className="rounded-t-[18px] bg-white px-4 pt-3 sm:px-5 sm:pt-4 md:px-6 md:pt-4">
           <div className="flex items-start justify-between gap-3">
-            <DialogTitle className="pr-2 text-lg font-semibold leading-snug text-zinc-900 sm:text-xl lg:text-2xl">
+            <DialogTitle className="pr-2 text-base font-semibold leading-snug text-zinc-900 sm:text-lg lg:text-xl">
               {data.title || "Khong co tieu de"}
             </DialogTitle>
             <DialogClose asChild>
@@ -128,51 +128,51 @@ export default function ReportDetail({ data, close }) {
             </DialogClose>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge
-              className={`h-8 rounded-full px-4 text-xs font-semibold sm:text-sm ${getTypeBadgeClass(data.type)}`}
+              className={`h-7 rounded-full px-3 text-xs font-semibold ${getTypeBadgeClass(data.type)}`}
             >
               {getTypeLabel(data.type)}
             </Badge>
-            <Badge className="h-8 rounded-full bg-[#d5d5d5] px-4 text-xs font-semibold text-zinc-800 hover:bg-[#d5d5d5] sm:text-sm">
+            <Badge className="h-7 rounded-full bg-[#d5d5d5] px-3 text-xs font-semibold text-zinc-800 hover:bg-[#d5d5d5]">
               {getStatusLabel(data.status)}
             </Badge>
           </div>
         </DialogHeader>
 
-        <Separator className="mt-4 bg-[#dbe8ff]" />
+        <Separator className="mt-2 bg-[#dbe8ff]" />
 
-        <ScrollArea className="max-h-[min(74vh,820px)] px-4 py-4 sm:px-5 md:px-6">
-          <div className="flex flex-col gap-4 sm:gap-5">
-            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-6">
-              <div className="rounded-[12px] border border-[#dce9ff] bg-[#edf5ff] px-3 py-2.5 sm:px-4 sm:py-3">
-                <p className="text-xs font-medium uppercase text-[#A3A3A3] sm:text-sm">
+        <ScrollArea className="max-h-[calc(90vh-170px)] px-4 py-3 sm:px-5 md:px-6">
+          <div className="flex flex-col gap-2.5 sm:gap-3">
+            <div className="grid gap-2.5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-3">
+              <div className="rounded-[12px] border border-[#dce9ff] bg-[#edf5ff] px-3 py-2 sm:px-3.5 sm:py-2.5">
+                <p className="text-[11px] font-medium uppercase text-[#A3A3A3]">
                   Mã báo cáo
                 </p>
-                <p className="text-lg font-semibold leading-tight text-[#1E67D6]">
+                <p className="text-xl font-semibold leading-tight text-[#1E67D6]">
                   {data.id || "N/A"}
                 </p>
               </div>
 
-              <div className="rounded-[12px] border border-[#e6e6dc] bg-[#fff9ea] px-3 py-2.5 sm:px-4 sm:py-3">
-                <p className="text-xs font-medium uppercase text-[#A3A3A3] sm:text-sm">
+              <div className="rounded-[12px] border border-[#e6e6dc] bg-[#fff9ea] px-3 py-2 sm:px-3.5 sm:py-2.5">
+                <p className="text-[11px] font-medium uppercase text-[#A3A3A3]">
                   Thời gian
                 </p>
-                <p className="text-sm font-semibold leading-tight text-zinc-900 sm:text-base">
+                <p className="text-sm font-semibold leading-tight text-zinc-900">
                   {data.time || "Chua co thoi gian"}
                 </p>
               </div>
             </div>
 
-            <div className="rounded-[12px] border border-[#e4ecfb] bg-[#f7faff] px-3 py-3 sm:px-4 sm:py-4">
-              <p className="text-xs font-medium uppercase text-[#A3A3A3] sm:text-sm">
+            <div className="rounded-[12px] border border-[#e4ecfb] bg-[#f7faff] px-3 py-2.5 sm:px-3.5 sm:py-3">
+              <p className="text-[11px] font-medium uppercase text-[#A3A3A3]">
                 Vị trí
               </p>
               <p
-                className="text-sm font-semibold leading-tight text-zinc-900 sm:text-base"
+                className="text-sm font-semibold leading-tight text-zinc-900"
                 style={{
                   display: "-webkit-box",
-                  WebkitLineClamp: 2,
+                  WebkitLineClamp: 1,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
                 }}
@@ -182,15 +182,15 @@ export default function ReportDetail({ data, close }) {
             </div>
 
             <div>
-              <p className="mb-1 text-xs font-medium uppercase text-[#A3A3A3] sm:text-sm">
+              <p className="mb-1 text-[11px] font-medium uppercase text-[#A3A3A3]">
                 Mô tả
               </p>
-              <div className="rounded-[10px] border border-[#e4ecfb] bg-[#f5f9ff] px-3 py-3 sm:px-4 sm:py-4">
+              <div className="rounded-[10px] border border-[#e4ecfb] bg-[#f5f9ff] px-3 py-2.5 sm:px-3.5 sm:py-3">
                 <p
-                  className="text-xs italic leading-snug text-zinc-700 sm:text-sm"
+                  className="text-xs italic leading-snug text-zinc-700"
                   style={{
                     display: "-webkit-box",
-                    WebkitLineClamp: 4,
+                    WebkitLineClamp: 2,
                     WebkitBoxOrient: "vertical",
                     overflow: "hidden",
                   }}
@@ -200,16 +200,16 @@ export default function ReportDetail({ data, close }) {
               </div>
             </div>
 
-            <div className="grid gap-3 2xl:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <Card className="gap-0 rounded-[12px] border border-[#dce9ff] bg-[#f6faff] py-0 ring-0 shadow-sm">
-                <CardHeader className="px-3 pb-1 pt-3 sm:px-4 sm:pb-2 sm:pt-4">
-                  <CardTitle className="flex text-xs font-medium text-[#1E67D6] sm:text-sm">
-                    <Camera className="mr-2 h-5 w-5 text-[#1E67D6]" />
+                <CardHeader className="px-3 pb-1 pt-2 sm:px-3.5 sm:pt-2.5">
+                  <CardTitle className="flex text-xs font-medium text-[#1E67D6]">
+                    <Camera className="mr-1.5 h-4 w-4 text-[#1E67D6]" />
                     Ảnh sự cố
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4">
-                  <div className="mx-auto h-[clamp(180px,24vh,250px)] w-full overflow-hidden rounded-[10px] bg-white">
+                <CardContent className="px-3 pb-2.5 sm:px-3.5 sm:pb-3">
+                  <div className="mx-auto aspect-[16/9] w-full max-h-[190px] overflow-hidden rounded-[10px] bg-white">
                     {beforeImage ? (
                       <img
                         src={beforeImage}
@@ -226,14 +226,14 @@ export default function ReportDetail({ data, close }) {
               </Card>
 
               <Card className="gap-0 rounded-[12px] border border-[#dce9ff] bg-[#f6faff] py-0 ring-0 shadow-sm">
-                <CardHeader className="px-3 pb-1 pt-3 sm:px-4 sm:pb-2 sm:pt-4">
-                  <CardTitle className="flex text-xs font-medium text-[#1E67D6] sm:text-sm">
-                    <Camera className="mr-2 h-5 w-5 text-[#1E67D6]" />
+                <CardHeader className="px-3 pb-1 pt-2 sm:px-3.5 sm:pt-2.5">
+                  <CardTitle className="flex text-xs font-medium text-[#1E67D6]">
+                    <Camera className="mr-1.5 h-4 w-4 text-[#1E67D6]" />
                     Ảnh sau khắc phục
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="px-3 pb-3 sm:px-4 sm:pb-4">
-                  <div className="mx-auto h-[clamp(180px,24vh,250px)] w-full overflow-hidden rounded-[10px] bg-[#f2f2f2]">
+                <CardContent className="px-3 pb-2.5 sm:px-3.5 sm:pb-3">
+                  <div className="mx-auto aspect-[16/9] w-full max-h-[190px] overflow-hidden rounded-[10px] bg-[#f2f2f2]">
                     {showAfterImage ? (
                       <img
                         src={afterImage}
@@ -251,11 +251,9 @@ export default function ReportDetail({ data, close }) {
           </div>
         </ScrollArea>
 
-        <Separator className="bg-[#dbe8ff]" />
-
-        <DialogFooter className="bg-white px-4 py-4 sm:px-5 md:px-6">
+        <DialogFooter className="!mx-0 !mb-0 !border-t-0 shrink-0 bg-white px-4 py-2.5 sm:px-5 md:px-6">
           <DialogClose asChild>
-            <Button className="h-10 w-full rounded-[10px] bg-[#2562e9] text-sm font-semibold text-white hover:bg-[#1f56d1] sm:h-[42px] sm:w-[160px]">
+            <Button className="h-9 w-full rounded-[10px] bg-[#2562e9] text-sm font-semibold text-white hover:bg-[#1f56d1] sm:h-10 sm:w-[160px]">
               Đóng
             </Button>
           </DialogClose>

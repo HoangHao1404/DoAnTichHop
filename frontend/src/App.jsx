@@ -16,7 +16,7 @@ import MaintenanceMyReports from "./components/MaintenanceMyReports.jsx";
 import SignIn from "./pages/SignIn.jsx";
 import Register from "./pages/Register.jsx";
 
-import AdminOverview from "./pages/Overview.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
 import AdminUserManagement from "./pages/UserManagement.jsx";
 import ReceptForm from "./pages/ReceptForm.jsx";
 import ReportManagement from "./pages/Report_Management.jsx";
@@ -91,7 +91,7 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              <Route path="overview" element={<AdminOverview />} />
+              <Route path="overview" element={<AdminDashboard />} />
               <Route path="recept-form" element={<ReceptForm />} />
               <Route path="reports" element={<ReportManagement />} />
               <Route

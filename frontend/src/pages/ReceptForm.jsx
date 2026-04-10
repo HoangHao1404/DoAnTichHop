@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { reportApi } from "../services/api/reportApi";
+import ReportDetailQLKV from "../components/ReportDetail-QLKV";
 
 const DISTRICTS = [
   "all",
@@ -33,6 +34,18 @@ const CATEGORY_COLORS = {
   "Cây Xanh": "#16a34a",
   CTCC: "#b78ff2",
 };
+
+const STATUS_FLOW = ["Đang Chờ", "Đang Xử Lý", "Đã Giải Quyết"];
+
+function getNextStatus(currentStatus) {
+  const index = STATUS_FLOW.indexOf(currentStatus);
+
+  if (index < 0 || index >= STATUS_FLOW.length - 1) {
+    return null;
+  }
+
+  return STATUS_FLOW[index + 1];
+}
 
 const ReceptForm = () => {
   const [activeDistrict, setActiveDistrict] = useState("all");
@@ -128,21 +141,76 @@ const ReceptForm = () => {
 
   const detailData = selectedReport
     ? {
-        id:
-          selectedReport.code ||
-          `BC-${String(selectedReport.id).padStart(4, "0")}`,
+        id: selectedReport.id || selectedReport.report_id || "N/A",
+        report_id: selectedReport.report_id || selectedReport.id || "N/A",
         title: selectedReport.title,
-        type: selectedReport.category,
-        status: selectedReport.status,
+        type: selectedReport.type || selectedReport.category,
+        status: selectedReport.status || "Đang Chờ",
         time: selectedReport.time || selectedReport.date,
-        district: selectedReport.district,
-        team: selectedReport.team,
+        district: selectedReport.district || "Chưa phân loại",
+        team: selectedReport.team || selectedReport.handlerTeam,
         reporter: selectedReport.reporter,
-        location: `${selectedReport.reporter}, ${selectedReport.district}, Đà Nẵng`,
-        description: selectedReport.description,
-        images: [selectedReport.image, selectedReport.afterImage || ""],
+        location: selectedReport.location || "Chưa có vị trí",
+        description: selectedReport.description || "Chưa có mô tả cho báo cáo này.",
+        image: selectedReport.image || selectedReport.images?.[0] || "",
+        images:
+          Array.isArray(selectedReport.images) && selectedReport.images.length > 0
+            ? selectedReport.images
+            : [selectedReport.image || "", selectedReport.afterImage || ""],
       }
     : null;
+
+  const handleCloseDetail = () => setSelectedReport(null);
+
+  const syncReportStatus = (reportId, nextStatus) => {
+    setReports((prev) =>
+      prev.map((item) => {
+        const itemId = item.id || item.report_id;
+        return itemId === reportId ? { ...item, status: nextStatus } : item;
+      }),
+    );
+
+    setSelectedReport((prev) =>
+      prev ? { ...prev, status: nextStatus } : prev,
+    );
+  };
+
+  const handleUpdateStatus = async (report) => {
+    const reportId = report?.report_id || report?.id;
+    if (!reportId) {
+      return;
+    }
+
+    const nextStatus = getNextStatus(report?.status);
+    if (!nextStatus) {
+      return;
+    }
+
+    try {
+      await reportApi.updateReportStatus(reportId, nextStatus);
+      syncReportStatus(reportId, nextStatus);
+    } catch (error) {
+      setErrorMessage(
+        error?.response?.data?.message || "Không thể cập nhật trạng thái báo cáo",
+      );
+    }
+  };
+
+  const handleSendProcess = async (report) => {
+    const reportId = report?.report_id || report?.id;
+    if (!reportId) {
+      return;
+    }
+
+    try {
+      await reportApi.updateReportStatus(reportId, "Đang Xử Lý");
+      syncReportStatus(reportId, "Đang Xử Lý");
+    } catch (error) {
+      setErrorMessage(
+        error?.response?.data?.message || "Không thể gửi xử lý báo cáo",
+      );
+    }
+  };
 
   return (
     <div className="min-h-full rounded-[22px] border border-gray-200 bg-white p-3 sm:p-4 flex flex-col">
@@ -275,7 +343,8 @@ const ReceptForm = () => {
             return (
           <div
             key={`${report.id || report.report_id}-${report.location}-${index}`}
-            className="relative h-[214px] overflow-hidden rounded-[22px]"
+            className="relative h-[214px] cursor-pointer overflow-hidden rounded-[22px]"
+            onClick={() => setSelectedReport(report)}
           >
             <div
               className="absolute inset-0 bg-cover bg-center"
@@ -398,6 +467,13 @@ const ReceptForm = () => {
           Sau
         </button>
       </div>
+
+      <ReportDetailQLKV
+        data={detailData}
+        close={handleCloseDetail}
+        onUpdateStatus={handleUpdateStatus}
+        onSendProcess={handleSendProcess}
+      />
     </div>
   );
 };
