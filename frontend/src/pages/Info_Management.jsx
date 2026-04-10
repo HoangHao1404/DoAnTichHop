@@ -250,20 +250,6 @@ const Info_Management = ({ onClose }) => {
                 Đổi mật khẩu
                 <span className="flex-1 h-px bg-gray-100" />
               </p>
-
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <rect x="3" y="11" width="18" height="11" rx="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Mật khẩu</p>
-                  <p className="text-xs text-gray-400">Cập nhật để bảo mật tài khoản</p>
-                </div>
-              </div>
-
               <div className="space-y-3">
                 <input
                   type="password"
