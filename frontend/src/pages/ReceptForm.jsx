@@ -45,6 +45,27 @@ const ReceptForm = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  // const [page, setPage] = useState(2);
+  const [selectedReport, setSelectedReport] = useState(null);
+
+  const filteredReports = useMemo(() => {
+    const searchTerm = query.trim().toLowerCase();
+
+    return reports.filter((item) => {
+      const byDistrict = item.district === activeDistrict;
+      const byType = typeFilter === "all" || item.category === typeFilter;
+      const byStatus = statusFilter === "all" || item.status === statusFilter;
+      const byDate =
+        dateFilter === "all" ||
+        (dateFilter === "recent" && item.date === "24/11/2025") ||
+        (dateFilter === "old" && item.date !== "24/11/2025");
+
+      const haystack = `${item.id} ${item.title}`.toLowerCase();
+      const bySearch = !searchTerm || haystack.includes(searchTerm);
+
+      return byDistrict && byType && byStatus && byDate && bySearch;
+    });
+  }, [activeDistrict, query, typeFilter, statusFilter, dateFilter]);
 
   const pageSize = 6;
 
@@ -105,6 +126,24 @@ const ReceptForm = () => {
     );
   }, [safePage, totalPages]);
 
+  const detailData = selectedReport
+    ? {
+        id:
+          selectedReport.code ||
+          `BC-${String(selectedReport.id).padStart(4, "0")}`,
+        title: selectedReport.title,
+        type: selectedReport.category,
+        status: selectedReport.status,
+        time: selectedReport.time || selectedReport.date,
+        district: selectedReport.district,
+        team: selectedReport.team,
+        reporter: selectedReport.reporter,
+        location: `${selectedReport.reporter}, ${selectedReport.district}, Đà Nẵng`,
+        description: selectedReport.description,
+        images: [selectedReport.image, selectedReport.afterImage || ""],
+      }
+    : null;
+
   return (
     <div className="min-h-full rounded-[22px] border border-gray-200 bg-white p-3 sm:p-4 flex flex-col">
       <Tabs
@@ -139,8 +178,8 @@ const ReceptForm = () => {
         </div>
       </Tabs>
 
-      <div className="relative z-30 mb-2.5 flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
-        <div className="relative w-full xl:max-w-[560px]">
+      <div className="mb-3 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+        <div className="relative w-full xl:max-w-[541px]">
           <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#969696]" />
           <Input
             value={query}
@@ -149,11 +188,11 @@ const ReceptForm = () => {
               setPage(1);
             }}
             placeholder="Tìm kiếm theo mã sự cố, tiêu đề sự cố..."
-            className="h-[44px] rounded-full border border-[#dfe3e8] bg-[#f5f5f5] pl-12 pr-4 text-sm text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] placeholder:text-[#969696] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]"
+            className="h-[45px] rounded-full border-0 bg-[#f5f5f5] pl-12 text-sm text-gray-700 placeholder:text-[#969696]"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <Select
             value={typeFilter}
             onValueChange={(value) => {
@@ -161,15 +200,10 @@ const ReceptForm = () => {
               setPage(1);
             }}
           >
-            <SelectTrigger className="h-[44px] min-w-[158px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
+            <SelectTrigger className="h-[45px] rounded-[10px] border-0 bg-[#f5f5f5] px-[15px] text-gray-700">
               <SelectValue placeholder="Loại sự cố" />
             </SelectTrigger>
-            <SelectContent
-              position="popper"
-              align="start"
-              sideOffset={8}
-              className="z-[120] min-w-[190px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
-            >
+            <SelectContent>
               <SelectItem value="all">Loại sự cố</SelectItem>
               <SelectItem value="Giao Thông">Giao thông</SelectItem>
               <SelectItem value="Điện">Điện</SelectItem>
@@ -185,15 +219,10 @@ const ReceptForm = () => {
               setPage(1);
             }}
           >
-            <SelectTrigger className="h-[44px] min-w-[158px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
+            <SelectTrigger className="h-[45px] rounded-[10px] border-0 bg-[#f5f5f5] px-[15px] text-gray-700">
               <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
-            <SelectContent
-              position="popper"
-              align="start"
-              sideOffset={8}
-              className="z-[120] min-w-[190px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
-            >
+            <SelectContent>
               <SelectItem value="all">Trạng thái</SelectItem>
               {STATUS_OPTIONS.filter((option) => option !== "all").map(
                 (option) => (
@@ -215,12 +244,7 @@ const ReceptForm = () => {
             <SelectTrigger className="h-[44px] min-w-[146px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
               <SelectValue placeholder="Chọn ngày" />
             </SelectTrigger>
-            <SelectContent
-              position="popper"
-              align="start"
-              sideOffset={8}
-              className="z-[120] min-w-[170px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
-            >
+            <SelectContent>
               <SelectItem value="all">Chọn ngày</SelectItem>
               <SelectItem value="recent">Mới nhất</SelectItem>
               <SelectItem value="old">Cũ hơn</SelectItem>
@@ -312,7 +336,7 @@ const ReceptForm = () => {
         </div>
       )}
 
-      <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 pb-0.5 text-sm font-semibold text-[#4b4b4b]">
+      <div className="mt-auto flex items-center justify-center gap-2 pb-0.5 text-sm font-semibold text-[#4b4b4b]">
         <button
           type="button"
           className="rounded-md px-2 py-1 hover:bg-[#f5f5f5] hover:text-black"
@@ -332,7 +356,7 @@ const ReceptForm = () => {
               1
             </button>
             {pageNumbers[0] > 2 && <span className="px-1">...</span>}
-            </>
+          </>
         )}
 
         {pageNumbers.map((pageNumber) => (

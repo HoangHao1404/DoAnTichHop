@@ -37,7 +37,7 @@ const SignIn = () => {
         
         const userRole = res.data.user.role;
         if (userRole === "maintenance") {
-          setTimeout(() => navigate("/admin/maintenanceteam"), 1500);
+          setTimeout(() => navigate("/maintenance/dashboard"), 1500);
         } else if (userRole === "admin" || userRole === "manager") {
           setTimeout(() => navigate("/admin/overview"), 1500);
         } else {
@@ -70,7 +70,7 @@ const SignIn = () => {
         // Kiểm tra role để điều hướng
         const userRole = res.data.user.role;
         if (userRole === "maintenance") {
-          setTimeout(() => navigate("/admin/maintenanceteam"), 1500);
+          setTimeout(() => navigate("/maintenance/dashboard"), 1500);
         } else if (userRole === "admin" || userRole === "manager") {
           setTimeout(() => navigate("/admin/overview"), 1500);
         } else {
