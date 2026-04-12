@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import banner from "../image/banner-public.jpeg";
 import cone from "../image/trafficCone.png";
@@ -9,7 +9,7 @@ const RegisterConfirm = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Láº¥y dá»¯ liá»‡u truyá»n tá»« Register
+  // Lấy dữ liệu truyền từ Register
   const { phone, password, full_name } = location.state || {};
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -28,11 +28,11 @@ const RegisterConfirm = () => {
     }
   }, [timeLeft]);
 
-  // Náº¿u vÃ o tháº³ng /register/confirm mÃ  khÃ´ng cÃ³ state
+  // Nếu vào thẳng /register/confirm mà không có state
   if (!phone) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
-        <p>Thiáº¿u thÃ´ng tin Ä‘Äƒng kÃ½. Vui lÃ²ng quay láº¡i trang Ä‘Äƒng kÃ½.</p>
+        <p>Thiếu thông tin đăng ký. Vui lòng quay lại trang đăng ký.</p>
       </div>
     );
   }
@@ -70,7 +70,7 @@ const RegisterConfirm = () => {
     inputRefs.current[lastIndex]?.focus();
   };
 
-  // Resend OTP (gá»i láº¡i API send-otp)
+  // Resend OTP (gọi lại API send-otp)
   const handleResendOTP = async () => {
     if (!canResend) return;
     try {
@@ -81,17 +81,17 @@ const RegisterConfirm = () => {
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     } catch (err) {
-      setMessage(err.response?.data?.message || "KhÃ´ng gá»­i láº¡i Ä‘Æ°á»£c OTP");
+      setMessage(err.response?.data?.message || "Không gửi lại được OTP");
     }
   };
 
-  // Submit OTP (gá»i API confirmRegister)
+  // Submit OTP (gọi API confirmRegister)
   const handleSubmit = async (e) => {
     e.preventDefault();
     const otpCode = otp.join("");
 
     if (otpCode.length !== 6) {
-      setMessage("Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ 6 sá»‘ OTP");
+      setMessage("Vui lòng nhập đầy đủ 6 số OTP");
       return;
     }
 
@@ -104,10 +104,10 @@ const RegisterConfirm = () => {
         full_name,
       });
 
-      toast.success("ÄÄƒng kÃ½ thÃ nh cÃ´ng!");
+      toast.success("Đăng ký thành công!");
       setTimeout(() => navigate("/signin"), 1500);
     } catch (err) {
-      setMessage(err.response?.data?.message || "OTP khÃ´ng Ä‘Ãºng, thá»­ láº¡i.");
+      setMessage(err.response?.data?.message || "OTP không đúng, thử lại.");
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     }
@@ -116,7 +116,7 @@ const RegisterConfirm = () => {
   if (!phone) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
-        <p>Thiáº¿u thÃ´ng tin Ä‘Äƒng kÃ½. Vui lÃ²ng quay láº¡i trang Ä‘Äƒng kÃ½.</p>
+        <p>Thiếu thông tin đăng ký. Vui lòng quay lại trang đăng ký.</p>
       </div>
     );
   }
@@ -149,29 +149,13 @@ const RegisterConfirm = () => {
             style={{ transform: "rotate(15deg)" }}
           />
 
-        <div className="w-full max-w-[500px] mx-auto relative z-10">
-          <div className="mb-6">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold leading-tight mb-2">
-              Verify your phone
-            </h2>
-            <p className="text-sm text-gray-600">
-              MÃ£ OTP Ä‘Ã£ Ä‘Æ°á»£c gá»­i tá»›i sá»‘ <b>{phone}</b>
-            </p>
-          </div>
-
-          {message && (
-            <p className="mb-3 text-sm text-red-600 whitespace-pre-line">
-              {message}
-            </p>
-          )}
-
-          <form onSubmit={handleSubmit}>
+          <div className="w-full max-w-[500px] mx-auto relative z-10">
             <div className="mb-6">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold leading-tight mb-2">
                 Verify your phone
               </h2>
               <p className="text-sm text-gray-600">
-                MÃ£ OTP Ä‘Ã£ Ä‘Æ°á»£c gá»­i tá»›i sá»‘ <b>{phone}</b>
+                Mã OTP đã được gửi tới số <b>{phone}</b>
               </p>
             </div>
 

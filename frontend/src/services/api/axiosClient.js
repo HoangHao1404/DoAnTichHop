@@ -1,4 +1,4 @@
-﻿import axios from "axios";
+import axios from "axios";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
@@ -8,7 +8,7 @@ const axiosClient = axios.create({
   withCredentials: false,
 });
 
-// Optional: attach token náº¿u cÃ³
+// Optional: attach token nếu có
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {

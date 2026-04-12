@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -25,24 +25,24 @@ const Register = () => {
     setMessage("");
 
     if (password !== confirmPassword) {
-      setMessage("Password khÃ´ng khá»›p!");
+      setMessage("Password không khớp!");
       return;
     }
 
     try {
       const res = await authApi.sendRegisterOtp(phone);
 
-      // Äiá»u hÆ°á»›ng sang trang nháº­p OTP
+      // Điều hướng sang trang nhập OTP
       navigate("/register/confirm", {
         state: {
           phone,
           password,
           full_name: fullName,
-          otp_demo: res.data.otp_demo, // demo náº¿u cáº§n hiá»ƒn thá»‹
+          otp_demo: res.data.otp_demo, // demo nếu cần hiển thị
         },
       });
     } catch (err) {
-      setMessage(err.response?.data?.message || "Lá»—i khi gá»­i OTP");
+      setMessage(err.response?.data?.message || "Lỗi khi gửi OTP");
     }
   };
 

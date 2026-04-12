@@ -20,12 +20,12 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",                    // ← ĐỔI ĐÂY
-  authDomain: "your-project.firebaseapp.com",// ← ĐỔI ĐÂY
-  projectId: "your-project-id",              // ← ĐỔI ĐÂY
-  storageBucket: "your-project.appspot.com", // ← ĐỔI ĐÂY
-  messagingSenderId: "123456789",            // ← ĐỔI ĐÂY
-  appId: "1:123456789:web:abcd1234efgh5678", // ← ĐỔI ĐÂY
+  apiKey: "YOUR_API_KEY",                    // <- ĐỔI ĐÂY
+  authDomain: "your-project.firebaseapp.com",// <- ĐỔI ĐÂY
+  projectId: "your-project-id",              // <- ĐỔI ĐÂY
+  storageBucket: "your-project.appspot.com", // <- ĐỔI ĐÂY
+  messagingSenderId: "123456789",            // <- ĐỔI ĐÂY
+  appId: "1:123456789:web:abcd1234efgh5678", // <- ĐỔI ĐÂY
 };
 
 const app = initializeApp(firebaseConfig);

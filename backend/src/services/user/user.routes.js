@@ -1,25 +1,25 @@
-﻿const express = require("express");
+const express = require("express");
 const router = express.Router();
 const userController = require("./user.controller");
 const authMiddleware = require("../../middleware/auth");
 const requireRole = require("../../middleware/role");
 
-// GET /api/user/profile - Láº¥y thÃ´ng tin cÃ¡ nhÃ¢n
+// GET /api/user/profile - Lấy thông tin cá nhân
 router.get("/profile", authMiddleware, userController.getProfile);
 
-// PUT /api/user/profile - Cáº­p nháº­t thÃ´ng tin cÃ¡ nhÃ¢n
+// PUT /api/user/profile - Cập nhật thông tin cá nhân
 router.put("/profile", authMiddleware, userController.updateProfile);
 
-// POST /api/user/change-password - Äá»•i máº­t kháº©u
+// POST /api/user/change-password - Đổi mật khẩu
 router.post("/change-password", authMiddleware, userController.changePassword);
 
-// DELETE /api/user/account - XÃ³a tÃ i khoáº£n
+// DELETE /api/user/account - Xóa tài khoản
 router.delete("/account", authMiddleware, userController.deleteAccount);
 
-// GET /api/user/all - Láº¥y danh sÃ¡ch táº¥t cáº£ user (chá»‰ admin)
+// GET /api/user/all - Lấy danh sách tất cả user (chỉ admin)
 router.get("/all", authMiddleware, requireRole("admin"), userController.getAllUsers);
 
-// GET /api/user/management - Danh sÃ¡ch user cho trang quáº£n lÃ½
+// GET /api/user/management - Danh sách user cho trang quản lý
 router.get(
 	"/management",
 	authMiddleware,
@@ -27,7 +27,7 @@ router.get(
 	userController.getManagementUsers
 );
 
-// POST /api/user/management - Táº¡o user tá»« trang quáº£n lÃ½
+// POST /api/user/management - Tạo user từ trang quản lý
 router.post(
 	"/management",
 	authMiddleware,
@@ -35,7 +35,7 @@ router.post(
 	userController.createManagementUser
 );
 
-// PUT /api/user/management/:userId - Sá»­a user tá»« trang quáº£n lÃ½
+// PUT /api/user/management/:userId - Sửa user từ trang quản lý
 router.put(
 	"/management/:userId",
 	authMiddleware,
@@ -43,7 +43,7 @@ router.put(
 	userController.updateManagementUser
 );
 
-// PATCH /api/user/management/:userId/status - KhÃ³a/má»Ÿ khÃ³a user
+// PATCH /api/user/management/:userId/status - Khóa/mở khóa user
 router.patch(
 	"/management/:userId/status",
 	authMiddleware,
@@ -51,7 +51,7 @@ router.patch(
 	userController.updateManagementUserStatus
 );
 
-// DELETE /api/user/management/:userId - XÃ³a user
+// DELETE /api/user/management/:userId - Xóa user
 router.delete(
 	"/management/:userId",
 	authMiddleware,

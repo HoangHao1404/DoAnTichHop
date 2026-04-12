@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Search,
   SlidersHorizontal,
@@ -49,33 +49,33 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-const TYPE_OPTIONS = ["all", "Giao ThÃ´ng", "Äiá»‡n", "CÃ¢y Xanh", "CTCC"];
-const STATUS_OPTIONS = ["all", "Äang Chá»", "Äang Xá»­ LÃ½", "ÄÃ£ Giáº£i Quyáº¿t"];
+const TYPE_OPTIONS = ["all", "Giao Thông", "Điện", "Cây Xanh", "CTCC"];
+const STATUS_OPTIONS = ["all", "Đang Chờ", "Đang Xử Lý", "Đã Giải Quyết"];
 const TYPE_LABELS = {
-  all: "Táº¥t cáº£",
-  "Giao ThÃ´ng": "Giao ThÃ´ng",
-  Äiá»‡n: "Äiá»‡n",
-  "CÃ¢y Xanh": "CÃ¢y Xanh",
-  CTCC: "CÃ´ng trÃ¬nh cÃ´ng cá»™ng",
+  all: "Tất cả",
+  "Giao Thông": "Giao Thông",
+  "Điện": "Điện",
+  "Cây Xanh": "Cây Xanh",
+  CTCC: "Công trình công cộng",
 };
 const TYPE_BADGE = {
-  "Giao ThÃ´ng": "bg-orange-100 text-orange-700",
-  Äiá»‡n: "bg-yellow-100 text-yellow-700",
-  "CÃ¢y Xanh": "bg-emerald-100 text-emerald-700",
+  "Giao Thông": "bg-orange-100 text-orange-700",
+  "Điện": "bg-yellow-100 text-yellow-700",
+  "Cây Xanh": "bg-emerald-100 text-emerald-700",
   CTCC: "bg-violet-100 text-violet-700",
-  KhÃ¡c: "bg-slate-100 text-slate-700",
+  "Khác": "bg-slate-100 text-slate-700",
 };
 
 const STATUS_BADGE = {
-  "Äang Chá»": "bg-gray-100 text-gray-700",
-  "Äang Xá»­ LÃ½": "bg-amber-100 text-amber-700",
-  "ÄÃ£ Giáº£i Quyáº¿t": "bg-lime-100 text-lime-700",
+  "Đang Chờ": "bg-gray-100 text-gray-700",
+  "Đang Xử Lý": "bg-amber-100 text-amber-700",
+  "Đã Giải Quyết": "bg-lime-100 text-lime-700",
 };
 
 const STATUS_LABEL = {
-  "Äang Chá»": "Äang Chá»",
-  "Äang Xá»­ LÃ½": "Äang Xá»­ LÃ½",
-  "ÄÃ£ Giáº£i Quyáº¿t": "ÄÃ£ Giáº£i Quyáº¿t",
+  "Đang Chờ": "Đang Chờ",
+  "Đang Xử Lý": "Đang Xử Lý",
+  "Đã Giải Quyết": "Đã Giải Quyết",
 };
 
 const CARD_STYLES = [
@@ -118,17 +118,17 @@ function normalizeReport(report) {
   const aiPercent = Number(normalizeAiPercent(report?.aiPercent).toFixed(2));
   const damageLevel =
     report?.damageLevel ||
-    (aiPercent >= 70 ? "Náº·ng" : aiPercent >= 30 ? "Trung bÃ¬nh" : "Nháº¹");
+    (aiPercent >= 70 ? "Nặng" : aiPercent >= 30 ? "Trung bình" : "Nhẹ");
 
   return {
     id: report?.id || report?.report_id || report?._id || "N/A",
-    title: report?.title || "KhÃ´ng cÃ³ tiÃªu Ä‘á»",
-    type: hasKnownType ? report.type : "KhÃ¡c",
-    location: report?.location || "ChÆ°a cÃ³ vá»‹ trÃ­",
-    status: hasKnownStatus ? report.status : "Äang Chá»",
+    title: report?.title || "Không có tiêu đề",
+    type: hasKnownType ? report.type : "Khác",
+    location: report?.location || "Chưa có vị trí",
+    status: hasKnownStatus ? report.status : "Đang Chờ",
     time: reportDate
       ? new Date(reportDate).toLocaleString("vi-VN")
-      : "ChÆ°a cÃ³ thá»i gian",
+      : "Chưa có thời gian",
     description: report?.description || "",
     images: report?.images || [],
     image: report?.image || "",
@@ -162,7 +162,7 @@ export default function MyReports() {
     if (!userId) {
       setReports([]);
       setLoading(false);
-      setError("Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ xem bÃ¡o cÃ¡o.");
+      setError("Vui lòng đăng nhập để xem báo cáo.");
       return;
     }
 
@@ -185,13 +185,13 @@ export default function MyReports() {
         setReports(normalizedReports);
       } else {
         setReports([]);
-        setError("KhÃ´ng thá»ƒ táº£i danh sÃ¡ch bÃ¡o cÃ¡o.");
+        setError("Không thể tải danh sách báo cáo.");
       }
     } catch (err) {
       setReports([]);
       setError(
         err?.response?.data?.message ||
-          "KhÃ´ng káº¿t ná»‘i Ä‘Æ°á»£c mÃ¡y chá»§. Vui lÃ²ng kiá»ƒm tra backend.",
+          "Không kết nối được máy chủ. Vui lòng kiểm tra backend.",
       );
     } finally {
       setLoading(false);
@@ -226,33 +226,33 @@ export default function MyReports() {
 
   const totalReports = reports.length;
   const pendingReports = reports.filter(
-    (item) => item.status === "Äang Chá»",
+    (item) => item.status === "Đang Chờ",
   ).length;
   const processingReports = reports.filter(
-    (item) => item.status === "Äang Xá»­ LÃ½",
+    (item) => item.status === "Đang Xử Lý",
   ).length;
   const resolvedReports = reports.filter(
-    (item) => item.status === "ÄÃ£ Giáº£i Quyáº¿t",
+    (item) => item.status === "Đã Giải Quyết",
   ).length;
 
   const statCards = [
     {
-      label: "Tá»•ng BÃ¡o CÃ¡o",
+      label: "Tổng Báo Cáo",
       value: totalReports,
       icon: <Database className="h-4 w-4" />,
     },
     {
-      label: "Äang Chá»",
+      label: "Đang Chờ",
       value: pendingReports,
       icon: <Clock3 className="h-4 w-4" />,
     },
     {
-      label: "Äang Xá»­ LÃ½",
+      label: "Đang Xử Lý",
       value: processingReports,
       icon: <Zap className="h-4 w-4" />,
     },
     {
-      label: "ÄÃ£ Giáº£i Quyáº¿t",
+      label: "Đã Giải Quyết",
       value: resolvedReports,
       icon: <ShieldCheck className="h-4 w-4" />,
     },
@@ -270,14 +270,14 @@ export default function MyReports() {
         <div className="flex h-full w-full flex-col rounded-[24px] border border-gray-200 bg-white p-4 sm:p-5 md:p-6">
           <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
-              BÃ¡o CÃ¡o Cá»§a TÃ´i
+              Báo Cáo Của Tôi
             </h1>
             <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 lg:w-auto">
               <div className="relative w-full min-w-0 sm:min-w-[280px] sm:max-w-[460px]">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input
                   type="text"
-                  placeholder="Nháº­p mÃ£ bÃ¡o cÃ¡o, tiÃªu Ä‘á»,..."
+                  placeholder="Nhập mã báo cáo, tiêu đề,..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="h-12 w-full rounded-full border-gray-200 bg-white pl-11 pr-4 text-sm text-gray-700"
@@ -329,7 +329,7 @@ export default function MyReports() {
                     {card.label}
                   </CardTitle>
                   <CardDescription className="text-xs text-gray-500">
-                    Thá»‘ng kÃª hiá»‡n táº¡i
+                    Thống kê hiện tại
                   </CardDescription>
                 </CardHeader>
 
@@ -369,7 +369,7 @@ export default function MyReports() {
             >
               <div className="w-full min-w-0 sm:min-w-[190px] xl:w-auto">
                 <SelectTrigger className="h-11 w-full rounded-xl border-gray-200 bg-white px-3 text-sm text-gray-600 data-[state=open]:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-100">
-                  <SelectValue placeholder="Táº¥t cáº£ tráº¡ng thÃ¡i" />
+                  <SelectValue placeholder="Tất cả trạng thái" />
                 </SelectTrigger>
               </div>
               <SelectContent
@@ -382,25 +382,25 @@ export default function MyReports() {
                   value="all"
                   className="rounded-lg py-2 text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"
                 >
-                  Táº¥t cáº£ tráº¡ng thÃ¡i
+                  Tất cả trạng thái
                 </SelectItem>
                 <SelectItem
-                  value="Äang Chá»"
+                  value="Đang Chờ"
                   className="rounded-lg py-2 text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"
                 >
-                  Äang Chá»
+                  Đang Chờ
                 </SelectItem>
                 <SelectItem
-                  value="Äang Xá»­ LÃ½"
+                  value="Đang Xử Lý"
                   className="rounded-lg py-2 text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"
                 >
-                  Äang Xá»­ LÃ½
+                  Đang Xử Lý
                 </SelectItem>
                 <SelectItem
-                  value="ÄÃ£ Giáº£i Quyáº¿t"
+                  value="Đã Giải Quyết"
                   className="rounded-lg py-2 text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"
                 >
-                  ÄÃ£ Giáº£i Quyáº¿t
+                  Đã Giải Quyết
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -414,7 +414,7 @@ export default function MyReports() {
                 onClick={fetchReports}
                 className="ml-3 rounded-lg bg-red-100 px-3 py-1 font-medium text-red-700 hover:bg-red-200"
               >
-                Thá»­ láº¡i
+                Thử lại
               </button>
             </div>
           )}
@@ -432,28 +432,28 @@ export default function MyReports() {
                       <TableHeader className="sticky top-0 z-10 bg-white text-gray-700">
                         <TableRow className="border-b border-gray-100 hover:bg-white">
                           <TableHead className="px-4 py-3 font-semibold">
-                            MÃ£ bÃ¡o cÃ¡o
+                            Mã báo cáo
                           </TableHead>
                           <TableHead className="px-4 py-3 font-semibold">
-                            TiÃªu Ä‘á»
+                            Tiêu đề
                           </TableHead>
                           <TableHead className="px-4 py-3 font-semibold">
-                            Loáº¡i
+                            Loại
                           </TableHead>
                           <TableHead className="px-4 py-3 font-semibold">
-                            Vá»‹ trÃ­
+                            Vị trí
                           </TableHead>
                           <TableHead className="px-4 py-3 font-semibold">
-                            Tráº¡ng thÃ¡i
+                            Trạng thái
                           </TableHead>
                           <TableHead className="px-4 py-3 font-semibold">
-                            Äá»™ hÆ° háº¡i
+                            Độ hư hại
                           </TableHead>
                           <TableHead className="px-4 py-3 font-semibold">
                             % AI
                           </TableHead>
                           <TableHead className="px-4 py-3 font-semibold">
-                            Thá»i gian
+                            Thời gian
                           </TableHead>
                         </TableRow>
                       </TableHeader>
@@ -464,7 +464,7 @@ export default function MyReports() {
                               colSpan={8}
                               className="px-4 py-10 text-center text-gray-400"
                             >
-                              ChÆ°a cÃ³ dá»¯ liá»‡u bÃ¡o cÃ¡o phÃ¹ há»£p.
+                              Chưa có dữ liệu báo cáo phù hợp.
                             </TableCell>
                           </TableRow>
                         )}
@@ -487,7 +487,7 @@ export default function MyReports() {
                             <TableCell className="px-4 py-3">
                               <Badge
                                 variant="outline"
-                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${TYPE_BADGE[item.type] || TYPE_BADGE.KhÃ¡c}`}
+                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${TYPE_BADGE[item.type] || TYPE_BADGE["Khác"]}`}
                               >
                                 {item.type}
                               </Badge>
@@ -501,29 +501,29 @@ export default function MyReports() {
                             <TableCell className="px-4 py-3">
                               <Badge
                                 variant={
-                                  (item.status || "Äang Chá»") === "Äang Chá»"
+                                  (item.status || "Đang Chờ") === "Đang Chờ"
                                     ? "secondary"
                                     : "outline"
                                 }
                                 className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
                                   STATUS_BADGE[item.status] ||
-                                  STATUS_BADGE["Äang Chá»"]
+                                  STATUS_BADGE["Đang Chờ"]
                                 }`}
                               >
-                                {STATUS_LABEL[item.status] || "Äang Chá»"}
+                                {STATUS_LABEL[item.status] || "Đang Chờ"}
                               </Badge>
                             </TableCell>
                             <TableCell className="px-4 py-3">
                               <Badge
                                 variant={
-                                  item.damageLevel === "Náº·ng"
+                                  item.damageLevel === "Nặng"
                                     ? "destructive"
                                     : "outline"
                                 }
                                 className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
-                                  item.damageLevel === "Trung bÃ¬nh"
+                                  item.damageLevel === "Trung bình"
                                     ? "bg-amber-100 text-amber-700"
-                                    : item.damageLevel === "Nháº¹"
+                                    : item.damageLevel === "Nhẹ"
                                       ? "bg-emerald-100 text-emerald-700"
                                       : ""
                                 }`}
@@ -566,7 +566,7 @@ export default function MyReports() {
                 <PaginationItem>
                   <PaginationPrevious
                     href="#"
-                    text="Trang trÆ°á»›c"
+                    text="Trang trước"
                     onClick={(event) => {
                       event.preventDefault();
                       if (safeCurrentPage > 1) {
@@ -632,7 +632,7 @@ export default function MyReports() {
         <ReportReviews
           close={() => setShowReview(false)}
           submit={() => {
-            toast.success("ÄÃ¡nh giÃ¡ thÃ nh cÃ´ng!");
+            toast.success("Đánh giá thành công!");
             setShowReview(false);
           }}
         />

@@ -1,20 +1,20 @@
-﻿import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Search, Plus, X, Lock, Pencil, Trash2 } from "lucide-react";
 import { maintenanceTeamApi } from "../services/api/maintenanceTeamApi";
 
 const AREA_OPTIONS = [
-    { value: "", label: "Táº¥t cáº£ khu vá»±c" },
-    { value: "SÆ¡n TrÃ ", label: "SÆ¡n TrÃ " },
-    { value: "LiÃªn Chiá»ƒu", label: "LiÃªn Chiá»ƒu" },
-    { value: "Háº£i ChÃ¢u", label: "Háº£i ChÃ¢u" },
-    { value: "HÃ²a XuÃ¢n", label: "HÃ²a XuÃ¢n" },
-    { value: "KhuÃª Trung", label: "KhuÃª Trung" },
+    { value: "", label: "Tất cả khu vực" },
+    { value: "Sơn Trà", label: "Sơn Trà" },
+    { value: "Liên Chiểu", label: "Liên Chiểu" },
+    { value: "Hải Châu", label: "Hải Châu" },
+    { value: "Hòa Xuân", label: "Hòa Xuân" },
+    { value: "Khuê Trung", label: "Khuê Trung" },
 ];
 
 const STATUS_OPTIONS = [
-    { value: "", label: "Táº¥t cáº£ tráº¡ng thÃ¡i" },
-    { value: "active", label: "Hoáº¡t Äá»™ng" },
-    { value: "inactive", label: "Bá»‹ KhÃ³a" },
+    { value: "", label: "Tất cả trạng thái" },
+    { value: "active", label: "Hoạt Động" },
+    { value: "inactive", label: "Bị Khóa" },
 ];
 
 const statusStyle = {
@@ -27,7 +27,7 @@ const emptyForm = {
   name: "",
   leader: "",
   memberCount: 1,
-  area: "Háº£i ChÃ¢u",
+  area: "Hải Châu",
   status: "active",
 };
 
@@ -75,7 +75,7 @@ const MaintenanceTeam_Table = () => {
       setTeams([]);
       setTotalPages(1);
       setErrorMessage(
-        error?.response?.data?.message || "KhÃ´ng táº£i Ä‘Æ°á»£c danh sÃ¡ch Ä‘á»™i xá»­ lÃ½"
+        error?.response?.data?.message || "Không tải được danh sách đội xử lý"
       );
     } finally {
       setLoading(false);
@@ -108,7 +108,7 @@ const MaintenanceTeam_Table = () => {
       setFormData(emptyForm);
       await fetchTeams();
     } catch (error) {
-      alert(error?.response?.data?.message || "KhÃ´ng thá»ƒ thÃªm Ä‘á»™i xá»­ lÃ½");
+      alert(error?.response?.data?.message || "Không thể thêm đội xử lý");
     }
   };
 
@@ -137,19 +137,19 @@ const MaintenanceTeam_Table = () => {
       setFormData(emptyForm);
       await fetchTeams();
     } catch (error) {
-      alert(error?.response?.data?.message || "KhÃ´ng thá»ƒ cáº­p nháº­t Ä‘á»™i xá»­ lÃ½");
+      alert(error?.response?.data?.message || "Không thể cập nhật đội xử lý");
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      if (!window.confirm("Báº¡n cÃ³ cháº¯c muá»‘n xÃ³a Ä‘á»™i xá»­ lÃ½ nÃ y?")) {
+      if (!window.confirm("Bạn có chắc muốn xóa đội xử lý này?")) {
         return;
       }
       await maintenanceTeamApi.deleteTeam(id);
       await fetchTeams();
     } catch (error) {
-      alert(error?.response?.data?.message || "KhÃ´ng thá»ƒ xÃ³a Ä‘á»™i xá»­ lÃ½");
+      alert(error?.response?.data?.message || "Không thể xóa đội xử lý");
     }
   };
 
@@ -159,7 +159,7 @@ const MaintenanceTeam_Table = () => {
       await maintenanceTeamApi.updateTeamStatus(id, nextStatus);
       await fetchTeams();
     } catch (error) {
-      alert(error?.response?.data?.message || "KhÃ´ng thá»ƒ Ä‘á»•i tráº¡ng thÃ¡i Ä‘á»™i xá»­ lÃ½");
+      alert(error?.response?.data?.message || "Không thể đổi trạng thái đội xử lý");
     }
   };
 
@@ -176,7 +176,7 @@ const MaintenanceTeam_Table = () => {
 
   return (
     <div className="space-y-4">
-      {/* HÃ ng filter trÃªn cÃ¹ng */}
+      {/* Hàng filter trên cùng */}
       <div className="flex flex-col lg:flex-row lg:items-center gap-3">
         {/* Search */}
         <div className="flex-1">
@@ -189,7 +189,7 @@ const MaintenanceTeam_Table = () => {
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="TÃ¬m kiáº¿m Ä‘á»™i..."
+              placeholder="Tìm kiếm đội..."
               className="flex-1 bg-transparent outline-none text-sm placeholder-gray-400"
             />
           </div>
@@ -197,7 +197,7 @@ const MaintenanceTeam_Table = () => {
 
         {/* Filters + Add button */}
         <div className="flex flex-wrap lg:flex-nowrap gap-2 lg:gap-3">
-          {/* Khu vá»±c */}
+          {/* Khu vực */}
           <select
             value={areaFilter}
             onChange={(e) => {
@@ -213,7 +213,7 @@ const MaintenanceTeam_Table = () => {
             ))}
           </select>
 
-          {/* Tráº¡ng thÃ¡i */}
+          {/* Trạng thái */}
           <select
             value={statusFilter}
             onChange={(e) => {
@@ -229,14 +229,14 @@ const MaintenanceTeam_Table = () => {
             ))}
           </select>
 
-          {/* NÃºt ThÃªm Äá»™i */}
+          {/* Nút Thêm Đội */}
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
             className="ml-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-blue-500 hover:bg-blue-600 text-white shadow-sm transition"
           >
             <Plus className="w-4 h-4" />
-            ThÃªm Äá»™i
+            Thêm Đội
           </button>
         </div>
       </div>
@@ -246,7 +246,7 @@ const MaintenanceTeam_Table = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">ThÃªm Äá»™i Xá»­ LÃ½ Má»›i</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Thêm Đội Xử Lý Mới</h3>
               <button
                 onClick={() => {
                   setShowAddModal(false);
@@ -268,78 +268,78 @@ const MaintenanceTeam_Table = () => {
                   value={formData.id}
                   onChange={(e) => setFormData({ ...formData, id: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Nháº­p Team ID"
+                  placeholder="Nhập Team ID"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  TÃªn Äá»™i
+                  Tên Đội
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Nháº­p tÃªn Ä‘á»™i"
+                  placeholder="Nhập tên đội"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  TrÆ°á»Ÿng Äá»™i
+                  Trưởng Đội
                 </label>
                 <input
                   type="text"
                   value={formData.leader}
                   onChange={(e) => setFormData({ ...formData, leader: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Nháº­p tÃªn trÆ°á»Ÿng Ä‘á»™i"
+                  placeholder="Nhập tên trưởng đội"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sá»‘ LÆ°á»£ng ThÃ nh ViÃªn
+                  Số Lượng Thành Viên
                 </label>
                 <input
                   type="number"
                   value={formData.memberCount}
                   onChange={(e) => setFormData({ ...formData, memberCount: parseInt(e.target.value) || 1 })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Nháº­p sá»‘ lÆ°á»£ng"
+                  placeholder="Nhập số lượng"
                   min="1"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Khu Vá»±c
+                  Khu Vực
                 </label>
                 <select
                   value={formData.area}
                   onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
                 >
-                  <option value="SÆ¡n TrÃ ">SÆ¡n TrÃ </option>
-                  <option value="LiÃªn Chiá»ƒu">LiÃªn Chiá»ƒu</option>
-                  <option value="Háº£i ChÃ¢u">Háº£i ChÃ¢u</option>
-                  <option value="HÃ²a XuÃ¢n">HÃ²a XuÃ¢n</option>
-                  <option value="KhuÃª Trung">KhuÃª Trung</option>
+                  <option value="Sơn Trà">Sơn Trà</option>
+                  <option value="Liên Chiểu">Liên Chiểu</option>
+                  <option value="Hải Châu">Hải Châu</option>
+                  <option value="Hòa Xuân">Hòa Xuân</option>
+                  <option value="Khuê Trung">Khuê Trung</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tráº¡ng ThÃ¡i
+                  Trạng Thái
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
                 >
-                  <option value="active">Hoáº¡t Äá»™ng</option>
-                  <option value="inactive">Bá»‹ KhÃ³a</option>
+                  <option value="active">Hoạt Động</option>
+                  <option value="inactive">Bị Khóa</option>
                 </select>
               </div>
             </div>
@@ -352,13 +352,13 @@ const MaintenanceTeam_Table = () => {
                 }}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                Há»§y
+                Hủy
               </button>
               <button
                 onClick={handleAddTeam}
                 className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
               >
-                ThÃªm
+                Thêm
               </button>
             </div>
           </div>
@@ -370,7 +370,7 @@ const MaintenanceTeam_Table = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">Chá»‰nh Sá»­a Äá»™i</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Chỉnh Sửa Đội</h3>
               <button
                 onClick={() => {
                   setShowEditModal(false);
@@ -386,72 +386,72 @@ const MaintenanceTeam_Table = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  TÃªn Äá»™i
+                  Tên Đội
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Nháº­p tÃªn Ä‘á»™i"
+                  placeholder="Nhập tên đội"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  TrÆ°á»Ÿng Äá»™i
+                  Trưởng Đội
                 </label>
                 <input
                   type="text"
                   value={formData.leader}
                   onChange={(e) => setFormData({ ...formData, leader: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Nháº­p tÃªn trÆ°á»Ÿng Ä‘á»™i"
+                  placeholder="Nhập tên trưởng đội"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sá»‘ LÆ°á»£ng ThÃ nh ViÃªn
+                  Số Lượng Thành Viên
                 </label>
                 <input
                   type="number"
                   value={formData.memberCount}
                   onChange={(e) => setFormData({ ...formData, memberCount: parseInt(e.target.value) || 1 })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Nháº­p sá»‘ lÆ°á»£ng"
+                  placeholder="Nhập số lượng"
                   min="1"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Khu Vá»±c
+                  Khu Vực
                 </label>
                 <select
                   value={formData.area}
                   onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
                 >
-                  <option value="SÆ¡n TrÃ ">SÆ¡n TrÃ </option>
-                  <option value="LiÃªn Chiá»ƒu">LiÃªn Chiá»ƒu</option>
-                  <option value="Háº£i ChÃ¢u">Háº£i ChÃ¢u</option>
-                  <option value="HÃ²a XuÃ¢n">HÃ²a XuÃ¢n</option>
-                  <option value="KhuÃª Trung">KhuÃª Trung</option>
+                  <option value="Sơn Trà">Sơn Trà</option>
+                  <option value="Liên Chiểu">Liên Chiểu</option>
+                  <option value="Hải Châu">Hải Châu</option>
+                  <option value="Hòa Xuân">Hòa Xuân</option>
+                  <option value="Khuê Trung">Khuê Trung</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tráº¡ng ThÃ¡i
+                  Trạng Thái
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
                 >
-                  <option value="active">Hoáº¡t Äá»™ng</option>
-                  <option value="inactive">Bá»‹ KhÃ³a</option>
+                  <option value="active">Hoạt Động</option>
+                  <option value="inactive">Bị Khóa</option>
                 </select>
               </div>
             </div>
@@ -465,7 +465,7 @@ const MaintenanceTeam_Table = () => {
                 }}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                Há»§y
+                Hủy
               </button>
               <button
                 onClick={handleSaveEdit}
@@ -478,17 +478,17 @@ const MaintenanceTeam_Table = () => {
         </div>
       )}
 
-      {/* Báº£ng */}
+      {/* Bảng */}
       <div className="overflow-x-auto rounded-2xl border shadow-sm bg-white border-gray-100">
         <table className="min-w-full text-sm">
           <thead className="bg-[#f9fafb] text-gray-500">
             <tr>
               <th className="px-4 py-3 font-medium text-left">Team ID</th>
-              <th className="px-4 py-3 font-medium text-left">TÃªn Äá»™i</th>
-              <th className="px-4 py-3 font-medium text-left">TrÆ°á»Ÿng Äá»™i</th>
-              <th className="px-4 py-3 font-medium text-left">Sá»‘ LÆ°á»£ng</th>
-              <th className="px-4 py-3 font-medium text-left">Khu Vá»±c</th>
-              <th className="px-4 py-3 font-medium text-left">Tráº¡ng ThÃ¡i</th>
+              <th className="px-4 py-3 font-medium text-left">Tên Đội</th>
+              <th className="px-4 py-3 font-medium text-left">Trưởng Đội</th>
+              <th className="px-4 py-3 font-medium text-left">Số Lượng</th>
+              <th className="px-4 py-3 font-medium text-left">Khu Vực</th>
+              <th className="px-4 py-3 font-medium text-left">Trạng Thái</th>
               <th className="px-4 py-3 font-medium text-center">Actions</th>
             </tr>
           </thead>
@@ -499,7 +499,7 @@ const MaintenanceTeam_Table = () => {
                   colSpan={7}
                   className="px-4 py-6 text-center text-gray-400 text-sm"
                 >
-                  Äang táº£i dá»¯ liá»‡u...
+                  Đang tải dữ liệu...
                 </td>
               </tr>
             )}
@@ -510,7 +510,7 @@ const MaintenanceTeam_Table = () => {
                   colSpan={7}
                   className="px-4 py-6 text-center text-gray-400 text-sm"
                 >
-                  {errorMessage || "KhÃ´ng tÃ¬m tháº¥y Ä‘á»™i phÃ¹ há»£p."}
+                  {errorMessage || "Không tìm thấy đội phù hợp."}
                 </td>
               </tr>
             )}
@@ -531,7 +531,7 @@ const MaintenanceTeam_Table = () => {
                       statusStyle[team.status]
                     }`}
                   >
-                    {team.status === "active" ? "Hoáº¡t Äá»™ng" : "Bá»‹ KhÃ³a"}
+                    {team.status === "active" ? "Hoạt Động" : "Bị Khóa"}
                   </span>
                 </td>
                 <td className="px-4 py-3">
@@ -540,7 +540,7 @@ const MaintenanceTeam_Table = () => {
                       type="button"
                       onClick={() => handleEditClick(team)}
                       className="text-blue-500 hover:text-blue-600"
-                      title="Sá»­a"
+                      title="Sửa"
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
@@ -548,7 +548,7 @@ const MaintenanceTeam_Table = () => {
                       type="button"
                       onClick={() => handleToggleLock(team.id, team.status)}
                       className="text-amber-500 hover:text-amber-600"
-                      title="KhÃ³a / má»Ÿ khÃ³a"
+                      title="Khóa / mở khóa"
                     >
                       <Lock className="w-4 h-4" />
                     </button>
@@ -556,7 +556,7 @@ const MaintenanceTeam_Table = () => {
                       type="button"
                       onClick={() => handleDelete(team.id)}
                       className="text-red-500 hover:text-red-600"
-                      title="XÃ³a"
+                      title="Xóa"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -567,7 +567,7 @@ const MaintenanceTeam_Table = () => {
           </tbody>
         </table>
 
-        {/* Footer phÃ¢n trang */}
+        {/* Footer phân trang */}
         <div className="flex items-center justify-center gap-4 px-4 py-3 text-xs text-gray-500">
           <button
             type="button"
