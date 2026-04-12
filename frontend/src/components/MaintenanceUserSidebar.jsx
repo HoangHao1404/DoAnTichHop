@@ -93,7 +93,7 @@ const MaintenanceUserSidebar = () => {
     {
       id: "myreports",
       path: "/maintenance/assigned_report",
-      icon: <FolderOpen className="h-5 w-5" />,
+      icon: <FileText className="h-5 w-5" />,
       title: "Báo cáo của tôi",
     },
     {
@@ -172,42 +172,45 @@ const MaintenanceUserSidebar = () => {
         />
       )}
 
-      {showLogoutConfirm && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowLogoutConfirm(false);
-            }
-          }}
-        >
+      {showLogoutConfirm &&
+        portalTarget &&
+        createPortal(
           <div
-            className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowLogoutConfirm(false);
+              }
+            }}
           >
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">
-              Xác nhận đăng xuất
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-medium"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors font-medium"
-              >
-                Đăng xuất
-              </button>
+            <div
+              className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="mb-3 text-xl font-semibold text-gray-800">
+                Xác nhận đăng xuất
+              </h3>
+              <p className="mb-6 text-gray-600">
+                Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="rounded-lg bg-red-500 px-4 py-2 font-medium text-white transition-colors hover:bg-red-600"
+                >
+                  Đăng xuất
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          portalTarget,
+        )}
 
       {/* ICON-ONLY SIDEBAR - Floating */}
       <Sidebar
@@ -314,7 +317,7 @@ const MaintenanceUserSidebar = () => {
                 <button
                   onClick={() => {
                     setShowAvatarMenu(false);
-                    navigate("/profile");
+                    setShowInfoModal(true);
                   }}
                   className="w-full px-4 py-2 flex items-center gap-3 text-gray-700 hover:bg-gray-50 transition-colors text-left"
                 >
@@ -481,13 +484,16 @@ const MaintenanceUserSidebar = () => {
         )}
 
       {/* INFO MANAGEMENT MODAL */}
-      {showInfoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <Info_Management onClose={() => setShowInfoModal(false)} />
-          </div>
-        </div>
-      )}
+      {showInfoModal &&
+        portalTarget &&
+        createPortal(
+          <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <Info_Management onClose={() => setShowInfoModal(false)} />
+            </div>
+          </div>,
+          portalTarget,
+        )}
     </>
   );
 };

@@ -13,6 +13,7 @@ import Toast from "./Toast";
 import { useNavigate } from "react-router-dom";
 import MaintenanceUserSidebar from "./MaintenanceUserSidebar";
 import { SidebarProvider } from "./ui/sidebar";
+import { NavbarAdmin } from "./NavBar";
 
 const categories = [
   {
@@ -149,11 +150,18 @@ export default function MaintenanceHomeOverlayUI({
           </SidebarProvider>
         </div>
 
-        {/* Floating Categories - Right Top (next to sidebar) */}
-        <div className="absolute left-28 top-4 right-4 z-10 flex gap-2 overflow-x-auto scrollbar-hide">
+        {/* Floating Navbar */}
+        <div className="pointer-events-none absolute left-28 right-4 top-4 z-20">
+          <div className="pointer-events-auto">
+            <NavbarAdmin />
+          </div>
+        </div>
+
+        {/* Floating Categories - Right Top (below navbar) */}
+        <div className="absolute left-28 right-4 top-24 z-10 flex gap-3 overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setSelectedCategory("all")}
-            className={`flex items-center gap-1.5 px-4 h-10 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+            className={`inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 sm:h-10 sm:px-4 ${
               selectedCategory === "all" ? "shadow-md" : "hover:shadow-sm"
             }`}
             style={{
@@ -169,7 +177,7 @@ export default function MaintenanceHomeOverlayUI({
             <button
               key={c.id}
               onClick={() => setSelectedCategory(c.id)}
-              className={`flex items-center gap-1.5 px-4 h-10 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+              className={`inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 sm:h-10 sm:px-4 ${
                 selectedCategory === c.id ? "shadow-md" : "hover:shadow-sm"
               }`}
               style={{

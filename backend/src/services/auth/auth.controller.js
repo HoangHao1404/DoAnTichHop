@@ -108,6 +108,12 @@ async function login(req, res) {
         .json({ message: "Số điện thoại chưa được xác thực" });
     }
 
+    if (user.account_status && user.account_status !== "active") {
+      return res
+        .status(403)
+        .json({ message: "Tài khoản đã bị khóa hoặc cấm" });
+    }
+
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
       return res
@@ -180,6 +186,12 @@ async function googleLogin(req, res) {
       console.log(`✅ Tạo user mới từ Google: ${email}`);
     } else {
       console.log(`✅ Login Google cho user hiện tại: ${email}`);
+    }
+
+    if (user.account_status && user.account_status !== "active") {
+      return res
+        .status(403)
+        .json({ message: "Tài khoản đã bị khóa hoặc cấm" });
     }
 
     // Tạo JWT token

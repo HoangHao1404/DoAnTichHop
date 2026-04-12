@@ -1,4 +1,114 @@
 const ReportRepository = require("../repositories/ReportRepository");
+const cloudinary = require("../config/cloudinary");
+
+const CLOUDINARY_REQUIRED_ENV = [
+  "CLOUDINARY_CLOUD_NAME",
+  "CLOUDINARY_API_KEY",
+  "CLOUDINARY_API_SECRET",
+];
+
+const isHttpUrl = (value) => /^https?:\/\//i.test(value);
+const isImageDataUrl = (value) => /^data:image\//i.test(value);
+
+const hasCloudinaryConfig = () =>
+  CLOUDINARY_REQUIRED_ENV.every((key) => Boolean(process.env[key]));
+
+const DISTRICT_ALIAS_MAP = {
+  "Hải Châu": ["hai chau", "phuong hai chau"],
+  "Sơn Trà": ["son tra"],
+  "Liên Chiểu": ["lien chieu"],
+  "Hoàng Sa": ["hoang sa"],
+  "Thanh Khê": ["thanh khe"],
+  "Ngũ Hành Sơn": ["ngu hanh son"],
+  "Cẩm Lệ": ["cam le", "hoa xuan", "khue trung"],
+  "Hòa Vang": ["hoa vang"],
+};
+
+function normalizeText(value = "") {
+  return String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+const RECEPTION_STATUS_OPTIONS = ["Đang Chờ", "Đang Xử Lý", "Đã Giải Quyết"];
+
+function inferDistrict(location = "") {
+  const normalizedLocation = normalizeText(location);
+
+  for (const [district, aliases] of Object.entries(DISTRICT_ALIAS_MAP)) {
+    if (aliases.some((alias) => normalizedLocation.includes(normalizeText(alias)))) {
+      return district;
+    }
+  }
+
+  return "Khác";
+}
+
+function formatDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return date.toLocaleDateString("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+}
+
+function toReceptionItem(report) {
+  return {
+    _id: report._id,
+    id: report.id || report.report_id,
+    report_id: report.report_id || report.id,
+    title: report.title,
+    category: report.type,
+    type: report.type,
+    image: report.image || report.images?.[0] || "",
+    location: report.location,
+    date: report.time && /^\d{1,2}\/\d{1,2}\/\d{4}/.test(report.time)
+      ? report.time.split(",")[0]
+      : formatDate(report.createdAt || report.updatedAt),
+    status: report.status,
+    district: inferDistrict(report.location),
+    createdAt: report.createdAt,
+    updatedAt: report.updatedAt,
+  };
+}
+
+async function uploadImagesToCloudinary(images, userId) {
+  if (!Array.isArray(images) || images.length === 0) {
+    return [];
+  }
+
+  const folderRoot = process.env.CLOUDINARY_FOLDER || "urbaninfra_reports/reports";
+
+  const uploaded = await Promise.all(
+    images.map(async (image, index) => {
+      if (typeof image !== "string" || !image.trim()) {
+        return null;
+      }
+
+      if (isHttpUrl(image)) {
+        return image;
+      }
+
+      if (!isImageDataUrl(image)) {
+        throw new Error(`Định dạng ảnh không hợp lệ ở vị trí ${index + 1}`);
+      }
+
+      const response = await cloudinary.uploader.upload(image, {
+        folder: `${folderRoot}/${userId}`,
+        resource_type: "image",
+      });
+
+      return response.secure_url;
+    })
+  );
+
+  return uploaded.filter(Boolean);
+}
 const Report = require("../models/Report");
 
 class ReportController {
@@ -40,6 +150,41 @@ class ReportController {
       res.status(200).json({
         success: true,
         data: reports,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async getReceptionReports(req, res) {
+    try {
+      const {
+        search = "",
+        type = "all",
+        status = "all",
+        district = "all",
+        date = "recent",
+        page = 1,
+        limit = 10,
+      } = req.query;
+
+      const result = await ReportRepository.getReceptionList({
+        search,
+        type,
+        status,
+        district,
+        sortByDate: date,
+        page,
+        limit,
+      });
+
+      res.status(200).json({
+        success: true,
+        data: result.items.map(toReceptionItem),
+        pagination: result.pagination,
       });
     } catch (error) {
       res.status(500).json({
@@ -123,6 +268,31 @@ class ReportController {
         timeZone: "Asia/Ho_Chi_Minh",
       });
 
+      const inputImages = Array.isArray(images) ? images : [];
+      let storedImages = [];
+
+      if (inputImages.length > 0) {
+        if (!hasCloudinaryConfig()) {
+          return res.status(500).json({
+            success: false,
+            message: "Thiếu cấu hình Cloudinary trong môi trường backend",
+          });
+        }
+
+        storedImages = await uploadImagesToCloudinary(inputImages, userId);
+      }
+
+      const persistedImages = storedImages.filter(
+        (image) => typeof image === "string" && isHttpUrl(image),
+      );
+
+      if (inputImages.length > 0 && persistedImages.length === 0) {
+        return res.status(500).json({
+          success: false,
+          message: "Upload ảnh lên Cloudinary thất bại",
+        });
+      }
+
       const reportData = {
         id: reportStringId,
         userId: String(userId),
@@ -132,8 +302,8 @@ class ReportController {
         type,
         location,
         description: description || "",
-        images: Array.isArray(images) ? images : [],
-        image: Array.isArray(images) && images.length > 0 ? images[0] : "",
+        images: persistedImages,
+        image: persistedImages.length > 0 ? persistedImages[0] : "",
         status: "Đang Chờ",
         time: currentTime,
       };
@@ -147,6 +317,39 @@ class ReportController {
       });
     } catch (error) {
       console.error("❌ Error in createReport:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async updateReportStatus(req, res) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (!RECEPTION_STATUS_OPTIONS.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Trạng thái không hợp lệ",
+        });
+      }
+
+      const updated = await ReportRepository.updateStatus(id, status);
+      if (!updated) {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy báo cáo",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Cập nhật trạng thái thành công",
+        data: toReceptionItem(updated),
+      });
+    } catch (error) {
       res.status(500).json({
         success: false,
         message: error.message,

@@ -12,6 +12,17 @@ export const reportApi = {
     }
   },
 
+  // Dữ liệu cho trang đơn tiếp nhận (có lọc + phân trang)
+  getReceptionReports: async (params = {}) => {
+    try {
+      const response = await axiosClient.get(`/reports/reception`, { params });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu đơn tiếp nhận:", error);
+      throw error;
+    }
+  },
+
   // Lấy tất cả báo cáo
   getAllReports: async () => {
     try {
@@ -63,6 +74,18 @@ export const reportApi = {
       return response.data;
     } catch (error) {
       console.error("Lỗi khi tạo báo cáo:", error);
+      throw error;
+    }
+  },
+
+  updateReportStatus: async (reportId, status) => {
+    try {
+      const response = await axiosClient.patch(`/reports/${reportId}/status`, {
+        status,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi cập nhật trạng thái báo cáo:", error);
       throw error;
     }
   },

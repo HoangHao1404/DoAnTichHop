@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Calendar, MapPin, Search } from "lucide-react";
 import roadImage from "../image/road.png";
-import trafficConeImage from "../image/trafficCone.png";
-import fireHydrantImage from "../image/fireHydrant.png";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -11,8 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { reportApi } from "../services/api/reportApi";
+import ReportDetailQLKV from "../components/ReportDetail-QLKV";
 
 const DISTRICTS = [
+  "all",
   "Hải Châu",
   "Sơn Trà",
   "Liên Chiểu",
@@ -33,96 +35,31 @@ const CATEGORY_COLORS = {
   CTCC: "#b78ff2",
 };
 
-const reports = [
-  {
-    id: "bcgt3101",
-    title: "Ổ gà to đùng",
-    category: "Giao Thông",
-    image: roadImage,
-    location: "35 Hùng Vương",
-    date: "24/11/2025",
-    status: "Đang Chờ",
-    district: "Hải Châu",
-  },
-  {
-    id: "bcD4228",
-    title: "Đèn giao thông không hoạt động",
-    category: "Điện",
-    image: trafficConeImage,
-    location: "136 Yên Bái",
-    date: "13/11/2025",
-    status: "Đang Chờ",
-    district: "Hải Châu",
-  },
-  {
-    id: "bcctcc356",
-    title: "Nhà chờ xe bus bị gãy ghế",
-    category: "CTCC",
-    image: fireHydrantImage,
-    location: "66 Phan Châu Trinh",
-    date: "18/10/2025",
-    status: "Đang Chờ",
-    district: "Hải Châu",
-  },
-  {
-    id: "bcD4228",
-    title: "Đèn giao thông không hoạt động",
-    category: "Điện",
-    image: trafficConeImage,
-    location: "136 Yên Bái",
-    date: "13/11/2025",
-    status: "Đang Chờ",
-    district: "Sơn Trà",
-  },
-  {
-    id: "bcctcc356",
-    title: "Nhà chờ xe bus bị gãy ghế",
-    category: "CTCC",
-    image: fireHydrantImage,
-    location: "66 Phan Châu Trinh",
-    date: "18/10/2025",
-    status: "Đang Chờ",
-    district: "Liên Chiểu",
-  },
-  {
-    id: "bcgt3101",
-    title: "Ổ gà to đùng",
-    category: "Giao Thông",
-    image: roadImage,
-    location: "35 Hùng Vương",
-    date: "24/11/2025",
-    status: "Đang Chờ",
-    district: "Hải Châu",
-  },
-  {
-    id: "bcdx5509",
-    title: "Cây xanh gãy đổ cản đường",
-    category: "Cây Xanh",
-    image: roadImage,
-    location: "18 Nguyễn Chí Thanh",
-    date: "21/11/2025",
-    status: "Đang Chờ",
-    district: "Hải Châu",
-  },
-  {
-    id: "bcct7702",
-    title: "Nắp cống hỏng gây nguy hiểm",
-    category: "CTCC",
-    image: fireHydrantImage,
-    location: "92 Bạch Đằng",
-    date: "20/11/2025",
-    status: "Đang Chờ",
-    district: "Hải Châu",
-  },
-];
+const STATUS_FLOW = ["Đang Chờ", "Đang Xử Lý", "Đã Giải Quyết"];
+
+function getNextStatus(currentStatus) {
+  const index = STATUS_FLOW.indexOf(currentStatus);
+
+  if (index < 0 || index >= STATUS_FLOW.length - 1) {
+    return null;
+  }
+
+  return STATUS_FLOW[index + 1];
+}
 
 const ReceptForm = () => {
-  const [activeDistrict, setActiveDistrict] = useState("Hải Châu");
+  const [activeDistrict, setActiveDistrict] = useState("all");
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
-  const [page, setPage] = useState(2);
+  const [page, setPage] = useState(1);
+  const [reports, setReports] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  // const [page, setPage] = useState(2);
+  const [selectedReport, setSelectedReport] = useState(null);
 
   const filteredReports = useMemo(() => {
     const searchTerm = query.trim().toLowerCase();
@@ -144,12 +81,41 @@ const ReceptForm = () => {
   }, [activeDistrict, query, typeFilter, statusFilter, dateFilter]);
 
   const pageSize = 6;
-  const totalPages = Math.max(Math.ceil(filteredReports.length / pageSize), 1);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      try {
+        setLoading(true);
+        setErrorMessage("");
+
+        const response = await reportApi.getReceptionReports({
+          search: query,
+          type: typeFilter,
+          status: statusFilter,
+          district: activeDistrict,
+          date: dateFilter === "old" ? "old" : "recent",
+          page,
+          limit: pageSize,
+        });
+
+        setReports(response?.data || []);
+        setTotalPages(response?.pagination?.totalPages || 1);
+      } catch (error) {
+        setReports([]);
+        setTotalPages(1);
+        setErrorMessage(
+          error?.response?.data?.message || "Không tải được dữ liệu đơn tiếp nhận"
+        );
+      } finally {
+        setLoading(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [activeDistrict, query, typeFilter, statusFilter, dateFilter, page]);
+
   const safePage = Math.min(page, totalPages);
-  const visibleReports = filteredReports.slice(
-    (safePage - 1) * pageSize,
-    safePage * pageSize,
-  );
+  const visibleReports = reports;
 
   useEffect(() => {
     if (page > totalPages) {
@@ -173,33 +139,115 @@ const ReceptForm = () => {
     );
   }, [safePage, totalPages]);
 
+  const detailData = selectedReport
+    ? {
+        id: selectedReport.id || selectedReport.report_id || "N/A",
+        report_id: selectedReport.report_id || selectedReport.id || "N/A",
+        title: selectedReport.title,
+        type: selectedReport.type || selectedReport.category,
+        status: selectedReport.status || "Đang Chờ",
+        time: selectedReport.time || selectedReport.date,
+        district: selectedReport.district || "Chưa phân loại",
+        team: selectedReport.team || selectedReport.handlerTeam,
+        reporter: selectedReport.reporter,
+        location: selectedReport.location || "Chưa có vị trí",
+        description: selectedReport.description || "Chưa có mô tả cho báo cáo này.",
+        image: selectedReport.image || selectedReport.images?.[0] || "",
+        images:
+          Array.isArray(selectedReport.images) && selectedReport.images.length > 0
+            ? selectedReport.images
+            : [selectedReport.image || "", selectedReport.afterImage || ""],
+      }
+    : null;
+
+  const handleCloseDetail = () => setSelectedReport(null);
+
+  const syncReportStatus = (reportId, nextStatus) => {
+    setReports((prev) =>
+      prev.map((item) => {
+        const itemId = item.id || item.report_id;
+        return itemId === reportId ? { ...item, status: nextStatus } : item;
+      }),
+    );
+
+    setSelectedReport((prev) =>
+      prev ? { ...prev, status: nextStatus } : prev,
+    );
+  };
+
+  const handleUpdateStatus = async (report) => {
+    const reportId = report?.report_id || report?.id;
+    if (!reportId) {
+      return;
+    }
+
+    const nextStatus = getNextStatus(report?.status);
+    if (!nextStatus) {
+      return;
+    }
+
+    try {
+      await reportApi.updateReportStatus(reportId, nextStatus);
+      syncReportStatus(reportId, nextStatus);
+    } catch (error) {
+      setErrorMessage(
+        error?.response?.data?.message || "Không thể cập nhật trạng thái báo cáo",
+      );
+    }
+  };
+
+  const handleSendProcess = async (report) => {
+    const reportId = report?.report_id || report?.id;
+    if (!reportId) {
+      return;
+    }
+
+    try {
+      await reportApi.updateReportStatus(reportId, "Đang Xử Lý");
+      syncReportStatus(reportId, "Đang Xử Lý");
+    } catch (error) {
+      setErrorMessage(
+        error?.response?.data?.message || "Không thể gửi xử lý báo cáo",
+      );
+    }
+  };
+
   return (
     <div className="min-h-full rounded-[22px] border border-gray-200 bg-white p-3 sm:p-4 flex flex-col">
-      <div className="mb-2.5 rounded-[10px] bg-[#f5f5f5] px-3 py-2.5">
-        <div className="flex min-w-max items-center gap-8 overflow-x-auto scrollbar-hide px-1">
-          {DISTRICTS.map((district) => {
-            const active = district === activeDistrict;
-            return (
-              <button
+      <Tabs
+        value={activeDistrict}
+        onValueChange={(value) => {
+          setActiveDistrict(value);
+          setPage(1);
+        }}
+        className="mb-2.5"
+      >
+        <div className="overflow-x-auto rounded-[16px] border border-[#e9e9e9] bg-[#f1f1f1] p-2 shadow-[0_6px_18px_rgba(0,0,0,0.08)] scrollbar-hide">
+          <TabsList
+            style={{
+              display: "inline-flex",
+              width: "max-content",
+              justifyContent: "flex-start",
+              gap: "40px",
+            }}
+            className="h-auto min-w-max bg-transparent p-0"
+          >
+            {DISTRICTS.map((district) => (
+              <TabsTrigger
                 key={district}
-                type="button"
-                onClick={() => {
-                  setActiveDistrict(district);
-                  setPage(1);
-                }}
-                className={`text-sm transition-colors ${
-                  active ? "font-semibold text-black" : "text-gray-500"
-                }`}
+                value={district}
+                style={{ flex: "0 0 auto", width: "fit-content" }}
+                className="h-[40px] !flex-none !basis-auto w-auto min-w-fit whitespace-nowrap rounded-[14px] border-none px-8 text-[15px] font-medium text-[#9a9a9a] transition-all duration-200 hover:text-[#6f6f6f] data-[state=active]:!bg-[#1243ff] data-[state=active]:!text-white data-[state=active]:!font-semibold data-[state=active]:!shadow-[0_6px_14px_rgba(18,67,255,0.35)]"
               >
-                {district}
-              </button>
-            );
-          })}
+                {district === "all" ? "Tất cả" : district}
+              </TabsTrigger>
+            ))}
+          </TabsList>
         </div>
-      </div>
+      </Tabs>
 
-      <div className="relative z-30 mb-2.5 flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
-        <div className="relative w-full xl:max-w-[560px]">
+      <div className="mb-3 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+        <div className="relative w-full xl:max-w-[541px]">
           <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#969696]" />
           <Input
             value={query}
@@ -208,11 +256,11 @@ const ReceptForm = () => {
               setPage(1);
             }}
             placeholder="Tìm kiếm theo mã sự cố, tiêu đề sự cố..."
-            className="h-[44px] rounded-full border border-[#dfe3e8] bg-[#f5f5f5] pl-12 pr-4 text-sm text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] placeholder:text-[#969696] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]"
+            className="h-[45px] rounded-full border border-[#dfe3e8] bg-[#f5f5f5] pl-12 text-sm text-gray-700 placeholder:text-[#969696] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <Select
             value={typeFilter}
             onValueChange={(value) => {
@@ -220,15 +268,10 @@ const ReceptForm = () => {
               setPage(1);
             }}
           >
-            <SelectTrigger className="h-[44px] min-w-[158px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
+            <SelectTrigger className="h-[45px] rounded-[10px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
               <SelectValue placeholder="Loại sự cố" />
             </SelectTrigger>
-            <SelectContent
-              position="popper"
-              align="start"
-              sideOffset={8}
-              className="z-[120] min-w-[190px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
-            >
+            <SelectContent>
               <SelectItem value="all">Loại sự cố</SelectItem>
               <SelectItem value="Giao Thông">Giao thông</SelectItem>
               <SelectItem value="Điện">Điện</SelectItem>
@@ -244,15 +287,10 @@ const ReceptForm = () => {
               setPage(1);
             }}
           >
-            <SelectTrigger className="h-[44px] min-w-[158px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
+            <SelectTrigger className="h-[45px] rounded-[10px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
               <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
-            <SelectContent
-              position="popper"
-              align="start"
-              sideOffset={8}
-              className="z-[120] min-w-[190px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
-            >
+            <SelectContent>
               <SelectItem value="all">Trạng thái</SelectItem>
               {STATUS_OPTIONS.filter((option) => option !== "all").map(
                 (option) => (
@@ -264,16 +302,17 @@ const ReceptForm = () => {
             </SelectContent>
           </Select>
 
-          <Select value={dateFilter} onValueChange={setDateFilter}>
+          <Select
+            value={dateFilter}
+            onValueChange={(value) => {
+              setDateFilter(value);
+              setPage(1);
+            }}
+          >
             <SelectTrigger className="h-[44px] min-w-[146px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
               <SelectValue placeholder="Chọn ngày" />
             </SelectTrigger>
-            <SelectContent
-              position="popper"
-              align="start"
-              sideOffset={8}
-              className="z-[120] min-w-[170px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl"
-            >
+            <SelectContent>
               <SelectItem value="all">Chọn ngày</SelectItem>
               <SelectItem value="recent">Mới nhất</SelectItem>
               <SelectItem value="old">Cũ hơn</SelectItem>
@@ -282,15 +321,34 @@ const ReceptForm = () => {
         </div>
       </div>
 
+      {errorMessage && (
+        <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {errorMessage}
+        </div>
+      )}
+
       <div className="relative z-10 mb-2.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
-        {visibleReports.map((report, index) => (
+        {loading && (
+          <div className="col-span-full rounded-[20px] border border-dashed border-gray-300 px-6 py-10 text-center text-gray-500">
+            Đang tải dữ liệu...
+          </div>
+        )}
+
+        {!loading &&
+          visibleReports.map((report, index) => {
+            const category = report.category || report.type || "CTCC";
+            const imageUrl = report.image || roadImage;
+            const date = report.date || report.time || "-";
+
+            return (
           <div
-            key={`${report.id}-${report.location}-${index}`}
-            className="relative h-[214px] overflow-hidden rounded-[22px]"
+            key={`${report.id || report.report_id}-${report.location}-${index}`}
+            className="relative h-[214px] cursor-pointer overflow-hidden rounded-[22px]"
+            onClick={() => setSelectedReport(report)}
           >
             <div
               className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${report.image})` }}
+              style={{ backgroundImage: `url(${imageUrl})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/65" />
 
@@ -302,10 +360,10 @@ const ReceptForm = () => {
                 className="rounded-full px-4 py-1 text-[11px] font-medium text-white"
                 style={{
                   backgroundColor:
-                    CATEGORY_COLORS[report.category] || "#64748b",
+                    CATEGORY_COLORS[category] || "#64748b",
                 }}
               >
-                {report.category.toLowerCase()}
+                {String(category).toLowerCase()}
               </div>
             </div>
 
@@ -332,21 +390,22 @@ const ReceptForm = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  <span>{report.date}</span>
+                  <span>{date}</span>
                 </div>
               </div>
             </div>
           </div>
-        ))}
+            );
+          })}
       </div>
 
-      {visibleReports.length === 0 && (
+      {!loading && visibleReports.length === 0 && (
         <div className="mb-6 rounded-[20px] border border-dashed border-gray-300 px-6 py-10 text-center text-gray-500">
           Không có đơn tiếp nhận phù hợp.
         </div>
       )}
 
-      <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 pb-0.5 text-sm font-semibold text-[#4b4b4b]">
+      <div className="mt-auto flex items-center justify-center gap-2 pb-0.5 text-sm font-semibold text-[#4b4b4b]">
         <button
           type="button"
           className="rounded-md px-2 py-1 hover:bg-[#f5f5f5] hover:text-black"
@@ -366,7 +425,7 @@ const ReceptForm = () => {
               1
             </button>
             {pageNumbers[0] > 2 && <span className="px-1">...</span>}
-            </>
+          </>
         )}
 
         {pageNumbers.map((pageNumber) => (
@@ -408,6 +467,13 @@ const ReceptForm = () => {
           Sau
         </button>
       </div>
+
+      <ReportDetailQLKV
+        data={detailData}
+        close={handleCloseDetail}
+        onUpdateStatus={handleUpdateStatus}
+        onSendProcess={handleSendProcess}
+      />
     </div>
   );
 };

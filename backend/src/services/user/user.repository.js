@@ -31,6 +31,7 @@ class UserRepository {
         phone: data.phone,
         email: data.email,
         gender: data.gender,
+        area: data.area,
       },
       { new: true }
     ).lean();
@@ -50,6 +51,86 @@ class UserRepository {
 
   async getAllUsers() {
     return User.find({}, { password: 0 }).lean();
+  }
+
+  async getManagementList({ search, role, area, status, page = 1, limit = 10 }) {
+    const query = {};
+
+    if (role && role !== "all") {
+      query.role = role;
+    }
+
+    if (area && area !== "all") {
+      query.area = area;
+    }
+
+    if (status && status !== "all") {
+      query.account_status = status;
+    }
+
+    if (search) {
+      const keyword = search.trim();
+      query.$or = [
+        { full_name: { $regex: keyword, $options: "i" } },
+        { phone: { $regex: keyword, $options: "i" } },
+        { email: { $regex: keyword, $options: "i" } },
+      ];
+    }
+
+    const safePage = Math.max(parseInt(page, 10) || 1, 1);
+    const safeLimit = Math.max(parseInt(limit, 10) || 10, 1);
+    const skip = (safePage - 1) * safeLimit;
+
+    const [items, total] = await Promise.all([
+      User.find(query, { password: 0 })
+        .sort({ created_at: -1 })
+        .skip(skip)
+        .limit(safeLimit)
+        .lean(),
+      User.countDocuments(query),
+    ]);
+
+    return {
+      items,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.max(Math.ceil(total / safeLimit), 1),
+      },
+    };
+  }
+
+  async createByAdmin(data) {
+    const doc = await User.create(data);
+    return doc.toObject();
+  }
+
+  async updateUserByAdmin(user_id, data) {
+    return User.findOneAndUpdate(
+      { user_id },
+      {
+        full_name: data.full_name,
+        phone: data.phone,
+        email: data.email,
+        role: data.role,
+        area: data.area,
+        account_status: data.account_status,
+      },
+      { new: true, projection: { password: 0 } }
+    ).lean();
+  }
+
+  async updateUserStatus(user_id, account_status) {
+    return User.findOneAndUpdate(
+      { user_id },
+      { account_status },
+      { new: true, projection: { password: 0 } }
+    ).lean();
+  }
+
+  async deleteUserById(user_id) {
+    return User.findOneAndDelete({ user_id }).lean();
   }
 }
 
