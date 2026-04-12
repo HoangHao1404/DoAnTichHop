@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import {
   Camera,
   CircleDot,
@@ -29,7 +29,7 @@ function normalizeTypeKey(type) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d");
+    .replace(/Ä‘/g, "d");
 }
 
 function getTypeBadgeClass(type) {
@@ -149,7 +149,7 @@ function InfoBlock({
   iconTone = "blue",
   className = "",
 }) {
-  const normalizedValue = value || "Chưa có dữ liệu";
+  const normalizedValue = value || "ChÆ°a cÃ³ dá»¯ liá»‡u";
 
   return (
     <div className={`flex items-start gap-3 ${className}`}>
@@ -193,8 +193,8 @@ export default function ReportDetailQLKV({
   const showAfterImage = Boolean(afterImage) && !afterImageFailed;
   const statusValueClass = getStatusValueClass(data.status);
   const statusIconTone = getStatusIconTone(data.status);
-  const issueTitle = data.issueTitle || data.title || "Chưa có tiêu đề";
-  const teamName = data.team || data.handlerTeam || "Chưa phân công";
+  const issueTitle = data.issueTitle || data.title || "ChÆ°a cÃ³ tiÃªu Ä‘á»";
+  const teamName = data.team || data.handlerTeam || "ChÆ°a phÃ¢n cÃ´ng";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && close?.()}>
@@ -205,7 +205,7 @@ export default function ReportDetailQLKV({
         <DialogHeader className="px-4 pb-2 pt-4 sm:px-5 sm:pt-5">
           <div className="flex items-start justify-between gap-3">
             <DialogTitle className="text-[18px] font-bold leading-tight text-zinc-900 sm:text-[20px]">
-              Chi tiết báo cáo
+              Chi tiáº¿t bÃ¡o cÃ¡o
             </DialogTitle>
             <DialogClose asChild>
               <Button
@@ -224,7 +224,7 @@ export default function ReportDetailQLKV({
             <Badge
               className={`w-fit rounded-full px-3 py-1 text-[11px] font-semibold leading-none ${getTypeBadgeClass(data.type)}`}
             >
-              {data.type || "Khác"}
+              {data.type || "KhÃ¡c"}
             </Badge>
 
             <h3 className="text-[18px] font-bold leading-tight text-[#3D3D3D] sm:text-[21px]">
@@ -233,29 +233,29 @@ export default function ReportDetailQLKV({
 
             <div className="rounded-[10px] bg-[#e7e7ea] px-3 py-2.5">
               <p className="text-[12px] italic text-zinc-600 sm:text-[13px]">
-                {data.description || "Chưa có mô tả cho báo cáo này."}
+                {data.description || "ChÆ°a cÃ³ mÃ´ táº£ cho bÃ¡o cÃ¡o nÃ y."}
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-x-6 gap-y-3.5 sm:grid-cols-2">
               <InfoBlock
                 icon={Hash}
-                label="Mã báo cáo"
+                label="MÃ£ bÃ¡o cÃ¡o"
                 value={data.id}
                 valueClassName="text-[#2563EB]"
               />
-              <InfoBlock icon={MapPin} label="Vị trí" value={data.location} />
-              <InfoBlock icon={Clock3} label="Thời gian" value={data.time} />
+              <InfoBlock icon={MapPin} label="Vá»‹ trÃ­" value={data.location} />
+              <InfoBlock icon={Clock3} label="Thá»i gian" value={data.time} />
               <InfoBlock
                 icon={CircleDot}
-                label="Trạng thái"
-                value={data.status || "Đang chờ"}
+                label="Tráº¡ng thÃ¡i"
+                value={data.status || "Äang chá»"}
                 valueClassName={statusValueClass}
                 iconTone={statusIconTone}
               />
               <InfoBlock
                 icon={Users}
-                label="Đội phụ trách"
+                label="Äá»™i phá»¥ trÃ¡ch"
                 value={teamName}
                 className="sm:col-span-2"
               />
@@ -266,7 +266,7 @@ export default function ReportDetailQLKV({
                 <CardHeader className="px-4 pb-2 pt-4">
                   <CardTitle className="flex items-center text-[15px] font-semibold text-zinc-900">
                     <Camera className="mr-2 h-4 w-4 text-[#2563EB]" />
-                    Ảnh Sự Cố
+                    áº¢nh Sá»± Cá»‘
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
@@ -279,7 +279,7 @@ export default function ReportDetailQLKV({
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-sm text-zinc-400">
-                        Chưa có ảnh
+                        ChÆ°a cÃ³ áº£nh
                       </div>
                     )}
                   </div>
@@ -290,7 +290,7 @@ export default function ReportDetailQLKV({
                 <CardHeader className="px-4 pb-2 pt-4">
                   <CardTitle className="flex items-center text-[15px] font-semibold text-[#2563EB]">
                     <Camera className="mr-2 h-4 w-4 text-[#2563EB]" />
-                    Ảnh Sau Khắc Phục
+                    áº¢nh Sau Kháº¯c Phá»¥c
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
@@ -319,13 +319,13 @@ export default function ReportDetailQLKV({
             onClick={() => onUpdateStatus?.(data)}
           >
             <RefreshCcw className="mr-2 h-4 w-4" />
-            Cập nhật trạng thái
+            Cáº­p nháº­t tráº¡ng thÃ¡i
           </Button>
           <Button
             className="h-10 w-full rounded-[10px] bg-[#2f64da] px-7 text-sm font-semibold text-white hover:bg-[#2555c7] sm:h-11 sm:w-auto sm:text-base"
             onClick={() => onSendProcess?.(data)}
           >
-            Gửi xử lý
+            Gá»­i xá»­ lÃ½
             <Send className="ml-2 h-4 w-4" />
           </Button>
         </DialogFooter>

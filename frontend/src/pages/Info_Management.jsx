@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import userApi from "../services/api/userApi";
@@ -63,7 +63,7 @@ const Info_Management = ({ onClose }) => {
 
   const handleUpdateProfile = async () => {
     if (!formData.full_name.trim()) {
-      showToast("Vui lòng nhập tên!", "error");
+      showToast("Vui lÃ²ng nháº­p tÃªn!", "error");
       return;
     }
     setLoading(true);
@@ -71,10 +71,10 @@ const Info_Management = ({ onClose }) => {
       await userApi.updateProfile(formData);
       const updatedUser = { ...user, ...formData };
       login(localStorage.getItem("token"), updatedUser);
-      showToast("Cập nhật thông tin thành công!");
+      showToast("Cáº­p nháº­t thÃ´ng tin thÃ nh cÃ´ng!");
       setIsEditing(false);
     } catch (error) {
-      showToast(error.response?.data?.message || "Cập nhật thất bại!", "error");
+      showToast(error.response?.data?.message || "Cáº­p nháº­t tháº¥t báº¡i!", "error");
     } finally {
       setLoading(false);
     }
@@ -82,24 +82,24 @@ const Info_Management = ({ onClose }) => {
 
   const handleChangePassword = async () => {
     if (!passwordData.oldPassword || !passwordData.newPassword) {
-      showToast("Vui lòng điền đầy đủ thông tin!", "error");
+      showToast("Vui lÃ²ng Ä‘iá»n Ä‘áº§y Ä‘á»§ thÃ´ng tin!", "error");
       return;
     }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showToast("Mật khẩu mới không trùng khớp!", "error");
+      showToast("Máº­t kháº©u má»›i khÃ´ng trÃ¹ng khá»›p!", "error");
       return;
     }
     if (passwordData.newPassword.length < 6) {
-      showToast("Mật khẩu phải có ít nhất 6 ký tự!", "error");
+      showToast("Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±!", "error");
       return;
     }
     setLoading(true);
     try {
       await userApi.changePassword(passwordData.oldPassword, passwordData.newPassword);
-      showToast("Đổi mật khẩu thành công!");
+      showToast("Äá»•i máº­t kháº©u thÃ nh cÃ´ng!");
       setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
     } catch (error) {
-      showToast(error.response?.data?.message || "Đổi mật khẩu thất bại!", "error");
+      showToast(error.response?.data?.message || "Äá»•i máº­t kháº©u tháº¥t báº¡i!", "error");
     } finally {
       setLoading(false);
     }
@@ -143,10 +143,10 @@ const Info_Management = ({ onClose }) => {
             </div>
             <div className="text-center">
               <p className="text-sm font-medium text-gray-800 leading-snug">
-                {formData.full_name || "Người dùng"}
+                {formData.full_name || "NgÆ°á»i dÃ¹ng"}
               </p>
               <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full inline-block mt-1">
-                Quản trị viên
+                Quáº£n trá»‹ viÃªn
               </span>
             </div>
           </div>
@@ -154,7 +154,7 @@ const Info_Management = ({ onClose }) => {
             onClick={handleCloseModal}
             className="absolute top-4 right-4 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 text-sm transition"
           >
-            ✕
+            âœ•
           </button>
         </div>
 
@@ -170,7 +170,7 @@ const Info_Management = ({ onClose }) => {
                   : "border-transparent text-gray-400 hover:text-gray-600"
               }`}
             >
-              {tab === "profile" ? "Thông tin" : "Bảo mật"}
+              {tab === "profile" ? "ThÃ´ng tin" : "Báº£o máº­t"}
             </button>
           ))}
         </div>
@@ -182,25 +182,25 @@ const Info_Management = ({ onClose }) => {
           {activeTab === "profile" && (
             <>
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                Thông tin cá nhân
+                ThÃ´ng tin cÃ¡ nhÃ¢n
                 <span className="flex-1 h-px bg-gray-100" />
               </p>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs text-gray-500">Họ và tên</label>
+                  <label className="text-xs text-gray-500">Há» vÃ  tÃªn</label>
                   <input
                     type="text"
                     name="full_name"
                     value={formData.full_name}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    placeholder="Họ và tên"
+                    placeholder="Há» vÃ  tÃªn"
                     className={inputClass}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs text-gray-500">Giới tính</label>
+                  <label className="text-xs text-gray-500">Giá»›i tÃ­nh</label>
                   <select
                     name="gender"
                     value={formData.gender}
@@ -209,8 +209,8 @@ const Info_Management = ({ onClose }) => {
                     className={inputClass}
                   >
                     <option value="Nam">Nam</option>
-                    <option value="Nữ">Nữ</option>
-                    <option value="Khác">Khác</option>
+                    <option value="Ná»¯">Ná»¯</option>
+                    <option value="KhÃ¡c">KhÃ¡c</option>
                   </select>
                 </div>
               </div>
@@ -229,14 +229,14 @@ const Info_Management = ({ onClose }) => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs text-gray-500">Số điện thoại</label>
+                <label className="text-xs text-gray-500">Sá»‘ Ä‘iá»‡n thoáº¡i</label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
                   disabled={!isEditing}
-                  placeholder="Số điện thoại"
+                  placeholder="Sá»‘ Ä‘iá»‡n thoáº¡i"
                   className={inputClass}
                 />
               </div>
@@ -247,7 +247,7 @@ const Info_Management = ({ onClose }) => {
           {activeTab === "password" && (
             <>
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                Đổi mật khẩu
+                Äá»•i máº­t kháº©u
                 <span className="flex-1 h-px bg-gray-100" />
               </p>
               <div className="space-y-3">
@@ -256,7 +256,7 @@ const Info_Management = ({ onClose }) => {
                   name="oldPassword"
                   value={passwordData.oldPassword}
                   onChange={handlePasswordChange}
-                  placeholder="Mật khẩu hiện tại"
+                  placeholder="Máº­t kháº©u hiá»‡n táº¡i"
                   className={inputClass}
                 />
                 <input
@@ -264,7 +264,7 @@ const Info_Management = ({ onClose }) => {
                   name="newPassword"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
-                  placeholder="Mật khẩu mới"
+                  placeholder="Máº­t kháº©u má»›i"
                   className={inputClass}
                 />
                 <input
@@ -272,7 +272,7 @@ const Info_Management = ({ onClose }) => {
                   name="confirmPassword"
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordChange}
-                  placeholder="Xác nhận mật khẩu mới"
+                  placeholder="XÃ¡c nháº­n máº­t kháº©u má»›i"
                   className={inputClass}
                 />
               </div>
@@ -282,10 +282,10 @@ const Info_Management = ({ onClose }) => {
 
         {/* Footer meta */}
         <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-          <span className="text-xs text-gray-400">Tạo lúc 12/03/2023</span>
+          <span className="text-xs text-gray-400">Táº¡o lÃºc 12/03/2023</span>
           <span className="text-xs font-medium text-emerald-600 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-            Đã xác minh
+            ÄÃ£ xÃ¡c minh
           </span>
         </div>
 
@@ -298,13 +298,13 @@ const Info_Management = ({ onClose }) => {
                   onClick={handleCloseModal}
                   className="flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
                 >
-                  Đóng
+                  ÄÃ³ng
                 </button>
                 <button
                   onClick={() => setIsEditing(true)}
                   className="flex-1 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition"
                 >
-                  Chỉnh sửa
+                  Chá»‰nh sá»­a
                 </button>
               </>
             ) : (
@@ -313,14 +313,14 @@ const Info_Management = ({ onClose }) => {
                   onClick={handleCancel}
                   className="flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
                 >
-                  Hủy
+                  Há»§y
                 </button>
                 <button
                   onClick={handleUpdateProfile}
                   disabled={loading}
                   className="flex-1 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition disabled:opacity-50"
                 >
-                  {loading ? "Đang lưu..." : "Lưu thay đổi"}
+                  {loading ? "Äang lÆ°u..." : "LÆ°u thay Ä‘á»•i"}
                 </button>
               </>
             )
@@ -330,14 +330,14 @@ const Info_Management = ({ onClose }) => {
                 onClick={handleCloseModal}
                 className="flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
               >
-                Đóng
+                ÄÃ³ng
               </button>
               <button
                 onClick={handleChangePassword}
                 disabled={loading}
                 className="flex-1 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition disabled:opacity-50"
               >
-                {loading ? "Đang lưu..." : "Đổi mật khẩu"}
+                {loading ? "Äang lÆ°u..." : "Äá»•i máº­t kháº©u"}
               </button>
             </>
           )}

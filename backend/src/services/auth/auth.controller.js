@@ -16,9 +16,7 @@ async function sendRegisterOtp(req, res) {
 
     const exists = await userRepo.findByPhone(phone);
     if (exists) {
-      return res
-        .status(400)
-        .json({ message: "Số điện thoại đã được đăng ký" });
+      return res.status(400).json({ message: "Số điện thoại đã được đăng ký" });
     }
 
     const code = otpService.generateOtp(phone);
@@ -38,7 +36,7 @@ async function sendRegisterOtp(req, res) {
 // 2) Confirm OTP + tạo user
 async function confirmRegister(req, res) {
   try {
-    const { phone, otp, password, full_name } = req.body;
+    const { phone, otp, password, full_name, email } = req.body;
 
     if (!phone || !otp || !password) {
       return res.status(400).json({ message: "Thiếu dữ liệu bắt buộc" });
@@ -53,17 +51,21 @@ async function confirmRegister(req, res) {
 
     const exists = await userRepo.findByPhone(phone);
     if (exists) {
-      return res
-        .status(400)
-        .json({ message: "Số điện thoại đã được đăng ký" });
+      return res.status(400).json({ message: "Số điện thoại đã được đăng ký" });
     }
 
     const hashed = await bcrypt.hash(password, 10);
     const user_id = await userRepo.getNextUserId();
 
+    const normalizedEmail =
+      typeof email === "string" && email.trim() !== ""
+        ? email.trim().toLowerCase()
+        : undefined;
+
     const user = await userRepo.create({
       user_id,
-      full_name,
+      full_name: typeof full_name === "string" ? full_name.trim() : full_name,
+      ...(normalizedEmail ? { email: normalizedEmail } : {}),
       phone,
       password: hashed,
       phone_verified: true,
@@ -124,7 +126,7 @@ async function login(req, res) {
     const token = jwt.sign(
       { id: user.user_id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE || "1h" }
+      { expiresIn: process.env.JWT_EXPIRE || "1h" },
     );
 
     return res.json({

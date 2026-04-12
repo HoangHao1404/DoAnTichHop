@@ -81,6 +81,26 @@ const ReportSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    aiPercent: {
+      type: Number,
+      default: null,
+    },
+    aiVerified: {
+      type: Boolean,
+      default: false,
+    },
+    aiLabel: {
+      type: String,
+      default: "",
+    },
+    aiTotalObjects: {
+      type: Number,
+      default: 0,
+    },
+    aiSource: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

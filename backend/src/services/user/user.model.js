@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+﻿const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
   user_id: { type: Number, unique: true },
@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema({
   
   password: String, // hash (nullable cho Google login)
   
-  gender: { type: String, enum: ["Nam", "Nữ", "Khác"], default: "Nam" },
+  gender: { type: String, enum: ["Nam", "Ná»¯", "KhÃ¡c"], default: "Nam" },
 
   phone_verified: { type: Boolean, default: false },
 
@@ -38,6 +38,16 @@ const UserSchema = new mongoose.Schema({
 
   created_at: { type: Date, default: Date.now },
 });
+
+// Chá»‰ Ã¡p unique khi email cÃ³ giÃ¡ trá»‹ thá»±c táº¿ (khÃ´ng rá»—ng).
+UserSchema.index(
+  { email: 1 },
+  {
+    name: "email_1",
+    unique: true,
+    sparse: true,
+  },
+);
 
 const User = mongoose.model("User", UserSchema);
 module.exports = User;

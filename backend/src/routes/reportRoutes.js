@@ -25,6 +25,7 @@ router.get(
 	requireRole("admin", "manager", "maintenance"),
 	ReportController.getReceptionReports
 );
+router.get("/management", ReportController.getManagementReports);
 
 // POST /api/reports - Tạo báo cáo mới
 router.post("/", ReportController.createReport);

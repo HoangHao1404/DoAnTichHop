@@ -1,79 +1,79 @@
-import axiosClient from "./axiosClient";
+﻿import axiosClient from "./axiosClient";
 
 export const reportApi = {
-  // Dữ liệu cho trang quản lý báo cáo (có lọc + phân trang)
+  // Dá»¯ liá»‡u cho trang quáº£n lÃ½ bÃ¡o cÃ¡o (cÃ³ lá»c + phÃ¢n trang)
   getManagementReports: async (params = {}) => {
     try {
       const response = await axiosClient.get(`/reports/management`, { params });
       return response.data;
     } catch (error) {
-      console.error("Lỗi khi lấy dữ liệu quản lý báo cáo:", error);
+      console.error("Lá»—i khi láº¥y dá»¯ liá»‡u quáº£n lÃ½ bÃ¡o cÃ¡o:", error);
       throw error;
     }
   },
 
-  // Dữ liệu cho trang đơn tiếp nhận (có lọc + phân trang)
+  // Dá»¯ liá»‡u cho trang Ä‘Æ¡n tiáº¿p nháº­n (cÃ³ lá»c + phÃ¢n trang)
   getReceptionReports: async (params = {}) => {
     try {
       const response = await axiosClient.get(`/reports/reception`, { params });
       return response.data;
     } catch (error) {
-      console.error("Lỗi khi lấy dữ liệu đơn tiếp nhận:", error);
+      console.error("Lá»—i khi láº¥y dá»¯ liá»‡u Ä‘Æ¡n tiáº¿p nháº­n:", error);
       throw error;
     }
   },
 
-  // Lấy tất cả báo cáo
+  // Láº¥y táº¥t cáº£ bÃ¡o cÃ¡o
   getAllReports: async () => {
     try {
       const response = await axiosClient.get("/reports");
       return response.data;
     } catch (error) {
-      console.error("Lỗi khi lấy báo cáo:", error);
+      console.error("Lá»—i khi láº¥y bÃ¡o cÃ¡o:", error);
       throw error;
     }
   },
 
-  // Lấy 1 báo cáo theo ID
+  // Láº¥y 1 bÃ¡o cÃ¡o theo ID
   getReportById: async (id) => {
     try {
       const response = await axiosClient.get(`/reports/${id}`);
       return response.data;
     } catch (error) {
-      console.error("Lỗi khi lấy chi tiết báo cáo:", error);
+      console.error("Lá»—i khi láº¥y chi tiáº¿t bÃ¡o cÃ¡o:", error);
       throw error;
     }
   },
 
-  // Lấy báo cáo theo userId
+  // Láº¥y bÃ¡o cÃ¡o theo userId
   getReportsByUserId: async (userId) => {
     try {
       const response = await axiosClient.get(`/reports/user/${userId}`);
       return response.data;
     } catch (error) {
-      console.error("Lỗi khi lấy báo cáo của user:", error);
+      console.error("Lá»—i khi láº¥y bÃ¡o cÃ¡o cá»§a user:", error);
       throw error;
     }
   },
 
-  // Alias cho test workflow (dùng cùng endpoint hiện tại)
+  // Alias cho test workflow (dÃ¹ng cÃ¹ng endpoint hiá»‡n táº¡i)
   getTestReportsByUserId: async (userId) => {
     try {
       const response = await axiosClient.get(`/reports/user/${userId}`);
       return response.data;
     } catch (error) {
-      console.error("Lỗi khi lấy báo cáo test của user:", error);
+      console.error("Lá»—i khi láº¥y bÃ¡o cÃ¡o test cá»§a user:", error);
       throw error;
     }
   },
 
-  // Tạo báo cáo mới
+  // Táº¡o bÃ¡o cÃ¡o má»›i
   createReport: async (reportData) => {
     try {
       const response = await axiosClient.post("/reports", reportData);
       return response.data;
     } catch (error) {
-      console.error("Lỗi khi tạo báo cáo:", error);
+      console.error("Lá»—i khi táº¡o bÃ¡o cÃ¡o:", error);
       throw error;
     }
   },
@@ -85,7 +85,7 @@ export const reportApi = {
       });
       return response.data;
     } catch (error) {
-      console.error("Lỗi khi cập nhật trạng thái báo cáo:", error);
+      console.error("Lá»—i khi cáº­p nháº­t tráº¡ng thÃ¡i bÃ¡o cÃ¡o:", error);
       throw error;
     }
   },

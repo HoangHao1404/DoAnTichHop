@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+﻿import React, { useState, useRef, useEffect } from "react";
 import {
   TrafficCone,
   Zap,
@@ -17,7 +17,7 @@ import { SidebarProvider } from "./ui/sidebar";
 const categories = [
   {
     id: "traffic",
-    name: "Giao Thông",
+    name: "Giao ThÃ´ng",
     icon: <TrafficCone size={18} />,
     bgColor: "#f97316",
     textColor: "#ffffff",
@@ -25,7 +25,7 @@ const categories = [
   },
   {
     id: "electric",
-    name: "Điện",
+    name: "Äiá»‡n",
     icon: <Zap size={18} />,
     bgColor: "#eab308",
     textColor: "#ffffff",
@@ -33,7 +33,7 @@ const categories = [
   },
   {
     id: "tree",
-    name: "Cây Xanh",
+    name: "CÃ¢y Xanh",
     icon: <TreePine size={18} />,
     bgColor: "#22c55e",
     textColor: "#ffffff",
@@ -41,7 +41,7 @@ const categories = [
   },
   {
     id: "public",
-    name: "Công Trình",
+    name: "CÃ´ng TrÃ¬nh",
     icon: <Building2 size={18} />,
     bgColor: "#a855f7",
     textColor: "#ffffff",
@@ -57,7 +57,6 @@ export default function HomeOverlayUI({
   userName,
   mapElement,
 }) {
-  const navigate = useNavigate();
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [showCameraOnly, setShowCameraOnly] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
@@ -67,7 +66,7 @@ export default function HomeOverlayUI({
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // Đóng dropdown khi click bên ngoài
+  // ÄÃ³ng dropdown khi click bÃªn ngoÃ i
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Handle any outside click logic here if needed
@@ -78,7 +77,7 @@ export default function HomeOverlayUI({
     };
   }, []);
 
-  // Mở camera
+  // Má»Ÿ camera
   const openCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -92,11 +91,13 @@ export default function HomeOverlayUI({
       }, 100);
     } catch (error) {
       console.error(error);
-      alert("Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.");
+      toast.error(
+        "KhÃ´ng thá»ƒ truy cáº­p camera. Vui lÃ²ng kiá»ƒm tra quyá»n truy cáº­p.",
+      );
     }
   };
 
-  // Đóng camera
+  // ÄÃ³ng camera
   const closeCamera = () => {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
@@ -105,7 +106,7 @@ export default function HomeOverlayUI({
     setShowCameraOnly(false);
   };
 
-  // Chụp ảnh
+  // Chá»¥p áº£nh
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
     const video = videoRef.current;
@@ -117,8 +118,8 @@ export default function HomeOverlayUI({
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const imageData = canvas.toDataURL("image/jpeg");
-    
-    // Đóng camera, lưu ảnh và mở form Report
+
+    // ÄÃ³ng camera, lÆ°u áº£nh vÃ  má»Ÿ form Report
     closeCamera();
     setCapturedImage(imageData);
     setIsReportOpen(true);
@@ -126,13 +127,11 @@ export default function HomeOverlayUI({
 
   return (
     <>
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+      <div className="w-full h-screen flex flex-col bg-background relative overflow-hidden">
+        {/* MAP AREA - Background */}
+        {mapElement && (
+          <div className="absolute inset-0 z-0 w-full h-full">{mapElement}</div>
+        )}
 
       <div className="w-full h-screen flex flex-col bg-background relative overflow-hidden">
         {/* MAP AREA - Background */}
@@ -162,8 +161,8 @@ export default function HomeOverlayUI({
               border: "none"
             }}
           >
-            <span>📍</span>
-            Tất cả
+            <span>ðŸ“</span>
+            Táº¥t cáº£
           </button>
           {categories.map((c) => (
             <button
@@ -190,7 +189,7 @@ export default function HomeOverlayUI({
           <button
             className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center bg-black text-white hover:bg-gray-800 transition-all"
             onClick={openCamera}
-            title="Chụp ảnh"
+            title="Chá»¥p áº£nh"
           >
             <Camera size={20} />
           </button>
@@ -199,7 +198,7 @@ export default function HomeOverlayUI({
           <button
             className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center bg-black text-white hover:bg-gray-800 transition-all"
             onClick={() => setIsReportOpen((prev) => !prev)}
-            title="Tạo báo cáo mới"
+            title="Táº¡o bÃ¡o cÃ¡o má»›i"
           >
             <Plus size={20} />
           </button>
@@ -224,7 +223,7 @@ export default function HomeOverlayUI({
         <div className="interactive fixed inset-0 bg-black bg-opacity-90 z-[10000] flex flex-col items-center justify-center p-4">
           <div className="w-full max-w-2xl">
             <div className="bg-white rounded-t-lg p-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Chụp ảnh sự cố</h2>
+              <h2 className="text-lg font-semibold">Chá»¥p áº£nh sá»± cá»‘</h2>
               <button
                 onClick={closeCamera}
                 className="text-gray-500 hover:text-gray-700"
@@ -249,7 +248,7 @@ export default function HomeOverlayUI({
                 className="w-full bg-blue-600 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors font-medium"
               >
                 <Camera className="w-5 h-5" />
-                <span>Chụp ảnh</span>
+                <span>Chá»¥p áº£nh</span>
               </button>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
@@ -31,9 +31,9 @@ const SignIn = () => {
       const res = await authApi.googleLogin(token);
       
       if (res.data.success) {
-        // Login thẳng
+        // Login tháº³ng
         login(res.data.token, res.data.user);
-        setToast({ message: `Chào mừng ${res.data.user.full_name || 'bạn'}!`, type: "success" });
+        setToast({ message: `ChÃ o má»«ng ${res.data.user.full_name || 'báº¡n'}!`, type: "success" });
         
         const userRole = res.data.user.role;
         if (userRole === "maintenance") {
@@ -46,7 +46,7 @@ const SignIn = () => {
       }
     } catch (err) {
       setToast({ 
-        message: err.response?.data?.message || "Google login thất bại",
+        message: err.response?.data?.message || "Google login tháº¥t báº¡i",
         type: "error" 
       });
     } finally {
@@ -55,7 +55,7 @@ const SignIn = () => {
   };
 
   const handleGoogleError = () => {
-    setToast({ message: "Google login bị lỗi, vui lòng thử lại", type: "error" });
+    setToast({ message: "Google login bá»‹ lá»—i, vui lÃ²ng thá»­ láº¡i", type: "error" });
   };
 
   const handleSubmit = async (e) => {
@@ -65,9 +65,9 @@ const SignIn = () => {
       const res = await authApi.login(phone, password);
       if (res.data.success) {
         login(res.data.token, res.data.user);
-        setToast({ message: `Chào mừng ${res.data.user.full_name || 'bạn'}!`, type: "success" });
+        setToast({ message: `ChÃ o má»«ng ${res.data.user.full_name || 'báº¡n'}!`, type: "success" });
         
-        // Kiểm tra role để điều hướng
+        // Kiá»ƒm tra role Ä‘á»ƒ Ä‘iá»u hÆ°á»›ng
         const userRole = res.data.user.role;
         if (userRole === "maintenance") {
           setTimeout(() => navigate("/maintenance/dashboard"), 1500);
@@ -77,10 +77,10 @@ const SignIn = () => {
           setTimeout(() => navigate("/dashboard"), 1500);
         }
       } else {
-        setMessage(res.data.message || "Đăng nhập thất bại");
+        setMessage(res.data.message || "ÄÄƒng nháº­p tháº¥t báº¡i");
       }
     } catch (err) {
-      setMessage(err.response?.data?.message || "Lỗi đăng nhập");
+      setMessage(err.response?.data?.message || "Lá»—i Ä‘Äƒng nháº­p");
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ const SignIn = () => {
         />
       )}
       <div className="w-full h-screen flex flex-col md:flex-row select-none overflow-hidden">
-      {/* Dành cho mt để bàn */}
+      {/* DÃ nh cho mt Ä‘á»ƒ bÃ n */}
       <div className="hidden md:flex w-1/2 min-h-screen relative justify-center items-center overflow-hidden">
         <img
           src={banner}
@@ -188,18 +188,18 @@ const SignIn = () => {
               disabled={loading}
               className="w-full bg-blue-600 text-white py-3 rounded-lg text-base font-medium hover:bg-blue-700 transition"
             >
-              {loading ? "Đang đăng nhập..." : "Log In"}
+              {loading ? "Äang Ä‘Äƒng nháº­p..." : "Log In"}
             </button>
           </form>
 
-          {/* TIẾP TỤC */}
+          {/* TIáº¾P Tá»¤C */}
           <div className="flex items-center my-6">
             <div className="flex-1 border-t border-gray-300"></div>
             <span className="px-3 text-gray-500 text-sm">or continue with</span>
             <div className="flex-1 border-t border-gray-300"></div>
           </div>
 
-          {/* GOOGLE Đăng nhập */}
+          {/* GOOGLE ÄÄƒng nháº­p */}
           {GOOGLE_CLIENT_ID ? (
             <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
               <div className="w-full">
@@ -215,12 +215,12 @@ const SignIn = () => {
             </GoogleOAuthProvider>
           ) : (
             <p className="text-center text-xs text-amber-600">
-              Google login chưa được cấu hình (thiếu VITE_GOOGLE_CLIENT_ID).
+              Google login chÆ°a Ä‘Æ°á»£c cáº¥u hÃ¬nh (thiáº¿u VITE_GOOGLE_CLIENT_ID).
             </p>
           )}
 
           <p className="text-center text-sm mt-5">
-            Don’t Have An Account Yet?{" "}
+            Donâ€™t Have An Account Yet?{" "}
             <span
               className="text-blue-600 font-semibold cursor-pointer"
               onClick={() => navigate("/register")}

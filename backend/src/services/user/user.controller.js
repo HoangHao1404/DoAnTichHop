@@ -1,4 +1,4 @@
-const userService = require("./user.service");
+﻿const userService = require("./user.service");
 
 class UserController {
   async getProfile(req, res) {
@@ -6,7 +6,7 @@ class UserController {
       const user_id = req.user?.user_id;
       
       if (!user_id) {
-        return res.status(401).json({ message: "Không được phép" });
+        return res.status(401).json({ message: "KhÃ´ng Ä‘Æ°á»£c phÃ©p" });
       }
 
       const user = await userService.getUserProfile(user_id);
@@ -21,13 +21,13 @@ class UserController {
       const user_id = req.user?.user_id;
       
       if (!user_id) {
-        return res.status(401).json({ message: "Không được phép" });
+        return res.status(401).json({ message: "KhÃ´ng Ä‘Æ°á»£c phÃ©p" });
       }
 
       const { full_name, phone, gender, email } = req.body;
 
       if (!full_name || !full_name.trim()) {
-        return res.status(400).json({ message: "Tên không được để trống" });
+        return res.status(400).json({ message: "TÃªn khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng" });
       }
 
       const updated = await userService.updateProfile(user_id, {
@@ -38,7 +38,7 @@ class UserController {
       });
 
       return res.json({
-        message: "Cập nhật hồ sơ thành công",
+        message: "Cáº­p nháº­t há»“ sÆ¡ thÃ nh cÃ´ng",
         user: updated,
       });
     } catch (error) {
@@ -51,7 +51,7 @@ class UserController {
       const user_id = req.user?.user_id;
       
       if (!user_id) {
-        return res.status(401).json({ message: "Không được phép" });
+        return res.status(401).json({ message: "KhÃ´ng Ä‘Æ°á»£c phÃ©p" });
       }
 
       const { oldPassword, newPassword } = req.body;
@@ -59,18 +59,18 @@ class UserController {
       if (!oldPassword || !newPassword) {
         return res
           .status(400)
-          .json({ message: "Mật khẩu cũ và mới là bắt buộc" });
+          .json({ message: "Máº­t kháº©u cÅ© vÃ  má»›i lÃ  báº¯t buá»™c" });
       }
 
       if (newPassword.length < 6) {
         return res
           .status(400)
-          .json({ message: "Mật khẩu mới phải có ít nhất 6 ký tự" });
+          .json({ message: "Máº­t kháº©u má»›i pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±" });
       }
 
       await userService.changePassword(user_id, oldPassword, newPassword);
 
-      return res.json({ message: "Đổi mật khẩu thành công" });
+      return res.json({ message: "Äá»•i máº­t kháº©u thÃ nh cÃ´ng" });
     } catch (error) {
       return res.status(400).json({ message: error.message });
     }
@@ -81,12 +81,12 @@ class UserController {
       const user_id = req.user?.user_id;
       
       if (!user_id) {
-        return res.status(401).json({ message: "Không được phép" });
+        return res.status(401).json({ message: "KhÃ´ng Ä‘Æ°á»£c phÃ©p" });
       }
 
       await userService.deleteAccount(user_id);
 
-      return res.json({ message: "Xóa tài khoản thành công" });
+      return res.json({ message: "XÃ³a tÃ i khoáº£n thÃ nh cÃ´ng" });
     } catch (error) {
       return res.status(400).json({ message: error.message });
     }
@@ -145,7 +145,7 @@ class UserController {
 
       return res.status(201).json({
         success: true,
-        message: "Tạo người dùng thành công",
+        message: "Táº¡o ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng",
         data: created.user,
         defaultPassword: created.defaultPassword,
       });
@@ -160,7 +160,7 @@ class UserController {
       const { name, phone, email, role, area, status } = req.body;
 
       if (!Number.isFinite(user_id)) {
-        return res.status(400).json({ success: false, message: "userId không hợp lệ" });
+        return res.status(400).json({ success: false, message: "userId khÃ´ng há»£p lá»‡" });
       }
 
       const updated = await userService.updateUserByAdmin(user_id, {
@@ -172,7 +172,7 @@ class UserController {
         status,
       });
 
-      return res.json({ success: true, message: "Cập nhật thành công", data: updated });
+      return res.json({ success: true, message: "Cáº­p nháº­t thÃ nh cÃ´ng", data: updated });
     } catch (error) {
       return res.status(400).json({ success: false, message: error.message });
     }
@@ -184,11 +184,11 @@ class UserController {
       const { status } = req.body;
 
       if (!Number.isFinite(user_id)) {
-        return res.status(400).json({ success: false, message: "userId không hợp lệ" });
+        return res.status(400).json({ success: false, message: "userId khÃ´ng há»£p lá»‡" });
       }
 
       const updated = await userService.updateUserStatusByAdmin(user_id, status);
-      return res.json({ success: true, message: "Đã cập nhật trạng thái", data: updated });
+      return res.json({ success: true, message: "ÄÃ£ cáº­p nháº­t tráº¡ng thÃ¡i", data: updated });
     } catch (error) {
       return res.status(400).json({ success: false, message: error.message });
     }
@@ -198,11 +198,11 @@ class UserController {
     try {
       const user_id = Number(req.params.userId);
       if (!Number.isFinite(user_id)) {
-        return res.status(400).json({ success: false, message: "userId không hợp lệ" });
+        return res.status(400).json({ success: false, message: "userId khÃ´ng há»£p lá»‡" });
       }
 
       const deleted = await userService.deleteUserByAdmin(user_id);
-      return res.json({ success: true, message: "Xóa người dùng thành công", data: deleted });
+      return res.json({ success: true, message: "XÃ³a ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng", data: deleted });
     } catch (error) {
       return res.status(400).json({ success: false, message: error.message });
     }

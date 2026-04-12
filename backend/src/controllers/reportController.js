@@ -110,6 +110,9 @@ async function uploadImagesToCloudinary(images, userId) {
   return uploaded.filter(Boolean);
 }
 const Report = require("../models/Report");
+const {
+  verifyImageWithModel,
+} = require("../services/ai/aiVerification.service");
 
 class ReportController {
   async getManagementReports(req, res) {
@@ -222,6 +225,7 @@ class ReportController {
     try {
       const { userId } = req.params;
       console.log("🔍 Getting reports for userId:", userId);
+
       const reports = await ReportRepository.getByUserId(userId);
       console.log("✅ Found reports:", reports.length);
 
@@ -293,6 +297,26 @@ class ReportController {
         });
       }
 
+      const firstImageForAi = persistedImages[0] || inputImages[0] || "";
+      let aiResult = {
+        aiPercent: 0,
+        aiVerified: false,
+        aiLabel: "",
+        aiTotalObjects: 0,
+        aiSource: "",
+      };
+
+      if (firstImageForAi) {
+        try {
+          aiResult = await verifyImageWithModel(firstImageForAi);
+          if (!aiResult.aiVerified && aiResult.aiError) {
+            console.warn(`⚠️ AI verify failed for ${reportStringId}: ${aiResult.aiError}`);
+          }
+        } catch (aiError) {
+          console.warn(`⚠️ AI verify exception for ${reportStringId}: ${aiError.message}`);
+        }
+      }
+
       const reportData = {
         id: reportStringId,
         userId: String(userId),
@@ -306,6 +330,11 @@ class ReportController {
         image: persistedImages.length > 0 ? persistedImages[0] : "",
         status: "Đang Chờ",
         time: currentTime,
+        aiPercent: aiResult.aiPercent || 0,
+        aiVerified: Boolean(aiResult.aiVerified),
+        aiLabel: aiResult.aiLabel || "",
+        aiTotalObjects: aiResult.aiTotalObjects || 0,
+        aiSource: aiResult.aiSource || "",
       };
 
       const newReport = await ReportRepository.create(reportData);

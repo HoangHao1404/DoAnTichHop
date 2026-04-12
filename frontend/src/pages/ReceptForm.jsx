@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { Calendar, MapPin, Search } from "lucide-react";
 import roadImage from "../image/road.png";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ const STATUS_OPTIONS = ["all", "Đang Chờ", "Đang Xử Lý", "Đã Giải Quy
 
 const CATEGORY_COLORS = {
   "Giao Thông": "#f97316",
-  Điện: "#fdca00",
+  "Điện": "#fdca00",
   "Cây Xanh": "#16a34a",
   CTCC: "#b78ff2",
 };
@@ -104,7 +104,7 @@ const ReceptForm = () => {
         setReports([]);
         setTotalPages(1);
         setErrorMessage(
-          error?.response?.data?.message || "Không tải được dữ liệu đơn tiếp nhận"
+          error?.response?.data?.message || "KhÃ´ng táº£i Ä‘Æ°á»£c dá»¯ liá»‡u Ä‘Æ¡n tiáº¿p nháº­n"
         );
       } finally {
         setLoading(false);
@@ -145,13 +145,13 @@ const ReceptForm = () => {
         report_id: selectedReport.report_id || selectedReport.id || "N/A",
         title: selectedReport.title,
         type: selectedReport.type || selectedReport.category,
-        status: selectedReport.status || "Đang Chờ",
+        status: selectedReport.status || "Äang Chá»",
         time: selectedReport.time || selectedReport.date,
-        district: selectedReport.district || "Chưa phân loại",
+        district: selectedReport.district || "ChÆ°a phÃ¢n loáº¡i",
         team: selectedReport.team || selectedReport.handlerTeam,
         reporter: selectedReport.reporter,
-        location: selectedReport.location || "Chưa có vị trí",
-        description: selectedReport.description || "Chưa có mô tả cho báo cáo này.",
+        location: selectedReport.location || "ChÆ°a cÃ³ vá»‹ trÃ­",
+        description: selectedReport.description || "ChÆ°a cÃ³ mÃ´ táº£ cho bÃ¡o cÃ¡o nÃ y.",
         image: selectedReport.image || selectedReport.images?.[0] || "",
         images:
           Array.isArray(selectedReport.images) && selectedReport.images.length > 0
@@ -191,7 +191,7 @@ const ReceptForm = () => {
       syncReportStatus(reportId, nextStatus);
     } catch (error) {
       setErrorMessage(
-        error?.response?.data?.message || "Không thể cập nhật trạng thái báo cáo",
+        error?.response?.data?.message || "KhÃ´ng thá»ƒ cáº­p nháº­t tráº¡ng thÃ¡i bÃ¡o cÃ¡o",
       );
     }
   };
@@ -203,11 +203,11 @@ const ReceptForm = () => {
     }
 
     try {
-      await reportApi.updateReportStatus(reportId, "Đang Xử Lý");
-      syncReportStatus(reportId, "Đang Xử Lý");
+      await reportApi.updateReportStatus(reportId, "Äang Xá»­ LÃ½");
+      syncReportStatus(reportId, "Äang Xá»­ LÃ½");
     } catch (error) {
       setErrorMessage(
-        error?.response?.data?.message || "Không thể gửi xử lý báo cáo",
+        error?.response?.data?.message || "KhÃ´ng thá»ƒ gá»­i xá»­ lÃ½ bÃ¡o cÃ¡o",
       );
     }
   };
@@ -239,7 +239,7 @@ const ReceptForm = () => {
                 style={{ flex: "0 0 auto", width: "fit-content" }}
                 className="h-[40px] !flex-none !basis-auto w-auto min-w-fit whitespace-nowrap rounded-[14px] border-none px-8 text-[15px] font-medium text-[#9a9a9a] transition-all duration-200 hover:text-[#6f6f6f] data-[state=active]:!bg-[#1243ff] data-[state=active]:!text-white data-[state=active]:!font-semibold data-[state=active]:!shadow-[0_6px_14px_rgba(18,67,255,0.35)]"
               >
-                {district === "all" ? "Tất cả" : district}
+                {district === "all" ? "Táº¥t cáº£" : district}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -255,7 +255,7 @@ const ReceptForm = () => {
               setQuery(event.target.value);
               setPage(1);
             }}
-            placeholder="Tìm kiếm theo mã sự cố, tiêu đề sự cố..."
+            placeholder="TÃ¬m kiáº¿m theo mÃ£ sá»± cá»‘, tiÃªu Ä‘á» sá»± cá»‘..."
             className="h-[45px] rounded-full border border-[#dfe3e8] bg-[#f5f5f5] pl-12 text-sm text-gray-700 placeholder:text-[#969696] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]"
           />
         </div>
@@ -269,13 +269,13 @@ const ReceptForm = () => {
             }}
           >
             <SelectTrigger className="h-[45px] rounded-[10px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
-              <SelectValue placeholder="Loại sự cố" />
+              <SelectValue placeholder="Loáº¡i sá»± cá»‘" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Loại sự cố</SelectItem>
-              <SelectItem value="Giao Thông">Giao thông</SelectItem>
-              <SelectItem value="Điện">Điện</SelectItem>
-              <SelectItem value="Cây Xanh">Cây xanh</SelectItem>
+              <SelectItem value="all">Loáº¡i sá»± cá»‘</SelectItem>
+              <SelectItem value="Giao ThÃ´ng">Giao thÃ´ng</SelectItem>
+              <SelectItem value="Äiá»‡n">Äiá»‡n</SelectItem>
+              <SelectItem value="CÃ¢y Xanh">CÃ¢y xanh</SelectItem>
               <SelectItem value="CTCC">CTCC</SelectItem>
             </SelectContent>
           </Select>
@@ -288,10 +288,10 @@ const ReceptForm = () => {
             }}
           >
             <SelectTrigger className="h-[45px] rounded-[10px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
-              <SelectValue placeholder="Trạng thái" />
+              <SelectValue placeholder="Tráº¡ng thÃ¡i" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Trạng thái</SelectItem>
+              <SelectItem value="all">Tráº¡ng thÃ¡i</SelectItem>
               {STATUS_OPTIONS.filter((option) => option !== "all").map(
                 (option) => (
                   <SelectItem key={option} value={option}>
@@ -310,12 +310,12 @@ const ReceptForm = () => {
             }}
           >
             <SelectTrigger className="h-[44px] min-w-[146px] rounded-[12px] border border-[#dfe3e8] bg-[#f5f5f5] px-[15px] text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] focus-visible:border-[#cdd5df] focus-visible:ring-2 focus-visible:ring-[#e8ecf1]">
-              <SelectValue placeholder="Chọn ngày" />
+              <SelectValue placeholder="Chá»n ngÃ y" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Chọn ngày</SelectItem>
-              <SelectItem value="recent">Mới nhất</SelectItem>
-              <SelectItem value="old">Cũ hơn</SelectItem>
+              <SelectItem value="all">Chá»n ngÃ y</SelectItem>
+              <SelectItem value="recent">Má»›i nháº¥t</SelectItem>
+              <SelectItem value="old">CÅ© hÆ¡n</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -330,7 +330,7 @@ const ReceptForm = () => {
       <div className="relative z-10 mb-2.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
         {loading && (
           <div className="col-span-full rounded-[20px] border border-dashed border-gray-300 px-6 py-10 text-center text-gray-500">
-            Đang tải dữ liệu...
+            Äang táº£i dá»¯ liá»‡u...
           </div>
         )}
 
@@ -401,7 +401,7 @@ const ReceptForm = () => {
 
       {!loading && visibleReports.length === 0 && (
         <div className="mb-6 rounded-[20px] border border-dashed border-gray-300 px-6 py-10 text-center text-gray-500">
-          Không có đơn tiếp nhận phù hợp.
+          KhÃ´ng cÃ³ Ä‘Æ¡n tiáº¿p nháº­n phÃ¹ há»£p.
         </div>
       )}
 
@@ -412,7 +412,7 @@ const ReceptForm = () => {
           onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
           disabled={safePage === 1}
         >
-          Trước
+          TrÆ°á»›c
         </button>
 
         {pageNumbers[0] > 1 && (

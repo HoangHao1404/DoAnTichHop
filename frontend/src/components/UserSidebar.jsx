@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -32,40 +32,40 @@ import { ScrollArea } from "./ui/scroll-area";
 const MOCK_NOTIFICATIONS = [
   {
     id: "NTF-1001",
-    title: "Báo cáo #RPT-2201 đang được xử lý",
+    title: "BÃ¡o cÃ¡o #RPT-2201 Ä‘ang Ä‘Æ°á»£c xá»­ lÃ½",
     message:
-      "Đội bảo trì đã tiếp nhận phản ánh của bạn và đang kiểm tra khu vực.",
+      "Äá»™i báº£o trÃ¬ Ä‘Ã£ tiáº¿p nháº­n pháº£n Ã¡nh cá»§a báº¡n vÃ  Ä‘ang kiá»ƒm tra khu vá»±c.",
     level: "normal",
     type: "report",
     isRead: false,
-    createdAt: "10 phút trước",
+    createdAt: "10 phÃºt trÆ°á»›c",
   },
   {
     id: "NTF-1002",
-    title: "Cảnh báo khẩn tại khu vực Quận 1",
-    message: "Nhiều điểm hư hại mặt đường được ghi nhận sau mưa lớn.",
+    title: "Cáº£nh bÃ¡o kháº©n táº¡i khu vá»±c Quáº­n 1",
+    message: "Nhiá»u Ä‘iá»ƒm hÆ° háº¡i máº·t Ä‘Æ°á»ng Ä‘Æ°á»£c ghi nháº­n sau mÆ°a lá»›n.",
     level: "critical",
     type: "warning",
     isRead: false,
-    createdAt: "38 phút trước",
+    createdAt: "38 phÃºt trÆ°á»›c",
   },
   {
     id: "NTF-1003",
-    title: "Báo cáo #RPT-2168 đã hoàn tất",
-    message: "Yêu cầu của bạn đã được xử lý. Cảm ơn bạn đã cộng tác.",
+    title: "BÃ¡o cÃ¡o #RPT-2168 Ä‘Ã£ hoÃ n táº¥t",
+    message: "YÃªu cáº§u cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c xá»­ lÃ½. Cáº£m Æ¡n báº¡n Ä‘Ã£ cá»™ng tÃ¡c.",
     level: "low",
     type: "system",
     isRead: true,
-    createdAt: "Hôm qua",
+    createdAt: "HÃ´m qua",
   },
   {
     id: "NTF-1004",
-    title: "Thông báo bảo trì hệ thống",
-    message: "Hệ thống sẽ tối ưu hiệu năng từ 23:00 đến 23:20 tối nay.",
+    title: "ThÃ´ng bÃ¡o báº£o trÃ¬ há»‡ thá»‘ng",
+    message: "Há»‡ thá»‘ng sáº½ tá»‘i Æ°u hiá»‡u nÄƒng tá»« 23:00 Ä‘áº¿n 23:20 tá»‘i nay.",
     level: "normal",
     type: "system",
     isRead: true,
-    createdAt: "2 ngày trước",
+    createdAt: "2 ngÃ y trÆ°á»›c",
   },
 ];
 
@@ -88,31 +88,31 @@ const UserSidebar = () => {
       id: "dashboard",
       path: "/dashboard",
       icon: <Map className="h-5 w-5" />,
-      title: "Trang chủ",
+      title: "Trang chá»§",
     },
     {
       id: "myreports",
       path: "/myreport",
       icon: <FolderOpen className="h-5 w-5" />,
-      title: "Báo cáo của tôi",
+      title: "BÃ¡o cÃ¡o cá»§a tÃ´i",
     },
     {
       id: "notifications",
       path: "/notifications",
       icon: <Bell className="h-5 w-5" />,
-      title: "Thông báo",
+      title: "ThÃ´ng bÃ¡o",
     },
   ];
 
   const userInfo = {
-    name: user?.full_name || "Người dùng",
+    name: user?.full_name || "NgÆ°á»i dÃ¹ng",
     email: user?.email || "user@example.com",
     avatar: user?.avatar || null,
   };
 
   const handleLogout = () => {
     setShowLogoutConfirm(false);
-    setToast({ message: "Đăng xuất thành công!", type: "success" });
+    setToast({ message: "ÄÄƒng xuáº¥t thÃ nh cÃ´ng!", type: "success" });
     setTimeout(() => {
       logout();
       navigate("/signin");
@@ -157,9 +157,9 @@ const UserSidebar = () => {
   };
 
   const getLevelLabel = (level) => {
-    if (level === "critical") return "Khẩn cấp";
-    if (level === "low") return "Thông tin";
-    return "Bình thường";
+    if (level === "critical") return "Kháº©n cáº¥p";
+    if (level === "low") return "ThÃ´ng tin";
+    return "BÃ¬nh thÆ°á»ng";
   };
 
   return (
@@ -186,23 +186,23 @@ const UserSidebar = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xl font-semibold text-gray-800 mb-3">
-              Xác nhận đăng xuất
+              XÃ¡c nháº­n Ä‘Äƒng xuáº¥t
             </h3>
             <p className="text-gray-600 mb-6">
-              Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?
+              Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n Ä‘Äƒng xuáº¥t khá»i há»‡ thá»‘ng?
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
                 className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-medium"
               >
-                Hủy
+                Há»§y
               </button>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors font-medium"
               >
-                Đăng xuất
+                ÄÄƒng xuáº¥t
               </button>
             </div>
           </div>
@@ -319,7 +319,7 @@ const UserSidebar = () => {
                   className="w-full px-4 py-2 flex items-center gap-3 text-gray-700 hover:bg-gray-50 transition-colors text-left"
                 >
                   <User className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-medium">Thông tin cá nhân</span>
+                  <span className="text-sm font-medium">ThÃ´ng tin cÃ¡ nhÃ¢n</span>
                 </button>
 
                 <button
@@ -330,7 +330,7 @@ const UserSidebar = () => {
                   className="w-full px-4 py-2 flex items-center gap-3 text-red-600 hover:bg-red-50 transition-colors text-left"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span className="text-sm font-medium">Đăng xuất</span>
+                  <span className="text-sm font-medium">ÄÄƒng xuáº¥t</span>
                 </button>
               </div>
             </div>
@@ -362,10 +362,10 @@ const UserSidebar = () => {
                     </span>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">
-                        Thông báo
+                        ThÃ´ng bÃ¡o
                       </p>
                       <p className="text-xs text-gray-500">
-                        Mã giao diện b1IfkE0pY
+                        MÃ£ giao diá»‡n b1IfkE0pY
                       </p>
                     </div>
                   </div>
@@ -384,7 +384,7 @@ const UserSidebar = () => {
                     <span className="font-semibold text-gray-900">
                       {unreadCount}
                     </span>{" "}
-                    chưa đọc
+                    chÆ°a Ä‘á»c
                   </p>
                   <Button
                     type="button"
@@ -395,7 +395,7 @@ const UserSidebar = () => {
                     disabled={unreadCount === 0}
                   >
                     <CheckCheck className="h-3.5 w-3.5" />
-                    Đánh dấu tất cả
+                    ÄÃ¡nh dáº¥u táº¥t cáº£
                   </Button>
                 </div>
               </div>
@@ -463,7 +463,7 @@ const UserSidebar = () => {
                                     className="h-auto px-0 text-[11px] text-slate-700 hover:text-slate-900"
                                     onClick={() => markNotificationRead(item.id)}
                                   >
-                                    Đã đọc
+                                    ÄÃ£ Ä‘á»c
                                   </Button>
                                 )}
                               </div>

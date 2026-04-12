@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -35,49 +35,49 @@ const AdminSidebar = () => {
       id: "map",
       path: "/admin/overview",
       icon: <Map className="h-5 w-5" />,
-      label: "Bản đồ",
+      label: "Báº£n Ä‘á»“",
     },
     {
       id: "receive",
       path: "/admin/recept-form",
       icon: <Inbox className="h-5 w-5" />,
-      label: "Đơn tiếp nhận",
+      label: "ÄÆ¡n tiáº¿p nháº­n",
     },
     {
       id: "routes",
       path: "/admin/maintenanceteam",
       icon: <Shield className="h-5 w-5" />,
-      label: "Quản lý đội xử lý",
+      label: "Quáº£n lÃ½ Ä‘á»™i xá»­ lÃ½",
     },
     {
       id: "users",
       path: "/admin/users",
       icon: <Users className="h-5 w-5" />,
-      label: "Quản lý người dùng",
+      label: "Quáº£n lÃ½ ngÆ°á»i dÃ¹ng",
     },
     {
       id: "categories",
       path: "/admin/incident-types",
       icon: <Tag className="h-5 w-5" />,
-      label: "Quản lý loại sự cố",
+      label: "Quáº£n lÃ½ loáº¡i sá»± cá»‘",
     },
     {
       id: "stats",
       path: "/admin/statistics",
       icon: <BarChart3 className="h-5 w-5" />,
-      label: "Thống kê",
+      label: "Thá»‘ng kÃª",
     },
   ];
 
   const userInfo = {
-    name: user?.full_name || "Người dùng",
+    name: user?.full_name || "NgÆ°á»i dÃ¹ng",
     email: user?.email || "user@example.com",
     avatar: user?.avatar || null,
   };
 
   const handleLogout = () => {
     setShowLogoutConfirm(false);
-    toast.success("Đăng xuất thành công!");
+    toast.success("ÄÄƒng xuáº¥t thÃ nh cÃ´ng!");
     setTimeout(() => {
       logout();
       navigate("/signin");
@@ -100,23 +100,23 @@ const AdminSidebar = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xl font-semibold text-gray-800 mb-3">
-              Xác nhận đăng xuất
+              XÃ¡c nháº­n Ä‘Äƒng xuáº¥t
             </h3>
             <p className="text-gray-600 mb-6">
-              Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?
+              Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n Ä‘Äƒng xuáº¥t khá»i há»‡ thá»‘ng?
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
                 className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-medium"
                 >
-                Hủy
+                Há»§y
               </button>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors font-medium"
               >
-                Đăng xuất
+                ÄÄƒng xuáº¥t
               </button>
             </div>
           </div>
@@ -219,7 +219,7 @@ const AdminSidebar = () => {
                   className="w-full px-4 py-2 flex items-center gap-3 text-gray-700 hover:bg-gray-50 transition-colors text-left"
                 >
                   <User className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-medium">Thông tin cá nhân</span>
+                  <span className="text-sm font-medium">ThÃ´ng tin cÃ¡ nhÃ¢n</span>
                 </button>
 
                 <button
@@ -230,7 +230,7 @@ const AdminSidebar = () => {
                   className="w-full px-4 py-2 flex items-center gap-3 text-red-600 hover:bg-red-50 transition-colors text-left"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span className="text-sm font-medium">Đăng xuất</span>
+                  <span className="text-sm font-medium">ÄÄƒng xuáº¥t</span>
                 </button>
               </div>
             </div>

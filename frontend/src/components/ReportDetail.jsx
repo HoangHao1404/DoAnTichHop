@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Camera, X } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -26,7 +26,7 @@ function normalizeTypeKey(type) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d");
+    .replace(/Ä‘/g, "d");
 }
 
 function getTypeBadgeClass(type) {
@@ -147,7 +147,7 @@ export default function ReportDetail({ data, close }) {
             <div className="grid gap-2.5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-3">
               <div className="rounded-[12px] border border-[#dce9ff] bg-[#edf5ff] px-3 py-2 sm:px-3.5 sm:py-2.5">
                 <p className="text-[11px] font-medium uppercase text-[#A3A3A3]">
-                  Mã báo cáo
+                  MÃ£ bÃ¡o cÃ¡o
                 </p>
                 <p className="text-xl font-semibold leading-tight text-[#1E67D6]">
                   {data.id || "N/A"}
@@ -156,7 +156,7 @@ export default function ReportDetail({ data, close }) {
 
               <div className="rounded-[12px] border border-[#e6e6dc] bg-[#fff9ea] px-3 py-2 sm:px-3.5 sm:py-2.5">
                 <p className="text-[11px] font-medium uppercase text-[#A3A3A3]">
-                  Thời gian
+                  Thá»i gian
                 </p>
                 <p className="text-sm font-semibold leading-tight text-zinc-900">
                   {data.time || "Chua co thoi gian"}
@@ -166,7 +166,7 @@ export default function ReportDetail({ data, close }) {
 
             <div className="rounded-[12px] border border-[#e4ecfb] bg-[#f7faff] px-3 py-2.5 sm:px-3.5 sm:py-3">
               <p className="text-[11px] font-medium uppercase text-[#A3A3A3]">
-                Vị trí
+                Vá»‹ trÃ­
               </p>
               <p
                 className="text-sm font-semibold leading-tight text-zinc-900"
@@ -183,7 +183,7 @@ export default function ReportDetail({ data, close }) {
 
             <div>
               <p className="mb-1 text-[11px] font-medium uppercase text-[#A3A3A3]">
-                Mô tả
+                MÃ´ táº£
               </p>
               <div className="rounded-[10px] border border-[#e4ecfb] bg-[#f5f9ff] px-3 py-2.5 sm:px-3.5 sm:py-3">
                 <p
@@ -205,7 +205,7 @@ export default function ReportDetail({ data, close }) {
                 <CardHeader className="px-3 pb-1 pt-2 sm:px-3.5 sm:pt-2.5">
                   <CardTitle className="flex text-xs font-medium text-[#1E67D6]">
                     <Camera className="mr-1.5 h-4 w-4 text-[#1E67D6]" />
-                    Ảnh sự cố
+                    áº¢nh sá»± cá»‘
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-3 pb-2.5 sm:px-3.5 sm:pb-3">
@@ -218,7 +218,7 @@ export default function ReportDetail({ data, close }) {
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs text-zinc-400 sm:text-sm">
-                        Chưa có ảnh
+                        ChÆ°a cÃ³ áº£nh
                       </div>
                     )}
                   </div>
@@ -229,7 +229,7 @@ export default function ReportDetail({ data, close }) {
                 <CardHeader className="px-3 pb-1 pt-2 sm:px-3.5 sm:pt-2.5">
                   <CardTitle className="flex text-xs font-medium text-[#1E67D6]">
                     <Camera className="mr-1.5 h-4 w-4 text-[#1E67D6]" />
-                    Ảnh sau khắc phục
+                    áº¢nh sau kháº¯c phá»¥c
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-3 pb-2.5 sm:px-3.5 sm:pb-3">
@@ -254,7 +254,7 @@ export default function ReportDetail({ data, close }) {
         <DialogFooter className="!mx-0 !mb-0 !border-t-0 shrink-0 bg-white px-4 py-2.5 sm:px-5 md:px-6">
           <DialogClose asChild>
             <Button className="h-9 w-full rounded-[10px] bg-[#2562e9] text-sm font-semibold text-white hover:bg-[#1f56d1] sm:h-10 sm:w-[160px]">
-              Đóng
+              ÄÃ³ng
             </Button>
           </DialogClose>
         </DialogFooter>

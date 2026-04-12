@@ -1,13 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Camera,
   Upload,
   MapPin,
   X,
-  ChevronDown,
   AlertCircle,
-  Image as ImageIcon,
   CloudUpload,
   Loader2,
 } from "lucide-react";
@@ -76,8 +74,6 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialImage]);
 
-  // Removed custom dropdown click outside logic as Shadcn handles it
-
   const showErrorToast = (message) => {
     setToast({ message, type: "error" });
   };
@@ -136,7 +132,6 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     }
   };
 
-  // Upload ảnh: auto lấy GPS ở lần thêm ảnh đầu tiên
   const handleImageUpload = async (e) => {
     const files = validateFiles(e.target.files || []);
     if (!files.length) return;
@@ -204,14 +199,11 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        console.log("GPS OK:", position);
         const { latitude, longitude } = position.coords;
 
         try {
-          // Gọi API backend để reverse geocode (tránh CORS)
-          console.log("Calling backend geocode API...");
           const response = await fetch(
-            `${API_BASE_URL}/geocode/reverse?lat=${latitude}&lon=${longitude}`
+            `${API_BASE_URL}/geocode/reverse?lat=${latitude}&lon=${longitude}`,
           );
 
           if (!response.ok) {
@@ -219,16 +211,12 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
           }
 
           const result = await response.json();
-          console.log("Backend response:", result);
-
           const resolvedAddress =
             result?.data?.address || result?.data?.fullAddress || "";
 
           if (result.success && resolvedAddress) {
-            console.log("Address found:", resolvedAddress);
             setLocation(resolvedAddress);
           } else {
-            console.warn("No address in response");
             setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
           }
         } catch (err) {
@@ -310,8 +298,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
     const imageData = canvas.toDataURL("image/jpeg");
 
-    const shouldGetLocation =
-      !hasFetchedLocation && uploadedImages.length === 0;
+    const shouldGetLocation = !hasFetchedLocation && uploadedImages.length === 0;
 
     setUploadedImages((prev) => [...prev, imageData]);
 
@@ -445,7 +432,6 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-2">
-              {/* LEFT */}
               <div className="bg-white px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
                 <div className="max-w-[520px]">
                   <h2 className="text-[24px] font-bold leading-tight text-[#111111] sm:text-[28px]">
@@ -476,10 +462,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                         Loại sự cố
                       </Label>
 
-                      <Select
-                        value={incidentType}
-                        onValueChange={setIncidentType}
-                      >
+                      <Select value={incidentType} onValueChange={setIncidentType}>
                         <SelectTrigger
                           style={{ width: "100%", height: "44px" }}
                           className={`flex !h-11 py-0 items-center justify-between rounded-xl border px-4 text-left text-sm transition focus:outline-none focus:ring-4 focus:ring-[#5d5fef]/10 hover:!bg-[#e8e9eb] [&_svg]:!size-5 [&_svg]:!text-[#9b9b9b] [&_svg]:opacity-100 shadow-none ${
@@ -495,7 +478,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                             <SelectItem
                               key={option.value}
                               value={option.value}
-                              className={`w-full cursor-pointer px-4 py-3 text-left text-sm transition hover:bg-[#f5f6ff] focus:bg-[#f5f6ff] data-[state=checked]:bg-[#f5f6ff] data-[state=checked]:font-semibold data-[state=checked]:text-[#3b3df5]`}
+                              className="w-full cursor-pointer px-4 py-3 text-left text-sm transition hover:bg-[#f5f6ff] focus:bg-[#f5f6ff] data-[state=checked]:bg-[#f5f6ff] data-[state=checked]:font-semibold data-[state=checked]:text-[#3b3df5]"
                             >
                               {option.label}
                             </SelectItem>
@@ -520,7 +503,6 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                 </div>
               </div>
 
-              {/* RIGHT */}
               <div className="flex flex-col bg-[#f8f9fa] px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
                 <div className="mx-auto flex h-full w-full max-w-[520px] flex-col">
                   <div>
