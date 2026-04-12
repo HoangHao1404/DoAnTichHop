@@ -28,6 +28,7 @@ import RegisterConfirm from "./components/RegisterConfirm.jsx";
 import LayoutAdmin from "./components/LayoutAdmin.jsx";
 import ProtectedRoute from "./router/ProtectedRoute.jsx";
 import AssignedReport from "./pages/Assigned_report.jsx";
+import Info_Management from "./pages/Info_Management.jsx";
 
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { TooltipProvider } from "./components/ui/tooltip.tsx";
@@ -59,6 +60,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MyReports />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Info_Management />
                 </ProtectedRoute>
               }
             />

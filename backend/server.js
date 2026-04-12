@@ -5,6 +5,7 @@ const connectDB = require("./src/config/database");
 const authRoutes = require("./src/services/auth/auth.routes");
 const reportRoutes = require("./src/routes/reportRoutes");
 const geocodeRoutes = require("./src/routes/geocodeRoutes");
+const userRoutes = require("./src/services/user/user.routes");
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 5000;
@@ -37,7 +38,6 @@ if (ENABLE_MONGO) {
 }
 
 // Routes
-const userRoutes = require("./src/services/user/user.routes");
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/reports", reportRoutes);
