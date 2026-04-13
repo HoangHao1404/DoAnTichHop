@@ -65,5 +65,5 @@ app.use("/api/maintenance-teams", maintenanceTeamRoutes);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🔥 Server đang chạy tại http://localhost:${PORT}`);
+  console.log(`Server đang chạy tại http://localhost:${PORT}`);
 });

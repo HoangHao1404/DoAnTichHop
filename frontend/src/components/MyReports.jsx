@@ -94,6 +94,24 @@ const truncateLocation = (value, maxLength = 24) => {
   return `${text.slice(0, maxLength)}...`;
 };
 
+const formatReportDateTime = (value) => {
+  if (!value) {
+    return "Chưa có thời gian";
+  }
+
+  const rawValue = typeof value === "string" ? value.trim() : value;
+  if (!rawValue) {
+    return "Chưa có thời gian";
+  }
+
+  const parsedDate = new Date(rawValue);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return typeof rawValue === "string" ? rawValue : "Chưa có thời gian";
+  }
+
+  return parsedDate.toLocaleString("vi-VN");
+};
+
 const useTestWorkflow =
   (import.meta.env.VITE_USE_TEST_REPORT_WORKFLOW ?? "false") === "true";
 
@@ -126,9 +144,7 @@ function normalizeReport(report) {
     type: hasKnownType ? report.type : "Khác",
     location: report?.location || "Chưa có vị trí",
     status: hasKnownStatus ? report.status : "Đang Chờ",
-    time: reportDate
-      ? new Date(reportDate).toLocaleString("vi-VN")
-      : "Chưa có thời gian",
+    time: formatReportDateTime(reportDate),
     description: report?.description || "",
     images: report?.images || [],
     image: report?.image || "",
