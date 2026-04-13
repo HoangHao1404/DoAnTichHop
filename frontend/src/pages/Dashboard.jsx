@@ -4,6 +4,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import HomeOverlayUI from "../components/HomeOverlayUI";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "sonner";
 
 // import icon của leaflet (VITE không dùng require)
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -116,7 +117,7 @@ const Dashboard = () => {
       const data = await res.json();
 
       if (!data || data.length === 0) {
-        alert("Không tìm thấy địa điểm phù hợp");
+        toast.warning("Không tìm thấy địa điểm phù hợp");
         return;
       }
 
@@ -136,7 +137,7 @@ const Dashboard = () => {
       });
     } catch (error) {
       console.error("Lỗi tìm kiếm địa điểm:", error);
-      alert("Có lỗi khi tìm kiếm địa điểm");
+      toast.error("Có lỗi khi tìm kiếm địa điểm");
     }
   };
 

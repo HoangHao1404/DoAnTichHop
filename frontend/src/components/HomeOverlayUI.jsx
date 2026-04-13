@@ -57,7 +57,6 @@ export default function HomeOverlayUI({
   userName,
   mapElement,
 }) {
-  const navigate = useNavigate();
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [showCameraOnly, setShowCameraOnly] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
@@ -92,7 +91,9 @@ export default function HomeOverlayUI({
       }, 100);
     } catch (error) {
       console.error(error);
-      alert("Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.");
+      toast.error(
+        "Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.",
+      );
     }
   };
 
@@ -117,7 +118,7 @@ export default function HomeOverlayUI({
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const imageData = canvas.toDataURL("image/jpeg");
-    
+
     // Đóng camera, lưu ảnh và mở form Report
     closeCamera();
     setCapturedImage(imageData);
@@ -126,20 +127,10 @@ export default function HomeOverlayUI({
 
   return (
     <>
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
       <div className="w-full h-screen flex flex-col bg-background relative overflow-hidden">
         {/* MAP AREA - Background */}
         {mapElement && (
-          <div className="absolute inset-0 z-0 w-full h-full">
-            {mapElement}
-          </div>
+          <div className="absolute inset-0 z-0 w-full h-full">{mapElement}</div>
         )}
 
         {/* Floating Sidebar - Left Top (aligned with categories) */}

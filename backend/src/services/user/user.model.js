@@ -39,5 +39,15 @@ const UserSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
+// Chỉ áp unique khi email có giá trị thực tế (không rỗng).
+UserSchema.index(
+  { email: 1 },
+  {
+    name: "email_1",
+    unique: true,
+    sparse: true,
+  },
+);
+
 const User = mongoose.model("User", UserSchema);
 module.exports = User;

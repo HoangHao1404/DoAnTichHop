@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { LibraryBig, Folder, Bell, LogOut, Settings } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import Toast from "./Toast";
+import { toast } from "sonner";
 
 const menuItems = [
   {
@@ -29,10 +29,9 @@ const SidebarAdmin = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [toast, setToast] = useState(null);
 
   const handleLogout = () => {
-    setToast({ message: 'Đăng xuất thành công!', type: 'success' });
+    toast.success("Đăng xuất thành công!");
     setTimeout(() => {
       logout();
       navigate("/signin");
@@ -41,14 +40,6 @@ const SidebarAdmin = () => {
 
   return (
     <>
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
       {/* Popup xác nhận đăng xuất */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
@@ -136,4 +127,3 @@ const SidebarAdmin = () => {
 };
 
 export default SidebarAdmin;
-

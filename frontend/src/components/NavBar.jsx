@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Bell, MapPin, LogOut, Settings, User, BookOpen, Folder, Zap, AlertCircle, Trees, Building2, CloudSun, Navigation } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Toast from "./Toast";
+import { Button } from "@/components/ui/button";
 
 // const Avatar = ({ src, alt }) => (
 //   <img
@@ -74,7 +75,7 @@ export default function Navbar() {
           try {
             // Gọi API với zoom=8 để lấy cấp tỉnh/thành phố
             const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=8&addressdetails=1&accept-language=vi`
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=8&addressdetails=1&accept-language=vi`,
             );
             const data = await response.json();
             console.log("Full location data:", data);
@@ -94,7 +95,7 @@ export default function Navbar() {
         },
         () => {
           setLocation({ city: "Chưa cấp quyền", country: "" });
-        }
+        },
       );
     } else {
       setLocation({ city: "Không hỗ trợ", country: "" });
@@ -134,7 +135,7 @@ export default function Navbar() {
     setNoti((prev) => prev.map((n) => ({ ...n, unread: false })));
 
   const handleLogout = () => {
-    setToast({ message: 'Đăng xuất thành công!', type: 'success' });
+    setToast({ message: "Đăng xuất thành công!", type: "success" });
     setOpenUser(false);
     setTimeout(() => {
       logout();
@@ -358,7 +359,7 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-    </header>
+      </header>
     </>
   );
 }
@@ -399,10 +400,10 @@ export function NavbarAdmin() {
           try {
             const [locationResponse, weatherResponse] = await Promise.all([
               fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=8&addressdetails=1&accept-language=vi`
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=8&addressdetails=1&accept-language=vi`,
               ),
               fetch(
-                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&timezone=Asia%2FBangkok`
+                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&timezone=Asia%2FBangkok`,
               ),
             ]);
 
@@ -429,7 +430,7 @@ export function NavbarAdmin() {
         },
         () => {
           setLocation({ city: "TP. Đà Nẵng" });
-        }
+        },
       );
     } else {
       setLocation({ city: "TP. Đà Nẵng" });
@@ -476,33 +477,46 @@ export function NavbarAdmin() {
     <>
       <header className="relative z-40">
         <div
-          className="bg-white border border-gray-200 rounded-[20px] shadow-sm
+          className="bg-white border border-gray-200 rounded-[30px] shadow-sm
                    px-5 py-2.5 flex items-center justify-end"
           style={{ minHeight: "60px" }}
         >
           <div className="flex items-center gap-4">
-            <div className="flex h-10 items-center gap-2.5 rounded-full border border-gray-200 bg-[#eaeaea] px-5 text-sm text-gray-700">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 rounded-full border-gray-200 bg-[#eaeaea] px-5 text-sm text-gray-700 hover:bg-[#eaeaea]"
+            >
               <CloudSun className="h-4 w-4 text-gray-500" />
               <span className="font-medium text-gray-700">{temperature}°C</span>
               <span className="text-gray-400">|</span>
-              <span className="font-medium text-gray-600">{formatDate(currentDate)}</span>
-            </div>
+              <span className="font-medium text-gray-600">
+                {formatDate(currentDate)}
+              </span>
+            </Button>
 
-            <div className="flex h-10 items-center gap-2.5 rounded-full border border-gray-200 bg-[#eaeaea] px-5 text-sm text-gray-800">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 rounded-full border-gray-200 bg-[#eaeaea] px-5 text-sm text-gray-800 hover:bg-[#eaeaea]"
+            >
               <Navigation className="h-4 w-4 text-gray-700" />
               <span className="font-semibold">{displayCity}</span>
-            </div>
+            </Button>
 
             <div className="relative" ref={notiRef}>
-              <button
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => setOpenNoti((v) => !v)}
-                className="relative h-10 w-10 rounded-full bg-[#f3f3f3] border border-gray-300 shadow-sm hover:bg-gray-100"
+                className="relative h-10 w-10 rounded-full border border-gray-300 bg-[#f3f3f3] shadow-sm hover:bg-gray-100"
               >
                 <Bell className="mx-auto h-6 w-6 text-gray-800" />
                 {noti.some((n) => n.unread) && (
                   <span className="absolute top-1.5 right-1.5 inline-block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-[#f3f3f3]" />
                 )}
-              </button>
+              </Button>
 
               {openNoti && (
                 <div
@@ -510,7 +524,9 @@ export function NavbarAdmin() {
                            bg-white/95 backdrop-blur shadow-lg p-2 z-50"
                 >
                   <div className="flex items-center justify-between px-2 py-1">
-                    <p className="text-sm font-semibold text-gray-800">Thông báo</p>
+                    <p className="text-sm font-semibold text-gray-800">
+                      Thông báo
+                    </p>
                     <button
                       onClick={markAllRead}
                       className="text-xs rounded-full px-2 py-1 hover:bg-gray-100 text-gray-600"
@@ -539,8 +555,8 @@ export function NavbarAdmin() {
                                   n.severity === "critical"
                                     ? "bg-red-500"
                                     : n.severity === "warning"
-                                    ? "bg-amber-500"
-                                    : "bg-blue-500"
+                                      ? "bg-amber-500"
+                                      : "bg-blue-500"
                                 }`}
                               />
                             </div>
@@ -571,3 +587,4 @@ export function NavbarAdmin() {
     </>
   );
 }
+

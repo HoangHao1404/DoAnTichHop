@@ -154,7 +154,7 @@ const Info_Management = ({ onClose }) => {
             onClick={handleCloseModal}
             className="absolute top-4 right-4 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 text-sm transition"
           >
-            ✕
+            ×
           </button>
         </div>
 

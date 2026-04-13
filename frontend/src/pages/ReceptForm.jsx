@@ -30,7 +30,7 @@ const STATUS_OPTIONS = ["all", "Đang Chờ", "Đang Xử Lý", "Đã Giải Quy
 
 const CATEGORY_COLORS = {
   "Giao Thông": "#f97316",
-  Điện: "#fdca00",
+  "Điện": "#fdca00",
   "Cây Xanh": "#16a34a",
   CTCC: "#b78ff2",
 };
@@ -315,7 +315,7 @@ const ReceptForm = () => {
             <SelectContent>
               <SelectItem value="all">Chọn ngày</SelectItem>
               <SelectItem value="recent">Mới nhất</SelectItem>
-              <SelectItem value="old">Cũ hơn</SelectItem>
+              <SelectItem value="old">CÅ© hÆ¡n</SelectItem>
             </SelectContent>
           </Select>
         </div>

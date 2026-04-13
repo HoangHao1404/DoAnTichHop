@@ -9,6 +9,9 @@ node_modules/
 .env.test.local
 .env.production.local
 
+# Python virtual environments
+.venv/
+
 # Builds
 build/
 dist/
@@ -30,3 +33,31 @@ Thumbs.db
 
 # React cache
 .cache/
+node_modules
+
+# Python cache and environments
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# AI model artifacts (keep source code, skip heavy binaries/outputs)
+Urban_Issues/*.pt
+Urban_Issues/*.pth
+Urban_Issues/*.onnx
+Urban_Issues/*.engine
+Urban_Issues/*.ckpt
+Urban_Issues/*.ipynb
+Urban_Issues/runs/
+Urban_Issues/uploads/
+Urban_Issues/results/
+Urban_Issues/output/
+
+# Generated test uploads
+test-data/reports/uploads/

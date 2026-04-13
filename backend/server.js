@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./src/config/database");
 const authRoutes = require("./src/services/auth/auth.routes");
+const userRoutes = require("./src/services/user/user.routes");
 const reportRoutes = require("./src/routes/reportRoutes");
 const geocodeRoutes = require("./src/routes/geocodeRoutes");
 const maintenanceTeamRoutes = require("./src/routes/maintenanceTeamRoutes");
@@ -18,6 +19,8 @@ const ALLOWED_ORIGINS = [
 ];
 const LOCALHOST_REGEX = /^http:\/\/localhost:\d+$/;
 const LOOPBACK_REGEX = /^http:\/\/127\.0\.0\.1:\d+$/;
+// const PORT = process.env.BACKEND_PORT || 5050;
+// const ENABLE_MONGO = process.env.ENABLE_MONGO !== "false";
 
 // CORS - Phải đặt trước các middleware khác
 app.use(
@@ -60,5 +63,5 @@ app.use("/api/maintenance-teams", maintenanceTeamRoutes);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🔥 Server đang chạy tại http://localhost:${PORT}`);
+  console.log(`Server đang chạy tại http://localhost:${PORT}`);
 });

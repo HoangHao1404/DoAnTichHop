@@ -54,16 +54,16 @@ const STATUS_OPTIONS = ["all", "Đang Chờ", "Đang Xử Lý", "Đã Giải Quy
 const TYPE_LABELS = {
   all: "Tất cả",
   "Giao Thông": "Giao Thông",
-  Điện: "Điện",
+  "Điện": "Điện",
   "Cây Xanh": "Cây Xanh",
   CTCC: "Công trình công cộng",
 };
 const TYPE_BADGE = {
   "Giao Thông": "bg-orange-100 text-orange-700",
-  Điện: "bg-yellow-100 text-yellow-700",
+  "Điện": "bg-yellow-100 text-yellow-700",
   "Cây Xanh": "bg-emerald-100 text-emerald-700",
   CTCC: "bg-violet-100 text-violet-700",
-  Khác: "bg-slate-100 text-slate-700",
+  "Khác": "bg-slate-100 text-slate-700",
 };
 
 const STATUS_BADGE = {
@@ -92,6 +92,24 @@ const truncateLocation = (value, maxLength = 24) => {
   }
 
   return `${text.slice(0, maxLength)}...`;
+};
+
+const formatReportDateTime = (value) => {
+  if (!value) {
+    return "Chưa có thời gian";
+  }
+
+  const rawValue = typeof value === "string" ? value.trim() : value;
+  if (!rawValue) {
+    return "Chưa có thời gian";
+  }
+
+  const parsedDate = new Date(rawValue);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return typeof rawValue === "string" ? rawValue : "Chưa có thời gian";
+  }
+
+  return parsedDate.toLocaleString("vi-VN");
 };
 
 const useTestWorkflow =
@@ -126,9 +144,7 @@ function normalizeReport(report) {
     type: hasKnownType ? report.type : "Khác",
     location: report?.location || "Chưa có vị trí",
     status: hasKnownStatus ? report.status : "Đang Chờ",
-    time: reportDate
-      ? new Date(reportDate).toLocaleString("vi-VN")
-      : "Chưa có thời gian",
+    time: formatReportDateTime(reportDate),
     description: report?.description || "",
     images: report?.images || [],
     image: report?.image || "",
@@ -487,7 +503,7 @@ export default function MyReports() {
                             <TableCell className="px-4 py-3">
                               <Badge
                                 variant="outline"
-                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${TYPE_BADGE[item.type] || TYPE_BADGE.Khác}`}
+                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${TYPE_BADGE[item.type] || TYPE_BADGE["Khác"]}`}
                               >
                                 {item.type}
                               </Badge>

@@ -220,7 +220,7 @@ const SignIn = () => {
           )}
 
           <p className="text-center text-sm mt-5">
-            Don’t Have An Account Yet?{" "}
+            Don't Have An Account Yet?{" "}
             <span
               className="text-blue-600 font-semibold cursor-pointer"
               onClick={() => navigate("/register")}
