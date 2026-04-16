@@ -15,6 +15,8 @@ import MaintenanceDashboard from "./pages/MaintenanceDashboard.jsx";
 import MaintenanceMyReports from "./components/MaintenanceMyReports.jsx";
 import SignIn from "./pages/SignIn.jsx";
 import Register from "./pages/Register.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import AdminUserManagement from "./pages/UserManagement.jsx";
@@ -44,6 +46,8 @@ function App() {
             <Route path="/signin" element={<SignIn />} />
             <Route path="/register" element={<Register />} />
             <Route path="/register/confirm" element={<RegisterConfirm />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Citizen */}
             <Route
