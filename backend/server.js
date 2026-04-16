@@ -57,6 +57,7 @@ if (ENABLE_MONGO) {
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/geocode", geocodeRoutes);
 app.use("/api/maintenance-teams", maintenanceTeamRoutes);
