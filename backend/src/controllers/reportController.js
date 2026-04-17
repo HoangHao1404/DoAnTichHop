@@ -86,24 +86,29 @@ async function uploadImagesToCloudinary(images, userId) {
 
   const uploaded = await Promise.all(
     images.map(async (image, index) => {
-      if (typeof image !== "string" || !image.trim()) {
-        return null;
+      try {
+        if (typeof image !== "string" || !image.trim()) {
+          return null;
+        }
+
+        if (isHttpUrl(image)) {
+          return image;
+        }
+
+        if (!isImageDataUrl(image)) {
+          throw new Error(`Định dạng ảnh không hợp lệ ở vị trí ${index + 1}`);
+        }
+
+        const response = await cloudinary.uploader.upload(image, {
+          folder: `${folderRoot}/${userId}`,
+          resource_type: "image",
+        });
+
+        return response.secure_url;
+      } catch (error) {
+        console.error(`❌ Error uploading image ${index + 1}:`, error.message);
+        throw error;
       }
-
-      if (isHttpUrl(image)) {
-        return image;
-      }
-
-      if (!isImageDataUrl(image)) {
-        throw new Error(`Định dạng ảnh không hợp lệ ở vị trí ${index + 1}`);
-      }
-
-      const response = await cloudinary.uploader.upload(image, {
-        folder: `${folderRoot}/${userId}`,
-        resource_type: "image",
-      });
-
-      return response.secure_url;
     })
   );
 

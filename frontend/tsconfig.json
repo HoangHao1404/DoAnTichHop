@@ -1,11 +1,9 @@
 {
   "compilerOptions": {
-    "moduleResolution": "bundler",
     "paths": {
       "@/*": ["./src/*"]
     },
-    "jsx": "react-jsx",
-    "types": ["react", "react-dom"]
+    "jsx": "react-jsx"
   },
   "include": ["src"],
   "exclude": ["node_modules"]
