@@ -297,7 +297,7 @@ class ReportController {
         });
       }
 
-      const firstImageForAi = persistedImages[0] || inputImages[0] || "";
+      const firstImageForAi = inputImages[0] || persistedImages[0] || "";
       let aiResult = {
         aiPercent: 0,
         aiVerified: false,

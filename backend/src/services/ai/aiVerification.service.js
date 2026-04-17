@@ -13,18 +13,60 @@ function buildModelApiCandidates() {
   });
 }
 
-function parseBase64Image(base64Input) {
-  if (typeof base64Input !== "string" || !base64Input.trim()) {
+function isHttpUrl(value) {
+  return /^https?:\/\//i.test(String(value || "").trim());
+}
+
+function looksLikeBase64(value) {
+  return /^[A-Za-z0-9+/=\r\n\s]+$/.test(value) && value.length % 4 === 0;
+}
+
+async function parseImageInput(imageInput) {
+  if (typeof imageInput !== "string" || !imageInput.trim()) {
     throw new Error("Ảnh đầu vào không hợp lệ");
   }
 
-  const value = base64Input.trim();
+  const value = imageInput.trim();
+
+  if (isHttpUrl(value)) {
+    const response = await fetch(value);
+    if (!response.ok) {
+      throw new Error(`Không tải được ảnh từ URL: ${response.status}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    if (!buffer.length) {
+      throw new Error("Ảnh URL rỗng hoặc không đọc được");
+    }
+
+    const mimeType = String(response.headers.get("content-type") || "image/jpeg")
+      .split(";")[0]
+      .trim()
+      .toLowerCase();
+
+    if (!mimeType.startsWith("image/")) {
+      throw new Error("URL không trả về dữ liệu ảnh");
+    }
+
+    const extension = (mimeType.split("/")[1] || "jpg").split("+")[0];
+    const fileName = `report-${Date.now()}-${Math.floor(Math.random() * 1000)}.${extension}`;
+
+    return { buffer, mimeType, fileName };
+  }
+
   const dataUrlMatch = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/i.exec(
     value,
   );
 
   const mimeType = dataUrlMatch ? dataUrlMatch[1].toLowerCase() : "image/jpeg";
   const rawBase64 = dataUrlMatch ? dataUrlMatch[2] : value;
+
+  if (!dataUrlMatch && !looksLikeBase64(rawBase64)) {
+    throw new Error("Ảnh đầu vào không phải base64 hoặc URL hợp lệ");
+  }
+
   const sanitized = rawBase64.replace(/\s/g, "");
   const buffer = Buffer.from(sanitized, "base64");
 
@@ -116,7 +158,7 @@ async function verifyImageWithModel(base64Image) {
 
   let parsedImage;
   try {
-    parsedImage = parseBase64Image(base64Image);
+    parsedImage = await parseImageInput(base64Image);
   } catch (error) {
     return {
       aiVerified: false,
