@@ -6,6 +6,7 @@ const authRoutes = require("./src/services/auth/auth.routes");
 const userRoutes = require("./src/services/user/user.routes");
 const reportRoutes = require("./src/routes/reportRoutes");
 const geocodeRoutes = require("./src/routes/geocodeRoutes");
+const incidentTypeRoutes = require("./src/routes/incidentTypeRoutes");
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 5050;
@@ -42,6 +43,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/geocode", geocodeRoutes);
+app.use("/api/incident-types", incidentTypeRoutes);
 
 // Start server
 app.listen(PORT, () => {

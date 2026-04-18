@@ -24,7 +24,8 @@ const ReportSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["Giao Thông", "Điện", "Cây Xanh", "CTCC"],
+      trim: true,
+      index: true,
     },
     location: {
       type: String,

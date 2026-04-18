@@ -6,13 +6,26 @@ import numpy as np
 import io
 import base64
 from pathlib import Path
+import logging
 
 app = Flask(__name__)
 CORS(app)
 
-# Load the trained model
-MODEL_PATH = 'best.pt'
-model = YOLO(MODEL_PATH)
+# Resolve trained model path relative to this file and load safely
+MODEL_PATH = Path(__file__).parent / 'best.pt'
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+model = None
+try:
+    if MODEL_PATH.exists():
+        logging.info(f"Loading model from {MODEL_PATH}")
+        model = YOLO(str(MODEL_PATH))
+        logging.info("Model loaded successfully")
+    else:
+        logging.error(f"Model file not found at {MODEL_PATH}")
+except Exception as e:
+    logging.exception("Failed to load model:")
 
 CLASS_NAMES = [
     'Road cracks', 'Pothole', 'Illegal Parking', 'Broken Road Sign',
@@ -27,6 +40,9 @@ def health():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
+        # Ensure model is available
+        if model is None:
+            return jsonify({'error': 'Model not loaded on server'}), 500
         # Get image from request
         if 'image' not in request.files:
             return jsonify({'error': 'No image provided'}), 400
@@ -86,6 +102,11 @@ def predict():
 @app.route('/classes', methods=['GET'])
 def get_classes():
     return jsonify({'classes': CLASS_NAMES}), 200
+
+
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({'status': 'ok', 'routes': ['/health','/predict (POST)','/classes']}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

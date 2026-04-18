@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Toast from "./Toast";
 import { reportApi } from "../services/api/reportApi";
+import incidentApi from "../services/api/incidentApi";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -22,13 +23,11 @@ import {
   SelectValue,
 } from "./ui/select";
 
-const incidentOptions = [
-  { value: "infrastructure", label: "Hạ tầng giao thông" },
-  { value: "lighting", label: "Chiếu sáng công cộng" },
-  { value: "environment", label: "Vệ sinh môi trường" },
-  { value: "water", label: "Cấp thoát nước" },
-  { value: "electricity", label: "Điện lực" },
-  { value: "other", label: "Khác" },
+const LEGACY_INCIDENT_OPTIONS = [
+  { value: "Giao Thông", label: "Giao Thông" },
+  { value: "Điện", label: "Điện" },
+  { value: "Cây Xanh", label: "Cây Xanh" },
+  { value: "CTCC", label: "CTCC" },
 ];
 
 function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
@@ -43,6 +42,10 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   );
   const [location, setLocation] = useState("");
   const [locationLoading, setLocationLoading] = useState(false);
+  const [incidentOptions, setIncidentOptions] = useState(
+    LEGACY_INCIDENT_OPTIONS,
+  );
+  const [incidentTypeLoading, setIncidentTypeLoading] = useState(true);
   const [showCamera, setShowCamera] = useState(false);
   const [stream, setStream] = useState(null);
   const [hasFetchedLocation, setHasFetchedLocation] = useState(false);
@@ -59,6 +62,45 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoOpenCamera]);
+
+  useEffect(() => {
+    const fetchIncidentTypes = async () => {
+      try {
+        setIncidentTypeLoading(true);
+        const response = await incidentApi.getIncidentTypes();
+
+        if (response?.success && Array.isArray(response.data)) {
+          const activeOptions = response.data
+            .filter((item) => item?.active !== false)
+            .map((item) => ({
+              value: item.name,
+              label: item.name,
+            }));
+
+          setIncidentOptions(activeOptions);
+          return;
+        }
+
+        setIncidentOptions(LEGACY_INCIDENT_OPTIONS);
+      } catch (error) {
+        console.error("Failed to fetch incident types:", error);
+        setIncidentOptions(LEGACY_INCIDENT_OPTIONS);
+      } finally {
+        setIncidentTypeLoading(false);
+      }
+    };
+
+    fetchIncidentTypes();
+  }, []);
+
+  useEffect(() => {
+    if (
+      incidentType &&
+      !incidentOptions.some((option) => option.value === incidentType)
+    ) {
+      setIncidentType("");
+    }
+  }, [incidentType, incidentOptions]);
 
   useEffect(() => {
     if (!hasFetchedLocation && !location) {
@@ -377,19 +419,10 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     }
 
     try {
-      const typeMapping = {
-        infrastructure: "Giao Thông",
-        lighting: "Điện",
-        environment: "Cây Xanh",
-        water: "Cây Xanh",
-        electricity: "Điện",
-        other: "CTCC",
-      };
-
       const reportData = {
         userId,
         title,
-        type: typeMapping[incidentType] || "CTCC",
+        type: incidentType,
         location,
         description,
         images: uploadedImages,
@@ -486,21 +519,37 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                           size="default"
                           className="h-11 w-full rounded-xl border-transparent bg-[#ececec] px-4 text-sm text-[#222] data-[placeholder]:text-[#9b9b9b] focus-visible:border-[#5d5fef] focus-visible:ring-4 focus-visible:ring-[#5d5fef]/10 [&>svg]:text-[#9b9b9b]"
                         >
-                          <SelectValue placeholder="Chọn loại sự cố" />
+                          <SelectValue
+                            placeholder={
+                              incidentTypeLoading
+                                ? "Đang tải loại sự cố..."
+                                : "Chọn loại sự cố"
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent
                           position="popper"
                           className="z-[10020] w-[var(--radix-select-trigger-width)] max-h-[260px] rounded-xl border border-gray-100 bg-white p-1 text-sm shadow-[0_12px_30px_rgba(0,0,0,0.12)]"
                         >
-                          {incidentOptions.map((option) => (
+                          {incidentOptions.length > 0 ? (
+                            incidentOptions.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                                className="rounded-lg py-2 text-sm font-normal text-[#222] focus:bg-[#f5f6ff] focus:text-[#3b3df5] data-[state=checked]:font-medium"
+                              >
+                                {option.label}
+                              </SelectItem>
+                            ))
+                          ) : (
                             <SelectItem
-                              key={option.value}
-                              value={option.value}
-                              className="rounded-lg py-2 text-sm font-normal text-[#222] focus:bg-[#f5f6ff] focus:text-[#3b3df5] data-[state=checked]:font-medium"
+                              value="__no_incident_type"
+                              disabled
+                              className="rounded-lg py-2 text-sm text-gray-400"
                             >
-                              {option.label}
+                              Chưa có loại sự cố khả dụng
                             </SelectItem>
-                          ))}
+                          )}
                         </SelectContent>
                       </Select>
                     </div>

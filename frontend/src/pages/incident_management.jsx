@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Search, Plus, Building2, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import {
 import IncidentTypePopup, {
   INCIDENT_ICON_MAP,
 } from "@/components/IncidentTypePopup";
+import incidentApi from "@/services/api/incidentApi";
 
 const PAGE_SIZE = 6;
 
@@ -49,58 +51,9 @@ const IncidentManagement = () => {
   const [newDescription, setNewDescription] = useState("");
   const [newIconKey, setNewIconKey] = useState("public");
   const [newColor, setNewColor] = useState("#f97316");
-
-  const [incidentTypes, setIncidentTypes] = useState([
-    {
-      id: 1,
-      name: "Giao Thông",
-      iconKey: "car",
-      color: "#f97316",
-      description:
-        "Quản lý các sự cố liên quan đến các vấn đề như đường xá,...",
-      count: 245,
-    },
-    {
-      id: 2,
-      name: "Điện",
-      iconKey: "electric",
-      color: "#fdca00",
-      description: "Các sự cố liên quan đến đèn giao thông, đèn tín hiệu...",
-      count: 156,
-    },
-    {
-      id: 3,
-      name: "Cây Xanh",
-      iconKey: "tree",
-      color: "#74c365",
-      description: "Các sự cố liên quan đến các vấn đề như cây xanh,...",
-      count: 89,
-    },
-    {
-      id: 4,
-      name: "Công Trình Công Cộng",
-      iconKey: "public",
-      color: "#b78ff2",
-      description: "Các sự cố liên quan đến các công trình công cộng,...",
-      count: 132,
-    },
-    {
-      id: 5,
-      name: "Môi Trường",
-      iconKey: "weather",
-      color: "#06b6d4",
-      description: "Các sự cố liên quan đến môi trường và khí hậu đô thị,...",
-      count: 64,
-    },
-    {
-      id: 6,
-      name: "Khẩn Cấp",
-      iconKey: "alert",
-      color: "#ef4444",
-      description: "Các sự cố cần xử lý khẩn cấp để bảo đảm an toàn,...",
-      count: 41,
-    },
-  ]);
+  const [incidentTypes, setIncidentTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const filteredIncidents = useMemo(
     () =>
@@ -121,6 +74,31 @@ const IncidentManagement = () => {
     return filteredIncidents.slice(start, start + PAGE_SIZE);
   }, [filteredIncidents, currentPage, totalPages]);
 
+  const fetchIncidentTypes = async () => {
+    try {
+      setLoading(true);
+      const response = await incidentApi.getIncidentTypes({ includeUsage: true });
+
+      if (response?.success) {
+        setIncidentTypes(response.data || []);
+      } else {
+        setIncidentTypes([]);
+        toast.error("Không thể tải danh sách loại sự cố");
+      }
+    } catch (error) {
+      setIncidentTypes([]);
+      toast.error(
+        error?.response?.data?.message || "Không thể tải danh sách loại sự cố",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIncidentTypes();
+  }, []);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
@@ -140,52 +118,63 @@ const IncidentManagement = () => {
     setShowEditModal(true);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingIncident || !editName.trim()) return;
 
-    setIncidentTypes((prev) =>
-      prev.map((item) =>
-        item.id === editingIncident.id
-          ? {
-              ...item,
-              name: editName.trim(),
-              description: editDescription.trim(),
-              iconKey: editIconKey,
-              color: editColor,
-            }
-          : item,
-      ),
-    );
+    try {
+      setActionLoading(true);
+      const response = await incidentApi.updateIncidentType(editingIncident._id, {
+        name: editName.trim(),
+        description: editDescription.trim(),
+        iconKey: editIconKey,
+        color: editColor,
+      });
 
-    setShowEditModal(false);
-    setEditingIncident(null);
+      if (response?.success) {
+        toast.success("Cập nhật loại sự cố thành công");
+        setShowEditModal(false);
+        setEditingIncident(null);
+        await fetchIncidentTypes();
+      } else {
+        toast.error("Cập nhật loại sự cố thất bại");
+      }
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Không thể cập nhật loại sự cố",
+      );
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleAddIncident = () => {
+  const handleAddIncident = async () => {
     if (!newName.trim()) return;
 
-    const nextId =
-      incidentTypes.length > 0
-        ? Math.max(...incidentTypes.map((type) => type.id)) + 1
-        : 1;
+    try {
+      setActionLoading(true);
+      const response = await incidentApi.createIncidentType({
+        name: newName.trim(),
+        description: newDescription.trim(),
+        iconKey: newIconKey,
+        color: newColor,
+      });
 
-    const newIncident = {
-      id: nextId,
-      name: newName.trim(),
-      iconKey: newIconKey,
-      color: newColor,
-      description:
-        newDescription.trim() ||
-        "Các sự cố liên quan đến các công trình công cộng,...",
-      count: 0,
-    };
-
-    setIncidentTypes((prev) => [...prev, newIncident]);
-    setShowAddModal(false);
-    setNewName("");
-    setNewDescription("");
-    setNewIconKey("public");
-    setNewColor("#f97316");
+      if (response?.success) {
+        toast.success("Thêm loại sự cố thành công");
+        setShowAddModal(false);
+        setNewName("");
+        setNewDescription("");
+        setNewIconKey("public");
+        setNewColor("#f97316");
+        await fetchIncidentTypes();
+      } else {
+        toast.error("Thêm loại sự cố thất bại");
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Không thể thêm loại sự cố");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleDeleteIncident = (incident) => {
@@ -193,14 +182,29 @@ const IncidentManagement = () => {
     setShowDeleteConfirm(true);
   };
 
-  const confirmDeleteIncident = () => {
-    if (!deletingIncident) return;
+  const confirmDeleteIncident = async () => {
+    if (!deletingIncident?._id) return;
 
-    setIncidentTypes((prev) =>
-      prev.filter((item) => item.id !== deletingIncident.id),
-    );
-    setShowDeleteConfirm(false);
-    setDeletingIncident(null);
+    try {
+      setActionLoading(true);
+      const response = await incidentApi.deleteIncidentType(deletingIncident._id);
+
+      if (response?.success) {
+        toast.success("Xóa loại sự cố thành công");
+        setShowDeleteConfirm(false);
+        setDeletingIncident(null);
+        await fetchIncidentTypes();
+      }
+    } catch (error) {
+      const apiMessage = error?.response?.data?.message;
+      if (error?.response?.status === 409) {
+        toast.error(apiMessage || "Không thể xóa vì có báo cáo đang xử lý");
+      } else {
+        toast.error(apiMessage || "Không thể xóa loại sự cố");
+      }
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const cancelDeleteIncident = () => {
@@ -235,23 +239,26 @@ const IncidentManagement = () => {
           </Button>
         </div>
 
-        {filteredIncidents.length > 0 ? (
+        {loading ? (
+          <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-gray-200 text-gray-500">
+            Đang tải danh sách loại sự cố...
+          </div>
+        ) : filteredIncidents.length > 0 ? (
           <>
             <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2">
               {pageIncidents.map((type) => {
-                const IconComponent =
-                  INCIDENT_ICON_MAP[type.iconKey] || Building2;
+                const IconComponent = INCIDENT_ICON_MAP[type.iconKey] || Building2;
 
                 return (
                   <Card
-                    key={type.id}
+                    key={type._id || type.id}
                     className="h-full min-h-[240px] gap-0 overflow-hidden rounded-[34px] border border-[#eceef3] bg-white py-0 shadow-none ring-0"
-                    style={{ boxShadow: getCardShadow(type.color) }}
+                    style={{ boxShadow: getCardShadow(type.color || "#f97316") }}
                   >
                     <CardContent className="flex h-full flex-col items-center gap-3 px-5 py-5 text-center">
                       <div
                         className="flex h-14 w-14 items-center justify-center rounded-full"
-                        style={{ backgroundColor: type.color }}
+                        style={{ backgroundColor: type.color || "#f97316" }}
                       >
                         <IconComponent size={24} className="text-white" />
                       </div>
@@ -300,9 +307,7 @@ const IncidentManagement = () => {
                         setCurrentPage((prev) => Math.max(prev - 1, 1));
                       }}
                       className={
-                        currentPage === 1
-                          ? "pointer-events-none opacity-50"
-                          : ""
+                        currentPage === 1 ? "pointer-events-none opacity-50" : ""
                       }
                     />
                   </PaginationItem>
@@ -331,9 +336,7 @@ const IncidentManagement = () => {
                       text="Sau"
                       onClick={(e) => {
                         e.preventDefault();
-                        setCurrentPage((prev) =>
-                          Math.min(prev + 1, totalPages),
-                        );
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
                       }}
                       className={
                         currentPage === totalPages
@@ -374,6 +377,7 @@ const IncidentManagement = () => {
           setNewColor("#f97316");
         }}
         onSubmit={handleAddIncident}
+        isSaving={actionLoading}
       />
 
       <IncidentTypePopup
@@ -394,6 +398,7 @@ const IncidentManagement = () => {
           setEditingIncident(null);
         }}
         onSubmit={handleSaveEdit}
+        isSaving={actionLoading}
       />
 
       {showDeleteConfirm && (
@@ -419,6 +424,7 @@ const IncidentManagement = () => {
                     type="button"
                     variant="outline"
                     onClick={cancelDeleteIncident}
+                    disabled={actionLoading}
                     className="h-10 w-full rounded-lg border-gray-200 px-4 sm:w-auto"
                   >
                     Hủy
@@ -426,9 +432,10 @@ const IncidentManagement = () => {
                   <Button
                     type="button"
                     onClick={confirmDeleteIncident}
+                    disabled={actionLoading}
                     className="h-10 w-full rounded-lg bg-red-600 px-4 text-white hover:bg-red-700 sm:w-auto"
                   >
-                    Xóa
+                    {actionLoading ? "Đang xử lý..." : "Xóa"}
                   </Button>
                 </div>
               </CardContent>

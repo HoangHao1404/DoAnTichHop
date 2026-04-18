@@ -1,4 +1,5 @@
 const ReportRepository = require("../repositories/ReportRepository");
+const IncidentTypeRepository = require("../repositories/IncidentTypeRepository");
 const {
   verifyImageWithModel,
 } = require("../services/ai/aiVerification.service");
@@ -98,14 +99,33 @@ class ReportController {
 
   async createReport(req, res) {
     try {
-      const { title, type, location, description, images, userId } = req.body;
+      const {
+        title,
+        type: incomingType,
+        location,
+        description,
+        images,
+        userId,
+      } = req.body;
       console.log("📝 Creating report for userId:", userId);
 
       // Validate required fields
-      if (!title || !type || !location || !userId) {
+      if (!title || !incomingType || !location || !userId) {
         return res.status(400).json({
           success: false,
           message: "Thiếu thông tin bắt buộc: title, type, location, userId",
+        });
+      }
+
+      await IncidentTypeRepository.ensureDefaults();
+      const incidentType =
+        await IncidentTypeRepository.findActiveByName(incomingType);
+
+      if (!incidentType) {
+        return res.status(400).json({
+          success: false,
+          code: "INVALID_INCIDENT_TYPE",
+          message: "Loại sự cố không hợp lệ hoặc đã bị xóa",
         });
       }
 
@@ -132,7 +152,7 @@ class ReportController {
         id: reportId,
         userId,
         title,
-        type,
+        type: incidentType.name,
         location,
         description: description || "",
         images: images || [],
