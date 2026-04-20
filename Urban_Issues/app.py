@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from ultralytics import YOLO
-from PIL import Image
-import numpy as np
+from PIL import Image, UnidentifiedImageError
 import io
 import base64
 from pathlib import Path
@@ -11,14 +10,38 @@ app = Flask(__name__)
 CORS(app)
 
 # Load the trained model
-MODEL_PATH = 'best.pt'
-model = YOLO(MODEL_PATH)
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / 'best.pt'
+model = YOLO(str(MODEL_PATH))
 
 CLASS_NAMES = [
     'Road cracks', 'Pothole', 'Illegal Parking', 'Broken Road Sign',
     'Fallen trees', 'Littering', 'Graffitti', 'Dead Animal',
     'Damaged concrete', 'Damaged Electric wires'
 ]
+
+
+def _get_class_name(class_id: int) -> str:
+    if 0 <= class_id < len(CLASS_NAMES):
+        return CLASS_NAMES[class_id]
+    model_names = getattr(model, 'names', None)
+    if isinstance(model_names, dict):
+        return model_names.get(class_id, f'class_{class_id}')
+    if isinstance(model_names, list) and 0 <= class_id < len(model_names):
+        return model_names[class_id]
+    return f'class_{class_id}'
+
+
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({
+        'service': 'Urban Issues AI API',
+        'endpoints': {
+            'health': '/health',
+            'predict': '/predict (POST multipart/form-data, field: image)',
+            'classes': '/classes'
+        }
+    }), 200
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -36,7 +59,14 @@ def predict():
             return jsonify({'error': 'No file selected'}), 400
         
         # Read and process image
-        image = Image.open(io.BytesIO(file.read()))
+        file_bytes = file.read()
+        if not file_bytes:
+            return jsonify({'error': 'Uploaded file is empty'}), 400
+
+        try:
+            image = Image.open(io.BytesIO(file_bytes)).convert('RGB')
+        except UnidentifiedImageError:
+            return jsonify({'error': 'Invalid image file'}), 400
         
         # Run inference
         results = model(image, conf=0.25)
@@ -54,7 +84,7 @@ def predict():
                     
                     detections.append({
                         'class_id': class_id,
-                        'class_name': CLASS_NAMES[class_id],
+                        'class_name': _get_class_name(class_id),
                         'confidence': round(confidence, 4),
                         'bbox': {
                             'x_min': float(xyxy[0]),

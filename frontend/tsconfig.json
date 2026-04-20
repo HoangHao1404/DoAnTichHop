@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+<<<<<<< HEAD
     "module": "ESNext",              
     "moduleResolution": "bundler",
     "target": "ESNext",
@@ -10,6 +11,12 @@
 
     "jsx": "react-jsx",
     "types": ["react", "react-dom"]
+=======
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "jsx": "react-jsx"
+>>>>>>> origin/Quoc
   },
   "include": ["src"],
   "exclude": ["node_modules"]

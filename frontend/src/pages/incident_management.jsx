@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿import React, { useEffect, useMemo, useState } from "react";
+=======
+import React, { useEffect, useMemo, useState } from "react";
+>>>>>>> origin/Quoc
 import { Search, Plus, Building2, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -212,7 +216,7 @@ const IncidentManagement = () => {
     <div className="h-full bg-transparent px-2 py-2 sm:px-3 sm:py-3">
       <div className="mx-auto flex h-full w-full max-w-[1322px] flex-col">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:w-[410px]">
+          <div className="relative rounded-xl bg-white w-full lg:w-[410px]">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
               size={20}
