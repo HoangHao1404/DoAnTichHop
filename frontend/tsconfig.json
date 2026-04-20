@@ -1,9 +1,13 @@
 {
   "compilerOptions": {
+    "module": "ESNext",              
     "moduleResolution": "bundler",
+    "target": "ESNext",
+
     "paths": {
       "@/*": ["./src/*"]
     },
+
     "jsx": "react-jsx",
     "types": ["react", "react-dom"]
   },
