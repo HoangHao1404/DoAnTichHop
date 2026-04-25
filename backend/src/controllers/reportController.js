@@ -151,9 +151,13 @@ async function uploadImagesToCloudinary(images, userId) {
 }
 const Report = require("../models/Report");
 const User = require("../services/user/user.model");
+const IncidentTypeRepository = require("../repositories/IncidentTypeRepository");
 const {
-  verifyImageWithModel,
+  verifyAllImages,
 } = require("../services/ai/aiVerification.service");
+const {
+  validateCreateReportPayload,
+} = require("../utils/reportValidation");
 
 function parseNumericUserId(value) {
   if (value === undefined || value === null || value === "") {
@@ -465,14 +469,40 @@ class ReportController {
 
   async createReport(req, res) {
     try {
-      const { title, type, location, description, images, userId, lat, lng } = req.body;
-      console.log("📝 Creating report for userId:", userId);
+      const validation = validateCreateReportPayload({
+        ...req.body,
+        latitude: req.body?.latitude ?? req.body?.lat,
+        longitude: req.body?.longitude ?? req.body?.lng,
+      });
 
-      // Validate required fields
-      if (!title || !type || !location || !userId) {
+      if (!validation.valid) {
         return res.status(400).json({
           success: false,
-          message: "Thiếu thông tin bắt buộc: title, type, location, userId",
+          code: "VALIDATION_ERROR",
+          message: validation.message,
+        });
+      }
+
+      const {
+        title,
+        type: incomingType,
+        location,
+        description,
+        images,
+        userId,
+      } = validation.data;
+
+      console.log("📝 Creating report for userId:", userId);
+
+      await IncidentTypeRepository.ensureDefaults();
+      const incidentType =
+        await IncidentTypeRepository.findActiveByName(incomingType);
+
+      if (!incidentType) {
+        return res.status(400).json({
+          success: false,
+          code: "INVALID_INCIDENT_TYPE",
+          message: "Loại sự cố không hợp lệ hoặc đã bị xóa",
         });
       }
 
@@ -494,63 +524,74 @@ class ReportController {
       });
 
       const inputImages = Array.isArray(images) ? images : [];
-      let storedImages = [];
+      let persistedImages = inputImages;
 
-      if (inputImages.length > 0) {
-        if (!hasCloudinaryConfig()) {
+      if (inputImages.length > 0 && hasCloudinaryConfig()) {
+        const uploadedImages = await uploadImagesToCloudinary(inputImages, userId);
+        const cloudinaryUrls = uploadedImages.filter(
+          (image) => typeof image === "string" && isHttpUrl(image),
+        );
+
+        if (cloudinaryUrls.length === 0) {
           return res.status(500).json({
             success: false,
-            message: "Thiếu cấu hình Cloudinary trong môi trường backend",
+            message: "Upload ảnh lên Cloudinary thất bại",
           });
         }
 
-        storedImages = await uploadImagesToCloudinary(inputImages, userId);
+        persistedImages = cloudinaryUrls;
+      } else if (inputImages.length > 0 && !hasCloudinaryConfig()) {
+        console.warn("⚠️ Missing Cloudinary config, fallback to raw image payload");
       }
 
-      const persistedImages = storedImages.filter(
-        (image) => typeof image === "string" && isHttpUrl(image),
+      const parsedLat = parseCoordinate(
+        req.body?.lat ?? req.body?.latitude,
+        -90,
+        90,
       );
-
-      if (inputImages.length > 0 && persistedImages.length === 0) {
-        return res.status(500).json({
-          success: false,
-          message: "Upload ảnh lên Cloudinary thất bại",
-        });
-      }
-
-      const firstImageForAi = inputImages[0] || persistedImages[0] || "";
-      let aiResult = {
-        aiPercent: 0,
-        aiVerified: false,
-        aiLabel: "",
-        aiTotalObjects: 0,
-        aiSource: "",
-      };
-
-      if (firstImageForAi) {
-        try {
-          aiResult = await verifyImageWithModel(firstImageForAi);
-          if (!aiResult.aiVerified && aiResult.aiError) {
-            console.warn(`⚠️ AI verify failed for ${reportStringId}: ${aiResult.aiError}`);
-          }
-        } catch (aiError) {
-          console.warn(`⚠️ AI verify exception for ${reportStringId}: ${aiError.message}`);
-        }
-      }
-
-      const parsedLat = parseCoordinate(lat, -90, 90);
-      const parsedLng = parseCoordinate(lng, -180, 180);
+      const parsedLng = parseCoordinate(
+        req.body?.lng ?? req.body?.longitude,
+        -180,
+        180,
+      );
       const fallbackCoordinates = parseCoordinatesFromLocation(location);
       const resolvedLat = parsedLat ?? fallbackCoordinates.lat;
       const resolvedLng = parsedLng ?? fallbackCoordinates.lng;
+
+      // AI xác thực TẤT CẢ ảnh theo spec AI_Image_Validation_Workflow.md
+      const aiVerification = await verifyAllImages(inputImages);
+
+      if (!aiVerification.allPassed) {
+        const failedImageNumber = (aiVerification.failedIndex ?? 0) + 1;
+
+        // Phân biệt timeout vs AI từ chối
+        if (aiVerification.isTimeout) {
+          return res.status(422).json({
+            success: false,
+            code: "AI_SERVICE_UNAVAILABLE",
+            message: "Hệ thống AI tạm thời không khả dụng, vui lòng thử lại sau",
+          });
+        }
+
+        return res.status(422).json({
+          success: false,
+          code: "AI_VALIDATION_FAILED",
+          message:
+            aiVerification.aiError ||
+            `Ảnh thứ ${failedImageNumber} không liên quan đến sự cố hạ tầng đô thị, vui lòng chụp lại`,
+        });
+      }
+
+      // Lấy summary AI từ ảnh đầu tiên để lưu vào DB
+      const aiSummary = aiVerification.summary;
 
       const reportData = {
         id: reportStringId,
         userId: String(userId),
         report_id: nextReportId,
-        user_id: Number(userId),
+        user_id: parseNumericUserId(userId),
         title,
-        type,
+        type: incidentType.name,
         location,
         lat: resolvedLat,
         lng: resolvedLng,
@@ -559,11 +600,11 @@ class ReportController {
         image: persistedImages.length > 0 ? persistedImages[0] : "",
         status: "Đang Chờ",
         time: currentTime,
-        aiPercent: aiResult.aiPercent || 0,
-        aiVerified: Boolean(aiResult.aiVerified),
-        aiLabel: aiResult.aiLabel || "",
-        aiTotalObjects: aiResult.aiTotalObjects || 0,
-        aiSource: aiResult.aiSource || "",
+        aiPercent: Number(aiSummary.aiPercent) || 0,
+        aiVerified: Boolean(aiSummary.aiVerified),
+        aiLabel: aiSummary.aiLabel || "",
+        aiTotalObjects: Number(aiSummary.aiTotalObjects) || 0,
+        aiSource: aiSummary.aiSource || "",
       };
 
       const newReport = await ReportRepository.create(reportData);
