@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Camera,
@@ -25,7 +25,7 @@ import {
 } from "./ui/select";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api";
 
 const incidentOptions = [
   { value: "infrastructure", label: "Hạ tầng giao thông" },
