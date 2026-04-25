@@ -70,7 +70,7 @@ const ForgotPassword = () => {
           <h1
             className="text-white relative font-sans italic tracking-[-0.03em]"
             style={{
-              fontSize: "180px",
+              fontSize: "clamp(80px, 12vw, 180px)",
               textShadow: "0px 15px 40px rgba(0,0,0,0.65)",
               fontFamily: "Inter, sans-serif",
             }}
@@ -80,33 +80,32 @@ const ForgotPassword = () => {
         </div>
 
         {/* Form */}
-        <div className="w-full md:w-1/2 min-h-screen bg-white relative flex justify-center items-center py-10">
-          <div className="w-[90%] max-w-[450px] mx-auto">
+        <div className="w-full md:w-1/2 min-h-screen bg-white relative flex justify-center items-center py-6 xs:py-8 sm:py-10">
+          <div className="w-[95vw] xs:w-[90vw] sm:w-[80vw] md:w-full max-w-[450px] mx-auto px-0 xs:px-2 sm:px-4">
             <button
               onClick={() => navigate("/signin")}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-8"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-6 xs:mb-7 sm:mb-8 text-xs xs:text-sm"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={16} className="xs:w-5 xs:h-5" />
               Back to Sign In
             </button>
 
-            <h2 className="text-3xl md:text-4xl font-semibold leading-tight mb-2">
+            <h2 className="text-2xl xs:text-3xl sm:text-4xl font-semibold leading-tight mb-1 xs:mb-2 sm:mb-2">
               Reset Your Password
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-xs xs:text-sm sm:text-base text-gray-600 mb-5 xs:mb-6 sm:mb-6">
               Enter your phone number and we'll send you an OTP to reset your password.
             </p>
 
             <form onSubmit={handleSubmit}>
-              <div className="mb-6">
-                <label className="text-sm font-medium">Phone Number</label>
+              <div className="mb-4 xs:mb-5 sm:mb-6">
+                <label className="text-xs xs:text-sm font-medium">Phone Number</label>
                 <input
                   type="text"
                   placeholder="Enter your phone number"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-xl 
-                             text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full mt-1.5 xs:mt-2 px-3 xs:px-4 py-2 xs:py-3 border border-gray-300 rounded-lg xs:rounded-xl text-xs xs:text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   required
                 />
               </div>
@@ -114,7 +113,7 @@ const ForgotPassword = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg text-base font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                className="w-full bg-blue-600 text-white py-2.5 xs:py-3 sm:py-3 rounded-lg text-xs xs:text-sm sm:text-base font-medium hover:bg-blue-700 transition disabled:opacity-50"
               >
                 {loading ? "Sending OTP..." : "Send OTP"}
               </button>
