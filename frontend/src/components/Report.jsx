@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Camera,
@@ -30,6 +30,11 @@ const LEGACY_INCIDENT_OPTIONS = [
   { value: "CTCC", label: "CTCC" },
 ];
 
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MIN_IMAGES = 3;
+const MAX_IMAGES = 5;
+
 function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -41,6 +46,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     initialImage ? [initialImage] : [],
   );
   const [location, setLocation] = useState("");
+  const [gpsCoordinates, setGpsCoordinates] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [incidentOptions, setIncidentOptions] = useState(
     LEGACY_INCIDENT_OPTIONS,
@@ -120,10 +126,10 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
   const validateFiles = (files) => {
     const currentCount = uploadedImages.length;
-    const remainingSlots = 5 - currentCount;
+    const remainingSlots = MAX_IMAGES - currentCount;
 
     if (remainingSlots <= 0) {
-      showErrorToast("Bạn chỉ được tải tối đa 5 ảnh.");
+      showErrorToast(`Bạn chỉ được tải tối đa ${MAX_IMAGES} ảnh.`);
       return [];
     }
 
@@ -131,13 +137,13 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     const validFiles = [];
 
     for (const file of selectedFiles) {
-      if (!file.type.startsWith("image/")) {
-        showErrorToast(`File "${file.name}" không phải là hình ảnh.`);
+      if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+        showErrorToast(`File "${file.name}" phải là JPG hoặc PNG.`);
         continue;
       }
 
-      if (file.size > 10 * 1024 * 1024) {
-        showErrorToast(`Ảnh "${file.name}" vượt quá 10MB.`);
+      if (file.size > MAX_IMAGE_BYTES) {
+        showErrorToast(`Ảnh "${file.name}" vượt quá 5MB.`);
         continue;
       }
 
@@ -159,6 +165,39 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
           }),
       ),
     );
+  };
+
+  const validateBase64ImagesForSubmit = (images) => {
+    for (let i = 0; i < images.length; i += 1) {
+      const image = images[i];
+      if (typeof image !== "string" || !image.trim()) {
+        showErrorToast(`Ảnh thứ ${i + 1} không hợp lệ.`);
+        return false;
+      }
+
+      const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/i.exec(
+        image.trim(),
+      );
+      if (!match) {
+        showErrorToast(`Ảnh thứ ${i + 1} phải ở định dạng JPG/PNG.`);
+        return false;
+      }
+
+      const mimeType = match[1].toLowerCase();
+      if (!ALLOWED_IMAGE_TYPES.has(mimeType)) {
+        showErrorToast(`Ảnh thứ ${i + 1} phải là JPG hoặc PNG.`);
+        return false;
+      }
+
+      const base64Payload = match[2].replace(/\s/g, "");
+      const bytes = Math.floor((base64Payload.length * 3) / 4);
+      if (bytes > MAX_IMAGE_BYTES) {
+        showErrorToast(`Ảnh thứ ${i + 1} vượt quá 5MB.`);
+        return false;
+      }
+    }
+
+    return true;
   };
 
   // Upload ảnh chỉ thêm ảnh, vị trí hiện tại đã được lấy tự động khi mở form
@@ -274,6 +313,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        setGpsCoordinates({ latitude, longitude });
 
         try {
           const address = await resolveAddress(latitude, longitude);
@@ -321,8 +361,8 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
   const openCamera = async () => {
     try {
-      if (uploadedImages.length >= 5) {
-        showErrorToast("Bạn chỉ được tải tối đa 5 ảnh.");
+      if (uploadedImages.length >= MAX_IMAGES) {
+        showErrorToast(`Bạn chỉ được tải tối đa ${MAX_IMAGES} ảnh.`);
         return;
       }
 
@@ -347,8 +387,8 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
-    if (uploadedImages.length >= 5) {
-      showErrorToast("Bạn chỉ được tải tối đa 5 ảnh.");
+    if (uploadedImages.length >= MAX_IMAGES) {
+      showErrorToast(`Bạn chỉ được tải tối đa ${MAX_IMAGES} ảnh.`);
       return;
     }
 
@@ -389,6 +429,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     setDescription("");
     setUploadedImages([]);
     setLocation("");
+    setGpsCoordinates(null);
     setHasFetchedLocation(false);
     setDragActive(false);
   };
@@ -402,12 +443,32 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!title || !incidentType || uploadedImages.length === 0) {
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+
+    if (!trimmedTitle || !incidentType) {
       alert("Vui lòng điền đầy đủ các trường bắt buộc");
       return;
     }
 
-    if (!location) {
+    if (trimmedDescription.length < 10 || trimmedDescription.length > 100) {
+      showErrorToast("Mô tả phải từ 10 đến 100 ký tự.");
+      return;
+    }
+
+    if (
+      uploadedImages.length < MIN_IMAGES ||
+      uploadedImages.length > MAX_IMAGES
+    ) {
+      showErrorToast(`Bạn cần tải từ ${MIN_IMAGES} đến ${MAX_IMAGES} ảnh.`);
+      return;
+    }
+
+    if (!validateBase64ImagesForSubmit(uploadedImages)) {
+      return;
+    }
+
+    if (!location && !gpsCoordinates) {
       alert("Vui lòng nhập vị trí hoặc cho phép truy cập GPS");
       return;
     }
@@ -421,10 +482,14 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     try {
       const reportData = {
         userId,
-        title,
+        title: trimmedTitle,
         type: incidentType,
-        location,
-        description,
+        location: gpsCoordinates
+          ? `${gpsCoordinates.latitude}, ${gpsCoordinates.longitude}${location ? ` (${location})` : ""}`
+          : location,
+        latitude: gpsCoordinates?.latitude,
+        longitude: gpsCoordinates?.longitude,
+        description: trimmedDescription,
         images: uploadedImages,
       };
 
@@ -578,7 +643,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                       Hình ảnh sự cố
                     </h3>
                     <p className="mt-0.5 text-xs text-[#8b8b8b]">
-                      Định dạng JPG, PNG (Tối đa 10MB)
+                      Định dạng JPG, PNG (Tối đa 5MB)
                     </p>
                   </div>
 
@@ -641,7 +706,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                         </div>
 
                         <p className="text-center text-[11px] text-[#8b8b8b]">
-                          Đã tải {uploadedImages.length}/5 ảnh
+                          Đã tải {uploadedImages.length}/{MAX_IMAGES} ảnh
                         </p>
                       </div>
                     ) : (
@@ -685,7 +750,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png"
                       multiple
                       onChange={handleImageUpload}
                       className="hidden"

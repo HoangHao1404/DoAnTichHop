@@ -15,7 +15,11 @@ CORS(app)
 MODEL_PATH = Path(__file__).parent / 'best.pt'
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 model = None
 try:
     if MODEL_PATH.exists():
@@ -42,21 +46,28 @@ def predict():
     try:
         # Ensure model is available
         if model is None:
+            logging.error("[predict] Model not loaded on server")
             return jsonify({'error': 'Model not loaded on server'}), 500
+
         # Get image from request
         if 'image' not in request.files:
+            logging.warning("[predict] Request missing 'image' field")
             return jsonify({'error': 'No image provided'}), 400
-        
+
         file = request.files['image']
         if file.filename == '':
+            logging.warning("[predict] Empty filename received")
             return jsonify({'error': 'No file selected'}), 400
-        
+
+        logging.info(f"[predict] Received image: {file.filename}")
+
         # Read and process image
         image = Image.open(io.BytesIO(file.read()))
-        
+        logging.info(f"[predict] Image size: {image.size}, mode: {image.mode}")
+
         # Run inference
         results = model(image, conf=0.25)
-        
+
         # Parse results
         detections = []
         for result in results:
@@ -64,10 +75,10 @@ def predict():
                 for i, box in enumerate(result.boxes):
                     class_id = int(box.cls.item())
                     confidence = float(box.conf.item())
-                    
+
                     # Get coordinates
                     xyxy = box.xyxy[0].cpu().numpy()
-                    
+
                     detections.append({
                         'class_id': class_id,
                         'class_name': CLASS_NAMES[class_id],
@@ -79,24 +90,38 @@ def predict():
                             'y_max': float(xyxy[3])
                         }
                     })
-        
+
+        logging.info(f"[predict] Total detections: {len(detections)}")
+        for d in detections:
+            logging.info(
+                f"  → class={d['class_name']} | confidence={d['confidence']:.4f} "
+                f"| bbox=[{d['bbox']['x_min']:.1f},{d['bbox']['y_min']:.1f},"
+                f"{d['bbox']['x_max']:.1f},{d['bbox']['y_max']:.1f}]"
+            )
+
+        if len(detections) == 0:
+            logging.warning(f"[predict] No objects detected in {file.filename}")
+
         # Annotate image
         annotated_img = results[0].plot()
         img_pil = Image.fromarray(annotated_img)
-        
+
         # Convert to base64 for response
         buffered = io.BytesIO()
         img_pil.save(buffered, format='JPEG')
         img_base64 = base64.b64encode(buffered.getvalue()).decode()
-        
+
+        logging.info(f"[predict] Returning {len(detections)} detections for {file.filename}")
+
         return jsonify({
             'success': True,
             'detections': detections,
             'image': f'data:image/jpeg;base64,{img_base64}',
             'total_objects': len(detections)
         }), 200
-    
+
     except Exception as e:
+        logging.exception(f"[predict] Unexpected error: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/classes', methods=['GET'])

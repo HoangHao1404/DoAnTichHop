@@ -114,10 +114,6 @@ function normalizeReport(report) {
     : 0;
   const aiVerified =
     typeof report?.aiVerified === "boolean" ? report.aiVerified : hasAiValue;
-  const inferredDamageLevel =
-    aiPercent >= 70 ? "Nặng" : aiPercent >= 30 ? "Trung bình" : "Nhẹ";
-  const damageLevel =
-    report?.damageLevel || (aiVerified ? inferredDamageLevel : "Chưa xác thực");
 
   return {
     id: report?.id || report?.report_id || report?._id || "N/A",
@@ -133,7 +129,6 @@ function normalizeReport(report) {
     image: report?.image || "",
     aiPercent,
     aiVerified,
-    damageLevel,
   };
 }
 
@@ -481,9 +476,6 @@ export default function MyReports() {
                             Trạng thái
                           </TableHead>
                           <TableHead className="px-4 py-3 font-semibold">
-                            Độ hư hại
-                          </TableHead>
-                          <TableHead className="px-4 py-3 font-semibold">
                             % AI
                           </TableHead>
                           <TableHead className="px-4 py-3 font-semibold">
@@ -495,7 +487,7 @@ export default function MyReports() {
                         {visibleReports.length === 0 && (
                           <TableRow>
                             <TableCell
-                              colSpan={8}
+                              colSpan={7}
                               className="px-4 py-10 text-center text-gray-400"
                             >
                               Chưa có dữ liệu báo cáo phù hợp.
@@ -546,33 +538,6 @@ export default function MyReports() {
                               >
                                 {STATUS_LABEL[item.status] || "Đang Chờ"}
                               </Badge>
-                            </TableCell>
-                            <TableCell className="px-4 py-3">
-                              {item.aiVerified ? (
-                                <Badge
-                                  variant={
-                                    item.damageLevel === "Nặng"
-                                      ? "destructive"
-                                      : "outline"
-                                  }
-                                  className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
-                                    item.damageLevel === "Trung bình"
-                                      ? "bg-amber-100 text-amber-700"
-                                      : item.damageLevel === "Nhẹ"
-                                        ? "bg-emerald-100 text-emerald-700"
-                                        : ""
-                                  }`}
-                                >
-                                  {item.damageLevel}
-                                </Badge>
-                              ) : (
-                                <Badge
-                                  variant="outline"
-                                  className="h-auto border-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
-                                >
-                                  Chưa xác thực
-                                </Badge>
-                              )}
                             </TableCell>
                             <TableCell className="px-4 py-3">
                               {item.aiVerified ? (

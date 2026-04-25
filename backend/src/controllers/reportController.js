@@ -1,8 +1,11 @@
 const ReportRepository = require("../repositories/ReportRepository");
 const IncidentTypeRepository = require("../repositories/IncidentTypeRepository");
 const {
-  verifyImageWithModel,
+  verifyAllImages,
 } = require("../services/ai/aiVerification.service");
+const {
+  validateCreateReportPayload,
+} = require("../utils/reportValidation");
 
 class ReportController {
   async getManagementReports(req, res) {
@@ -99,6 +102,15 @@ class ReportController {
 
   async createReport(req, res) {
     try {
+      const validation = validateCreateReportPayload(req.body);
+      if (!validation.valid) {
+        return res.status(400).json({
+          success: false,
+          code: "VALIDATION_ERROR",
+          message: validation.message,
+        });
+      }
+
       const {
         title,
         type: incomingType,
@@ -106,16 +118,9 @@ class ReportController {
         description,
         images,
         userId,
-      } = req.body;
-      console.log("📝 Creating report for userId:", userId);
+      } = validation.data;
 
-      // Validate required fields
-      if (!title || !incomingType || !location || !userId) {
-        return res.status(400).json({
-          success: false,
-          message: "Thiếu thông tin bắt buộc: title, type, location, userId",
-        });
-      }
+      console.log("📝 Creating report for userId:", userId);
 
       await IncidentTypeRepository.ensureDefaults();
       const incidentType =
@@ -137,15 +142,32 @@ class ReportController {
         timeZone: "Asia/Ho_Chi_Minh",
       });
 
-      const firstImage =
-        Array.isArray(images) && images.length > 0 ? images[0] : "";
-      const aiResult = await verifyImageWithModel(firstImage);
+      // AI xác thực TẤT CẢ ảnh theo spec AI_Image_Validation_Workflow.md
+      const aiVerification = await verifyAllImages(images);
 
-      if (!aiResult.aiVerified && aiResult.aiError) {
-        console.warn(
-          `⚠️ AI verify failed for ${reportId}: ${aiResult.aiError}`,
-        );
+      if (!aiVerification.allPassed) {
+        const failedImageNumber = (aiVerification.failedIndex ?? 0) + 1;
+
+        // Phân biệt timeout vs AI từ chối
+        if (aiVerification.isTimeout) {
+          return res.status(422).json({
+            success: false,
+            code: "AI_SERVICE_UNAVAILABLE",
+            message: "Hệ thống AI tạm thời không khả dụng, vui lòng thử lại sau",
+          });
+        }
+
+        return res.status(422).json({
+          success: false,
+          code: "AI_VALIDATION_FAILED",
+          message:
+            aiVerification.aiError ||
+            `Ảnh thứ ${failedImageNumber} không liên quan đến sự cố hạ tầng đô thị, vui lòng chụp lại`,
+        });
       }
+
+      // Lấy summary AI từ ảnh đầu tiên để lưu vào DB
+      const aiSummary = aiVerification.summary;
 
       const reportData = {
         report_id: reportId,
@@ -154,16 +176,16 @@ class ReportController {
         title,
         type: incidentType.name,
         location,
-        description: description || "",
-        images: images || [],
-        image: images && images.length > 0 ? images[0] : "",
+        description,
+        images,
+        image: images[0],
         status: "Đang Chờ",
         time: currentTime,
-        aiPercent: aiResult.aiPercent,
-        aiVerified: aiResult.aiVerified,
-        aiLabel: aiResult.aiLabel,
-        aiTotalObjects: aiResult.aiTotalObjects,
-        aiSource: aiResult.aiSource || "",
+        aiPercent: aiSummary.aiPercent,
+        aiVerified: aiSummary.aiVerified,
+        aiLabel: aiSummary.aiLabel,
+        aiTotalObjects: aiSummary.aiTotalObjects,
+        aiSource: aiSummary.aiSource || "",
       };
 
       const newReport = await ReportRepository.create(reportData);
