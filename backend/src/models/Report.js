@@ -45,6 +45,20 @@ const ReportSchema = new mongoose.Schema(
       required: true,
     },
 
+    lat: {
+      type: Number,
+      min: -90,
+      max: 90,
+      default: null,
+    },
+
+    lng: {
+      type: Number,
+      min: -180,
+      max: 180,
+      default: null,
+    },
+
     status: {
       type: String,
       required: true,

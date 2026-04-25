@@ -57,6 +57,39 @@ function formatDate(value) {
   });
 }
 
+function parseCoordinate(value, min, max) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return null;
+  }
+
+  if (numericValue < min || numericValue > max) {
+    return null;
+  }
+
+  return numericValue;
+}
+
+function parseCoordinatesFromLocation(location = "") {
+  const match = String(location).match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+  if (!match) {
+    return { lat: null, lng: null };
+  }
+
+  const lat = parseCoordinate(match[1], -90, 90);
+  const lng = parseCoordinate(match[2], -180, 180);
+
+  if (lat === null || lng === null) {
+    return { lat: null, lng: null };
+  }
+
+  return { lat, lng };
+}
+
 function toReceptionItem(report) {
   return {
     _id: report._id,
@@ -67,6 +100,8 @@ function toReceptionItem(report) {
     type: report.type,
     image: report.image || report.images?.[0] || "",
     location: report.location,
+    lat: report.lat ?? null,
+    lng: report.lng ?? null,
     date: report.time && /^\d{1,2}\/\d{1,2}\/\d{4}/.test(report.time)
       ? report.time.split(",")[0]
       : formatDate(report.createdAt || report.updatedAt),
@@ -115,9 +150,115 @@ async function uploadImagesToCloudinary(images, userId) {
   return uploaded.filter(Boolean);
 }
 const Report = require("../models/Report");
+const User = require("../services/user/user.model");
 const {
   verifyImageWithModel,
 } = require("../services/ai/aiVerification.service");
+
+function parseNumericUserId(value) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const numericValue = Number(value);
+  if (!Number.isInteger(numericValue)) {
+    return null;
+  }
+
+  return numericValue;
+}
+
+function getReporterFallbackName(report) {
+  if (report?.userId) {
+    return `Người dùng #${report.userId}`;
+  }
+
+  if (report?.user_id !== undefined && report?.user_id !== null) {
+    return `Người dùng #${report.user_id}`;
+  }
+
+  return "Người dân phản ánh";
+}
+
+async function attachReporterNames(reports = []) {
+  if (!Array.isArray(reports) || reports.length === 0) {
+    return [];
+  }
+
+  const objectIdCandidates = new Set();
+  const numericIdCandidates = new Set();
+
+  for (const report of reports) {
+    const userIdValue = typeof report?.userId === "string" ? report.userId.trim() : "";
+    if (/^[a-fA-F0-9]{24}$/.test(userIdValue)) {
+      objectIdCandidates.add(userIdValue);
+    }
+
+    const numericFromUserId = parseNumericUserId(userIdValue);
+    if (numericFromUserId !== null) {
+      numericIdCandidates.add(numericFromUserId);
+    }
+
+    const numericFromLegacy = parseNumericUserId(report?.user_id);
+    if (numericFromLegacy !== null) {
+      numericIdCandidates.add(numericFromLegacy);
+    }
+  }
+
+  const userLookupConditions = [];
+  if (objectIdCandidates.size > 0) {
+    userLookupConditions.push({ _id: { $in: [...objectIdCandidates] } });
+  }
+  if (numericIdCandidates.size > 0) {
+    userLookupConditions.push({ user_id: { $in: [...numericIdCandidates] } });
+  }
+
+  if (userLookupConditions.length === 0) {
+    return reports.map((report) => ({
+      ...report,
+      reporterName: getReporterFallbackName(report),
+    }));
+  }
+
+  const users = await User.find(
+    { $or: userLookupConditions },
+    { _id: 1, user_id: 1, full_name: 1 },
+  ).lean();
+
+  const usersByObjectId = new Map();
+  const usersByNumericId = new Map();
+
+  for (const user of users) {
+    const normalizedName = String(user?.full_name || "").trim();
+    if (!normalizedName) {
+      continue;
+    }
+
+    usersByObjectId.set(String(user._id), normalizedName);
+
+    const numericUserId = parseNumericUserId(user?.user_id);
+    if (numericUserId !== null) {
+      usersByNumericId.set(numericUserId, normalizedName);
+    }
+  }
+
+  return reports.map((report) => {
+    const userIdValue = typeof report?.userId === "string" ? report.userId.trim() : "";
+    const numericFromUserId = parseNumericUserId(userIdValue);
+    const numericFromLegacy = parseNumericUserId(report?.user_id);
+
+    const reporterName =
+      usersByObjectId.get(userIdValue) ||
+      (numericFromUserId !== null ? usersByNumericId.get(numericFromUserId) : "") ||
+      (numericFromLegacy !== null ? usersByNumericId.get(numericFromLegacy) : "") ||
+      getReporterFallbackName(report);
+
+    return {
+      ...report,
+      reporterName,
+    };
+  });
+}
 
 class ReportController {
   async getManagementReports(req, res) {
@@ -153,11 +294,86 @@ class ReportController {
 
   async getAllReports(req, res) {
     try {
+      if (req.query?.view === "map") {
+        const reports = await Report.find(
+          {},
+          {
+            _id: 1,
+            id: 1,
+            report_id: 1,
+            title: 1,
+            type: 1,
+            location: 1,
+            lat: 1,
+            lng: 1,
+            status: 1,
+            description: 1,
+            image: 1,
+            images: 1,
+            time: 1,
+            userId: 1,
+            user_id: 1,
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        )
+          .sort({ createdAt: -1 })
+          .lean();
+
+        const reportsWithReporter = await attachReporterNames(reports);
+
+        return res.status(200).json({
+          success: true,
+          data: reportsWithReporter,
+        });
+      }
+
       const reports = await ReportRepository.getAll();
 
       res.status(200).json({
         success: true,
         data: reports,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async getMapReports(req, res) {
+    try {
+      const reports = await Report.find(
+        {},
+        {
+          _id: 1,
+          id: 1,
+          report_id: 1,
+          title: 1,
+          type: 1,
+          location: 1,
+          lat: 1,
+          lng: 1,
+          status: 1,
+          description: 1,
+          image: 1,
+          images: 1,
+          time: 1,
+          userId: 1,
+          user_id: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      )
+        .sort({ createdAt: -1 })
+        .lean();
+
+      const reportsWithReporter = await attachReporterNames(reports);
+
+      res.status(200).json({
+        success: true,
+        data: reportsWithReporter,
       });
     } catch (error) {
       res.status(500).json({
@@ -249,7 +465,7 @@ class ReportController {
 
   async createReport(req, res) {
     try {
-      const { title, type, location, description, images, userId } = req.body;
+      const { title, type, location, description, images, userId, lat, lng } = req.body;
       console.log("📝 Creating report for userId:", userId);
 
       // Validate required fields
@@ -322,6 +538,12 @@ class ReportController {
         }
       }
 
+      const parsedLat = parseCoordinate(lat, -90, 90);
+      const parsedLng = parseCoordinate(lng, -180, 180);
+      const fallbackCoordinates = parseCoordinatesFromLocation(location);
+      const resolvedLat = parsedLat ?? fallbackCoordinates.lat;
+      const resolvedLng = parsedLng ?? fallbackCoordinates.lng;
+
       const reportData = {
         id: reportStringId,
         userId: String(userId),
@@ -330,6 +552,8 @@ class ReportController {
         title,
         type,
         location,
+        lat: resolvedLat,
+        lng: resolvedLng,
         description: description || "",
         images: persistedImages,
         image: persistedImages.length > 0 ? persistedImages[0] : "",

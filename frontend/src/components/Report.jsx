@@ -25,7 +25,7 @@ import {
 } from "./ui/select";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api";
 
 const incidentOptions = [
   { value: "infrastructure", label: "Hạ tầng giao thông" },
@@ -47,6 +47,10 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     initialImage ? [initialImage] : [],
   );
   const [location, setLocation] = useState("");
+  const [locationCoordinates, setLocationCoordinates] = useState({
+    lat: null,
+    lng: null,
+  });
   const [locationLoading, setLocationLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [stream, setStream] = useState(null);
@@ -200,6 +204,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        setLocationCoordinates({ lat: latitude, lng: longitude });
 
         try {
           const response = await fetch(
@@ -324,6 +329,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     setDescription("");
     setUploadedImages([]);
     setLocation("");
+    setLocationCoordinates({ lat: null, lng: null });
     setHasFetchedLocation(false);
     setDragActive(false);
   };
@@ -375,6 +381,12 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
         title,
         type: typeMapping[incidentType] || "CTCC",
         location,
+        lat: Number.isFinite(locationCoordinates.lat)
+          ? Number(locationCoordinates.lat)
+          : undefined,
+        lng: Number.isFinite(locationCoordinates.lng)
+          ? Number(locationCoordinates.lng)
+          : undefined,
         description,
         images: uploadedImages,
       };
@@ -630,7 +642,10 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                       <Input
                         type="text"
                         value={location}
-                        onChange={(e) => setLocation(e.target.value)}
+                        onChange={(e) => {
+                          setLocation(e.target.value);
+                          setLocationCoordinates({ lat: null, lng: null });
+                        }}
                         disabled={locationLoading}
                         placeholder="Nhập vị trí sự cố (Ví dụ: 03 Quang Trung, Hải Châu, ĐN)"
                         className="h-11 py-0 w-full rounded-xl border border-transparent !bg-white !pl-10 pr-4 text-sm text-[#222] outline-none transition placeholder:text-[#9b9b9b] focus:border-[#5d5fef] focus:ring-4 focus:ring-[#5d5fef]/10 disabled:cursor-not-allowed disabled:opacity-70 shadow-none"
