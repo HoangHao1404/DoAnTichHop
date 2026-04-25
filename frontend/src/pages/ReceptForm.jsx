@@ -12,6 +12,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { reportApi } from "../services/api/reportApi";
 import ReportDetailQLKV from "../components/ReportDetail-QLKV";
+import Update_Status from "../components/Update_Status";
 
 const DISTRICTS = [
   "all",
@@ -60,6 +61,9 @@ const ReceptForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
   // const [page, setPage] = useState(2);
   const [selectedReport, setSelectedReport] = useState(null);
+  const [showUpdateStatusModal, setShowUpdateStatusModal] = useState(false);
+  const [updateReportData, setUpdateReportData] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const filteredReports = useMemo(() => {
     const searchTerm = query.trim().toLowerCase();
@@ -176,23 +180,46 @@ const ReceptForm = () => {
   };
 
   const handleUpdateStatus = async (report) => {
+    console.log("handleUpdateStatus called with:", report);
     const reportId = report?.report_id || report?.id;
     if (!reportId) {
+      console.log("No reportId found");
       return;
     }
 
-    const nextStatus = getNextStatus(report?.status);
-    if (!nextStatus) {
-      return;
-    }
+    console.log("Setting modal state - reportId:", reportId, "status:", report?.status);
+    setUpdateReportData(report);
+    setShowUpdateStatusModal(true);
+    setSelectedReport(null); // Đóng detail modal
+  };
 
+  const handleConfirmUpdateStatus = async (reportId, newStatus) => {
     try {
-      await reportApi.updateReportStatus(reportId, nextStatus);
-      syncReportStatus(reportId, nextStatus);
+      setUpdatingStatus(true);
+      await reportApi.updateReportStatus(reportId, newStatus);
+      
+      // Cập nhật reports list
+      setReports((prev) =>
+        prev.map((item) => {
+          const itemId = item.id || item.report_id;
+          return itemId === reportId ? { ...item, status: newStatus } : item;
+        }),
+      );
+      
+      // Cập nhật selectedReport + mở lại detail modal
+      const updatedReport = updateReportData 
+        ? { ...updateReportData, status: newStatus }
+        : null;
+      setSelectedReport(updatedReport);
+      
+      setShowUpdateStatusModal(false);
+      setUpdateReportData(null);
     } catch (error) {
       setErrorMessage(
         error?.response?.data?.message || "Không thể cập nhật trạng thái báo cáo",
       );
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -473,6 +500,19 @@ const ReceptForm = () => {
         close={handleCloseDetail}
         onUpdateStatus={handleUpdateStatus}
         onSendProcess={handleSendProcess}
+      />
+
+      <Update_Status
+        isOpen={showUpdateStatusModal}
+        reportId={updateReportData?.report_id || updateReportData?.id}
+        reportCode={updateReportData?.id}
+        currentStatus={updateReportData?.status}
+        onClose={() => {
+          setShowUpdateStatusModal(false);
+          setUpdateReportData(null);
+        }}
+        onUpdate={handleConfirmUpdateStatus}
+        loading={updatingStatus}
       />
     </div>
   );

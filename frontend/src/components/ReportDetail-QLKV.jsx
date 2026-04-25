@@ -18,6 +18,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -199,9 +200,9 @@ export default function ReportDetailQLKV({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && close?.()}>
       <DialogContent
-        showCloseButton={false}
         className="z-[70] flex max-h-[90vh] w-[calc(100vw-1.5rem)] max-w-[620px] flex-col gap-0 overflow-hidden rounded-[24px] border border-[#e5e7eb] bg-[#f3f4f6] p-0 shadow-2xl sm:w-[calc(100vw-3rem)] sm:!max-w-[620px]"
       >
+        <DialogDescription className="sr-only">Chi tiết báo cáo</DialogDescription>
         <DialogHeader className="px-4 pb-2 pt-4 sm:px-5 sm:pt-5">
           <div className="flex items-start justify-between gap-3">
             <DialogTitle className="text-[18px] font-bold leading-tight text-zinc-900 sm:text-[20px]">
