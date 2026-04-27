@@ -131,10 +131,7 @@ Model YOLO v11 được train nhận diện **10 class**:
 | 3 | Broken Road Sign | Biển báo hư |
 | 4 | Fallen trees | Cây đổ |
 | 5 | Littering | Rác thải |
-| 6 | Graffitti |낙서/Vẽ bậy |
-| 7 | Dead Animal | Xác động vật |
-| 8 | Damaged concrete | Bê tông hư hỏng |
-| 9 | Damaged Electric wires | Dây điện hư |
+
 
 > ⚠️ **Khác tài liệu cũ**: Model nhận diện **10 class** (không phải 3 class như ghi trước). Đây là thực tế từ code `app.py`.
 
