@@ -5,7 +5,9 @@ function parseDataUrlToBuffer(input) {
     throw new Error("Invalid image data URL");
   }
 
-  const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/i.exec(input.trim());
+  const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/i.exec(
+    input.trim(),
+  );
   if (!match) {
     throw new Error("Invalid base64 image format");
   }
@@ -33,9 +35,7 @@ function haversineKm(lat1, lon1, lat2, lon2) {
   const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) ** 2;
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
 
   return 2 * earthRadiusKm * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
@@ -57,7 +57,11 @@ function pickExifDate(exif) {
 
 async function extractExifFromImages(
   images,
-  { reportLatitude = null, reportLongitude = null, reportTime = new Date() } = {},
+  {
+    reportLatitude = null,
+    reportLongitude = null,
+    reportTime = new Date(),
+  } = {},
 ) {
   const details = [];
 

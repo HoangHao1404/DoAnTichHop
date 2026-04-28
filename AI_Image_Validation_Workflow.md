@@ -93,10 +93,10 @@ Trạng thái: "Đang Chờ"        "AI_VALIDATION_FAILED"
 | 1    | Người dân chọn ảnh (1–3 ảnh, JPG/PNG, ≤5MB) và điền thông tin báo cáo                                             | Dữ liệu sẵn sàng                                               |
 | 2    | Nhấn **Gửi** → Frontend gửi POST lên backend (ảnh dưới dạng base64 Data URL)                                      | Request gửi lên server                                         |
 | 3    | Backend chạy `validateCreateReportPayload()` kiểm tra tất cả trường bắt buộc, định dạng ảnh, tọa độ trong Đà Nẵng | Nếu sai → HTTP 400 báo lỗi cụ thể                              |
-| 4    | Backend decode từng ảnh, trích xuất EXIF (GPS/DateTime nếu có), sau đó gửi AI                                      | Có metadata phục vụ scoring/xác minh                           |
+| 4    | Backend decode từng ảnh, trích xuất EXIF (GPS/DateTime nếu có), sau đó gửi AI                                     | Có metadata phục vụ scoring/xác minh                           |
 | 5    | Backend gọi `verifyAllImages()` → thử lần lượt các URL candidate: port 5001 → 5000 → ...                          | Timeout mỗi URL: 10 giây (env `MODEL_API_TIMEOUT_MS`)          |
 | 6    | Flask AI service chạy YOLO v11 với `conf=0.25`, phân tích ảnh, trả về `detections[]` + `total_objects`            | JSON response                                                  |
-| 7    | Backend đánh giá kết quả AI cho từng ảnh (`isAiAccepted`)                                                          | Xem tiêu chí bên dưới                                          |
+| 7    | Backend đánh giá kết quả AI cho từng ảnh (`isAiAccepted`)                                                         | Xem tiêu chí bên dưới                                          |
 | 8a   | **AI chấp nhận** → Tạo báo cáo, lưu DB, trạng thái **"Đang Chờ"**                                                 | HTTP 201, trả data báo cáo                                     |
 | 8b   | **AI từ chối** → Không lưu báo cáo                                                                                | HTTP 422, `code: "AI_VALIDATION_FAILED"`, thông báo lỗi cụ thể |
 
@@ -180,6 +180,6 @@ Model YOLO v11 được train nhận diện **10 class**:
 | ------------------------ | --------------------------------------- | -------------------------------------------------------------------------------------- |
 | **Số class AI**          | 10 class (không phải 3)                 | Cập nhật tài liệu ✅ (đã sửa)                                                          |
 | **Tiêu chí chấp nhận**   | Detection-based (không dùng ngưỡng 60%) | Cân nhắc thêm ngưỡng `aiPercent > 60%` vào `isAiAccepted()` nếu muốn đúng với spec gốc |
-| **Số ảnh được AI check** | Tất cả `images[]`                       | Đã triển khai: từ chối nếu có bất kỳ ảnh nào AI không nhận diện được                    |
+| **Số ảnh được AI check** | Tất cả `images[]`                       | Đã triển khai: từ chối nếu có bất kỳ ảnh nào AI không nhận diện được                   |
 | **Ảnh đen trắng**        | Chưa được implement                     | Nếu cần, thêm bước preprocessing ảnh trước khi gửi sang Flask                          |
 | **Log AI**               | Chưa có log riêng cho AI                | Nên thêm logging vào `aiVerification.service.js` để dễ debug                           |

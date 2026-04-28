@@ -1,12 +1,8 @@
 const ReportRepository = require("../repositories/ReportRepository");
 const IncidentTypeRepository = require("../repositories/IncidentTypeRepository");
-const {
-  verifyAllImages,
-} = require("../services/ai/aiVerification.service");
+const { verifyAllImages } = require("../services/ai/aiVerification.service");
 const { extractExifFromImages } = require("../services/exif/exif.service");
-const {
-  validateCreateReportPayload,
-} = require("../utils/reportValidation");
+const { validateCreateReportPayload } = require("../utils/reportValidation");
 
 class ReportController {
   async getManagementReports(req, res) {
@@ -183,7 +179,8 @@ class ReportController {
           return res.status(422).json({
             success: false,
             code: "AI_SERVICE_UNAVAILABLE",
-            message: "Hệ thống AI tạm thời không khả dụng, vui lòng thử lại sau",
+            message:
+              "Hệ thống AI tạm thời không khả dụng, vui lòng thử lại sau",
           });
         }
 
