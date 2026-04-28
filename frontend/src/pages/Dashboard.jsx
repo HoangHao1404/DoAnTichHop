@@ -96,11 +96,8 @@ const Dashboard = () => {
 
   const { user } = useAuth();
 
-  const currentUser = user || JSON.parse(localStorage.getItem("user") || "{}");
-
-  const userName = currentUser.full_name || currentUser.name || "Người dùng";
-
-  const userAvatar = currentUser.avatar || null;
+  const userName = user?.full_name || user?.name || null;
+  const userAvatar = user?.avatar || null;
 
   const handleSearchLocation = async (query) => {
     console.log("Search query: ", query);

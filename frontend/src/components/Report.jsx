@@ -32,8 +32,8 @@ const LEGACY_INCIDENT_OPTIONS = [
 
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const MIN_IMAGES = 3;
-const MAX_IMAGES = 5;
+const MIN_IMAGES = 1;
+const MAX_IMAGES = 3;
 
 function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const navigate = useNavigate();
@@ -643,7 +643,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                       Hình ảnh sự cố
                     </h3>
                     <p className="mt-0.5 text-xs text-[#8b8b8b]">
-                      Định dạng JPG, PNG (Tối đa 5MB)
+                      Định dạng JPG, PNG (1-3 ảnh, tối đa 5MB/ảnh)
                     </p>
                   </div>
 

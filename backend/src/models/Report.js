@@ -31,6 +31,14 @@ const ReportSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    reportLatitude: {
+      type: Number,
+      default: null,
+    },
+    reportLongitude: {
+      type: Number,
+      default: null,
+    },
     status: {
       type: String,
       required: true,
@@ -76,6 +84,10 @@ const ReportSchema = new mongoose.Schema(
     aiSource: {
       type: String,
       default: "",
+    },
+    exifMetadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
     },
   },
   {

@@ -12,6 +12,8 @@ import ReportForm from "./Report";
 import UserSidebar from "./UserSidebar";
 import { SidebarProvider } from "./ui/sidebar";
 import { toast } from "sonner";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const categories = [
   {
@@ -56,12 +58,25 @@ export default function HomeOverlayUI({
   userName,
   mapElement,
 }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [showCameraOnly, setShowCameraOnly] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [stream, setStream] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+
+  const canCreateReport = () => {
+    const isAuthenticated = Boolean(user || localStorage.getItem("token"));
+    if (isAuthenticated) {
+      return true;
+    }
+
+    toast.error("Vui lòng đăng nhập để tạo báo cáo");
+    navigate("/signin");
+    return false;
+  };
 
   // Đóng dropdown khi click bên ngoài
   useEffect(() => {
@@ -76,6 +91,10 @@ export default function HomeOverlayUI({
 
   // Mở camera
   const openCamera = async () => {
+    if (!canCreateReport()) {
+      return;
+    }
+
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" },
@@ -186,7 +205,12 @@ export default function HomeOverlayUI({
           {/* Plus Button */}
           <button
             className="flex h-12 w-12 items-center justify-center rounded-full bg-black text-white shadow-lg transition-all hover:bg-gray-800 md:h-14 md:w-14"
-            onClick={() => setIsReportOpen((prev) => !prev)}
+            onClick={() => {
+              if (!canCreateReport()) {
+                return;
+              }
+              setIsReportOpen((prev) => !prev);
+            }}
             title="Tạo báo cáo mới"
           >
             <Plus size={18} className="md:h-5 md:w-5" />

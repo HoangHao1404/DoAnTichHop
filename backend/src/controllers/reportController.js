@@ -3,6 +3,7 @@ const IncidentTypeRepository = require("../repositories/IncidentTypeRepository")
 const {
   verifyAllImages,
 } = require("../services/ai/aiVerification.service");
+const { extractExifFromImages } = require("../services/exif/exif.service");
 const {
   validateCreateReportPayload,
 } = require("../utils/reportValidation");
@@ -118,7 +119,24 @@ class ReportController {
         description,
         images,
         userId,
+        latitude,
+        longitude,
       } = validation.data;
+
+      const authUserId = req.user?.id;
+      if (!authUserId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      if (String(userId) !== String(authUserId)) {
+        return res.status(403).json({
+          success: false,
+          message: "Bạn không thể tạo báo cáo cho người dùng khác",
+        });
+      }
 
       console.log("📝 Creating report for userId:", userId);
 
@@ -138,9 +156,21 @@ class ReportController {
       const reportId = `RPT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
       // Get current time
-      const currentTime = new Date().toLocaleString("vi-VN", {
+      const reportCreatedAt = new Date();
+      const currentTime = reportCreatedAt.toLocaleString("vi-VN", {
         timeZone: "Asia/Ho_Chi_Minh",
       });
+
+      let exifMetadata = null;
+      try {
+        exifMetadata = await extractExifFromImages(images, {
+          reportLatitude: latitude,
+          reportLongitude: longitude,
+          reportTime: reportCreatedAt,
+        });
+      } catch (exifError) {
+        console.warn("EXIF parsing failed:", exifError.message);
+      }
 
       // AI xác thực TẤT CẢ ảnh theo spec AI_Image_Validation_Workflow.md
       const aiVerification = await verifyAllImages(images);
@@ -172,10 +202,12 @@ class ReportController {
       const reportData = {
         report_id: reportId,
         id: reportId,
-        userId,
+        userId: String(authUserId),
         title,
         type: incidentType.name,
         location,
+        reportLatitude: latitude,
+        reportLongitude: longitude,
         description,
         images,
         image: images[0],
@@ -186,6 +218,7 @@ class ReportController {
         aiLabel: aiSummary.aiLabel,
         aiTotalObjects: aiSummary.aiTotalObjects,
         aiSource: aiSummary.aiSource || "",
+        exifMetadata,
       };
 
       const newReport = await ReportRepository.create(reportData);

@@ -159,7 +159,7 @@ describe("PB05 Report form UI validation", () => {
     expect(mockCreateReport).not.toHaveBeenCalled();
   });
 
-  test("shows error when image count is less than 3", async () => {
+  test("accepts submit with one image", async () => {
     render(
       <ReportForm onClose={vi.fn()} initialImage={makeBase64ImageDataUrl()} />,
     );
@@ -170,10 +170,9 @@ describe("PB05 Report form UI validation", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Gửi báo cáo" }));
 
-    expect(
-      await screen.findByText("Bạn cần tải từ 3 đến 5 ảnh."),
-    ).toBeInTheDocument();
-    expect(mockCreateReport).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockCreateReport).toHaveBeenCalledTimes(1);
+    });
   });
 
   test("rejects non JPG/PNG file on upload", async () => {

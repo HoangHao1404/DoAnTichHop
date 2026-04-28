@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const ReportController = require("../controllers/reportController");
+const requireAuth = require("../middleware/auth");
 
 // GET /api/reports - Lấy tất cả báo cáo
 router.get("/", ReportController.getAllReports);
@@ -12,7 +13,7 @@ router.get("/user/:userId", ReportController.getReportsByUserId);
 router.get("/management", ReportController.getManagementReports);
 
 // POST /api/reports - Tạo báo cáo mới
-router.post("/", ReportController.createReport);
+router.post("/", requireAuth, ReportController.createReport);
 
 // GET /api/reports/:id - Lấy 1 báo cáo (phải đặt sau /user/:userId)
 router.get("/:id", ReportController.getReportById);

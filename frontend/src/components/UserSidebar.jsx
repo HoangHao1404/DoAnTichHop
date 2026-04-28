@@ -52,6 +52,7 @@ const UserSidebar = () => {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const isAuthenticated = Boolean(user);
 
   const userId = useMemo(() => user?._id || user?.user_id, [user]);
   const unreadCount = notifications.filter((item) => !item.isRead).length;
@@ -121,11 +122,13 @@ const UserSidebar = () => {
     },
   ];
 
-  const userInfo = {
-    name: user?.full_name || "Người dùng",
-    email: user?.email || "user@example.com",
-    avatar: user?.avatar || null,
-  };
+  const userInfo = isAuthenticated
+    ? {
+        name: user?.full_name || "Người dùng",
+        email: user?.email || "user@example.com",
+        avatar: user?.avatar || null,
+      }
+    : null;
 
   const handleLogout = () => {
     setShowLogoutConfirm(false);
@@ -166,6 +169,7 @@ const UserSidebar = () => {
   return (
     <>
       {showLogoutConfirm &&
+        isAuthenticated &&
         portalTarget &&
         createPortal(
           <div
@@ -248,21 +252,23 @@ const UserSidebar = () => {
           </SidebarContent>
 
           <SidebarFooter className="relative flex flex-col items-center gap-2 py-4">
-            <button
-              onClick={() => setShowAvatarMenu(!showAvatarMenu)}
-              title={userInfo.name}
-              className="relative z-40 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-sm font-semibold text-white transition-all hover:shadow-md"
-            >
-              {userInfo.avatar ? (
-                <img
-                  src={userInfo.avatar}
-                  alt={userInfo.name}
-                  className="h-full w-full rounded-full object-cover"
-                />
-              ) : (
-                userInfo.name.charAt(0).toUpperCase()
-              )}
-            </button>
+            {isAuthenticated && userInfo && (
+              <button
+                onClick={() => setShowAvatarMenu(!showAvatarMenu)}
+                title={userInfo.name}
+                className="relative z-40 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-sm font-semibold text-white transition-all hover:shadow-md"
+              >
+                {userInfo.avatar ? (
+                  <img
+                    src={userInfo.avatar}
+                    alt={userInfo.name}
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                ) : (
+                  userInfo.name.charAt(0).toUpperCase()
+                )}
+              </button>
+            )}
           </SidebarFooter>
         </Sidebar>
       </div>
@@ -297,26 +303,29 @@ const UserSidebar = () => {
             );
           })}
 
-          <button
-            onClick={() => setShowAvatarMenu(!showAvatarMenu)}
-            title={userInfo.name}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-sm font-semibold text-white"
-          >
-            {userInfo.avatar ? (
-              <img
-                src={userInfo.avatar}
-                alt={userInfo.name}
-                className="h-full w-full rounded-full object-cover"
-              />
-            ) : (
-              userInfo.name.charAt(0).toUpperCase()
-            )}
-          </button>
+          {isAuthenticated && userInfo && (
+            <button
+              onClick={() => setShowAvatarMenu(!showAvatarMenu)}
+              title={userInfo.name}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-sm font-semibold text-white"
+            >
+              {userInfo.avatar ? (
+                <img
+                  src={userInfo.avatar}
+                  alt={userInfo.name}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                userInfo.name.charAt(0).toUpperCase()
+              )}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Dropdown Menu - Positioned outside sidebar */}
       {showAvatarMenu &&
+        isAuthenticated &&
         portalTarget &&
         createPortal(
           <>
@@ -334,22 +343,22 @@ const UserSidebar = () => {
               {/* User Info Header */}
               <div className="flex items-center gap-3 border-b border-gray-100 p-4">
                 <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-base font-semibold text-white">
-                  {userInfo.avatar ? (
+                  {userInfo?.avatar ? (
                     <img
                       src={userInfo.avatar}
                       alt={userInfo.name}
                       className="h-full w-full rounded-full object-cover"
                     />
                   ) : (
-                    userInfo.name.charAt(0).toUpperCase()
+                    userInfo?.name?.charAt(0).toUpperCase()
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-gray-800">
-                    {userInfo.name}
+                    {userInfo?.name}
                   </p>
                   <p className="truncate text-sm text-gray-500">
-                    {userInfo.email}
+                    {userInfo?.email}
                   </p>
                 </div>
               </div>
@@ -393,7 +402,7 @@ const UserSidebar = () => {
         onMarkRead={markNotificationRead}
       />
 
-      {showProfileModal && (
+      {showProfileModal && isAuthenticated && (
         <InfoManagement onClose={() => setShowProfileModal(false)} />
       )}
     </>
