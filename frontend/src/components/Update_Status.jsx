@@ -68,7 +68,7 @@ const Update_Status = ({ isOpen, reportId, reportCode, currentStatus, onClose, o
   if (!canUpdate) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="w-[95vw] xs:w-[90vw] sm:w-[calc(100vw-3rem)] max-w-md z-[1000] bg-white shadow-2xl rounded-lg xs:rounded-xl sm:rounded-[20px] p-0">
+        <DialogContent className="w-[90vw] xs:w-[85vw] sm:w-[calc(100vw-3rem)] max-w-lg z-[1000] bg-white shadow-2xl rounded-lg xs:rounded-xl sm:rounded-[20px] p-0">
           <DialogHeader className="text-center space-y-2 xs:space-y-2.5 px-3 xs:px-4 sm:px-6 pt-4 xs:pt-5 sm:pt-6">
             <div className="mx-auto w-9 xs:w-10 sm:w-12 h-9 xs:h-10 sm:h-12 bg-green-100 rounded-full flex items-center justify-center">
               <CheckCircle className="w-4.5 xs:w-5 sm:w-6 h-4.5 xs:h-5 sm:h-6 text-green-600" />
@@ -88,8 +88,8 @@ const Update_Status = ({ isOpen, reportId, reportCode, currentStatus, onClose, o
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[95vw] xs:w-[90vw] sm:w-[calc(100vw-3rem)] max-w-md z-[1000] bg-white shadow-2xl rounded-lg xs:rounded-xl sm:rounded-[20px] max-h-[90vh] overflow-y-auto p-0">
-        <DialogHeader className="space-y-2 xs:space-y-2.5 sm:space-y-3 border-b pb-3 xs:pb-3.5 sm:pb-4 px-3 xs:px-4 sm:px-6 pt-3 xs:pt-4 sm:pt-6">
+        <DialogContent className="w-[90vw] xs:w-[85vw] sm:w-[calc(100vw-3rem)] max-w-lg z-[1000] bg-white shadow-2xl rounded-lg xs:rounded-xl sm:rounded-[20px] max-h-[90vh] overflow-y-auto p-0">
+        <DialogHeader className="space-y-2 xs:space-y-2.5 sm:space-y-3 pb-3 xs:pb-3.5 sm:pb-4 px-3 xs:px-4 sm:px-6 pt-3 xs:pt-4 sm:pt-6">
           <DialogTitle className="text-base xs:text-lg sm:text-2xl font-bold text-center">Cập nhật trạng thái</DialogTitle>
           <div className="bg-blue-100 border-2 border-blue-300 rounded-xl xs:rounded-[14px] sm:rounded-[16px] p-2.5 xs:p-3 sm:p-4 text-center">
             <p className="text-xs font-bold text-blue-900 uppercase mb-1 xs:mb-1.5 sm:mb-2 tracking-wide">Mã báo cáo</p>
@@ -109,7 +109,7 @@ const Update_Status = ({ isOpen, reportId, reportCode, currentStatus, onClose, o
             </div>
           </div>
 
-          {/* Available Status Options */}
+          {/* các trạng thái tùy chọn */}
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase mb-2 xs:mb-2.5 sm:mb-3 block">Chuyển sang</p>
             <div className="space-y-1.5 xs:space-y-2 sm:space-y-2">
@@ -155,17 +155,17 @@ const Update_Status = ({ isOpen, reportId, reportCode, currentStatus, onClose, o
           </div>
         </div>
 
-        <DialogFooter className="flex flex-col xs:flex-row gap-2 xs:gap-2.5 border-t pt-3 xs:pt-3.5 sm:pt-4 px-3 xs:px-4 sm:px-6 pb-4 xs:pb-4.5 sm:pb-6">
-          <DialogClose asChild>
-            <Button variant="outline" className="rounded-lg xs:rounded-[10px] font-semibold text-xs xs:text-sm sm:text-base order-2 xs:order-1 flex-1 xs:flex-none">Hủy</Button>
-          </DialogClose>
+        <DialogFooter className="flex flex-col xs:flex-row gap-2 xs:gap-2.5 pt-3 xs:pt-3.5 sm:pt-4 px-3 xs:px-4 sm:px-6 pb-4 xs:pb-4.5 sm:pb-6">
           <Button
             onClick={handleUpdate}
             disabled={!selectedStatus || selectedStatus === currentStatus || loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg xs:rounded-[10px] font-semibold text-xs xs:text-sm sm:text-base disabled:bg-gray-300 disabled:cursor-not-allowed order-1 xs:order-2 flex-1"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg xs:rounded-[10px] font-semibold text-xs xs:text-sm sm:text-base disabled:bg-gray-300 disabled:cursor-not-allowed order-2 xs:order-1 flex-1"
           >
             {loading ? "Đang cập nhật..." : "Cập nhật"}
           </Button>
+          <DialogClose asChild>
+            <Button variant="outline" className="rounded-lg xs:rounded-[10px] font-semibold text-xs xs:text-sm sm:text-base order-1 xs:order-2 flex-1 xs:flex-none">Hủy</Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

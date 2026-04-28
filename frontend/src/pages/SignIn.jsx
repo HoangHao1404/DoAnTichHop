@@ -107,7 +107,7 @@ const SignIn = () => {
         <h1
           className="text-white relative font-sans italic tracking-[-0.03em]"
           style={{
-            fontSize: "clamp(80px, 12vw, 180px)",
+            fontSize: "180px",
             textShadow: "0px 15px 40px rgba(0,0,0,0.65)",
             fontFamily: "Inter, sans-serif",
           }}
@@ -117,76 +117,79 @@ const SignIn = () => {
       </div>
 
      
-      <div className="w-full md:w-1/2 min-h-screen bg-white relative flex justify-center items-center py-6 xs:py-8 sm:py-10">
+      <div className="w-full md:w-1/2 min-h-screen bg-white relative flex justify-center items-center py-10">
         <img
           src={comle}
           alt="wrench"
-          className="absolute top-2 xs:top-3 sm:top-4 -right-16 xs:-right-20 md:-right-20 w-40 xs:w-48 sm:w-56 opacity-90 hidden md:block"
+          className="absolute top-4 -right-20 w-56 opacity-90 hidden md:block"
           style={{ transform: "rotate(10deg)" }}
         />
         <img
           src={cone}
           alt="cone"
-          className="absolute -bottom-4 xs:-bottom-6 sm:bottom-0 left-4 xs:left-6 w-40 xs:w-48 sm:w-56 opacity-90 hidden md:block"
+          className="absolute -bottom-8 left-6 w-56 opacity-90 hidden md:block"
           style={{ transform: "rotate(-20deg)" }}
         />
 
-        <div className="w-[95vw] xs:w-[90vw] sm:w-[80vw] md:w-full max-w-[450px] mx-auto px-0 xs:px-2 sm:px-4">
-          <h2 className="text-2xl xs:text-3xl sm:text-4xl font-semibold leading-tight mb-1 xs:mb-1.5 sm:mb-2">
+        <div className="w-[90%] max-w-[450px] mx-auto mt-10 md:mt-0">
+          <h2 className="text-3xl md:text-4xl font-semibold leading-tight mb-2">
             Welcome, Log in to
           </h2>
-          <h2 className="text-2xl xs:text-3xl sm:text-4xl font-semibold leading-tight mb-4 xs:mb-5 sm:mb-6">
+          <h2 className="text-3xl md:text-4xl font-semibold leading-tight mb-4">
             your account.
           </h2>
 
           {message && (
-            <p className="mb-3 xs:mb-4 text-xs xs:text-sm text-red-600 whitespace-pre-line">
+            <p className="mb-4 text-sm text-red-600 whitespace-pre-line">
               {message}
             </p>
           )}
 
           <form onSubmit={handleSubmit}>
             {/* PHONE */}
-            <div className="mb-4 xs:mb-5 sm:mb-5">
-              <label className="text-xs xs:text-sm font-medium">Phone</label>
+            <div className="mb-5">
+              <label className="text-sm font-medium">Phone</label>
               <input
                 type="text"
                 placeholder="Enter your phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full mt-1.5 xs:mt-2 px-3 xs:px-4 py-2 xs:py-3 border border-gray-300 rounded-lg xs:rounded-xl text-xs xs:text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-xl 
+                           text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 required
               />
             </div>
 
             {/* PASSWORD */}
-            <div className="mb-2.5 xs:mb-3 sm:mb-3 relative">
-              <label className="text-xs xs:text-sm font-medium">Password</label>
+            <div className="mb-3 relative">
+              <label className="text-sm font-medium">Password</label>
 
               <input
                 type={showPass ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full mt-1.5 xs:mt-2 px-3 xs:px-4 py-2 xs:py-3 border border-gray-300 rounded-lg xs:rounded-xl text-xs xs:text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none pr-10 xs:pr-12"
+                className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-xl 
+                           text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none pr-12"
                 required
               />
 
               <button
                 type="button"
                 onClick={() => setShowPass(!showPass)}
-                className="absolute right-3 xs:right-4 top-8 xs:top-9 text-gray-500 hover:text-gray-700 flex-shrink-0"
+                className="absolute right-4 bottom-4 text-gray-500 hover:text-gray-700"
               >
-                {showPass ? <EyeOff size={18} className="xs:w-5 xs:h-5" /> : <Eye size={18} className="xs:w-5 xs:h-5" />}
+                {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
 
-            <div className="mb-4 xs:mb-5 sm:mb-6 text-left">
+            <div className="mb-7 text-left">
               <a
                 href="#"
-                className="text-xs xs:text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                 onClick={(e) => {
                   e.preventDefault();
+                  // TODO: Điều hướng đến trang forgot password
                   navigate("/forgot-password");
                 }}
               >
@@ -197,23 +200,23 @@ const SignIn = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2.5 xs:py-3 sm:py-3 rounded-lg text-xs xs:text-sm sm:text-base font-medium hover:bg-blue-700 transition"
+              className="w-full bg-blue-600 text-white py-3 rounded-lg text-base font-medium hover:bg-blue-700 transition"
             >
               {loading ? "Đang đăng nhập..." : "Log In"}
             </button>
           </form>
 
           {/* TIẾP TỤC */}
-          <div className="flex items-center my-4 xs:my-5 sm:my-6">
+          <div className="flex items-center my-6">
             <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-2 xs:px-3 text-gray-500 text-xs xs:text-sm">or continue with</span>
+            <span className="px-3 text-gray-500 text-sm">or continue with</span>
             <div className="flex-1 border-t border-gray-300"></div>
           </div>
 
           {/* GOOGLE Đăng nhập */}
           {GOOGLE_CLIENT_ID ? (
             <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-              <div className="w-full scale-90 xs:scale-100 origin-center">
+              <div className="w-full">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
@@ -230,10 +233,10 @@ const SignIn = () => {
             </p>
           )}
 
-          <p className="text-center text-xs xs:text-sm mt-4 xs:mt-5 sm:mt-5">
+          <p className="text-center text-sm mt-5">
             Don't Have An Account Yet?{" "}
             <span
-              className="text-blue-600 font-semibold cursor-pointer hover:underline"
+              className="text-blue-600 font-semibold cursor-pointer"
               onClick={() => navigate("/register")}
             >
               Register For Free
