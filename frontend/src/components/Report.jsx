@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Camera,
@@ -7,14 +7,16 @@ import {
   X,
   AlertCircle,
   CloudUpload,
+  Loader2,
 } from "lucide-react";
 import Toast from "./Toast";
 import { reportApi } from "../services/api/reportApi";
 import incidentApi from "../services/api/incidentApi";
 import { useAuth } from "../context/AuthContext";
-import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
+import { Button } from "./ui/button";
+import { Label } from "./ui/label";
 import {
   Select,
   SelectContent,
@@ -22,6 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5050/api";
 
 const LEGACY_INCIDENT_OPTIONS = [
   { value: "Giao Thông", label: "Giao Thông" },
@@ -46,7 +51,12 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     initialImage ? [initialImage] : [],
   );
   const [location, setLocation] = useState("");
+  const [locationCoordinates, setLocationCoordinates] = useState({
+    lat: null,
+    lng: null,
+  });
   const [gpsCoordinates, setGpsCoordinates] = useState(null);
+  const [gpsAccuracy, setGpsAccuracy] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [incidentOptions, setIncidentOptions] = useState(
     LEGACY_INCIDENT_OPTIONS,
@@ -57,6 +67,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
   const [hasFetchedLocation, setHasFetchedLocation] = useState(false);
   const [toast, setToast] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -167,6 +178,13 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     );
   };
 
+  const triggerAutoLocationOnFirstImage = () => {
+    if (!hasFetchedLocation && uploadedImages.length === 0) {
+      setHasFetchedLocation(true);
+      getLocation();
+    }
+  };
+
   const validateBase64ImagesForSubmit = (images) => {
     for (let i = 0; i < images.length; i += 1) {
       const image = images[i];
@@ -208,6 +226,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     try {
       const base64Images = await convertFilesToBase64(files);
       setUploadedImages((prev) => [...prev, ...base64Images]);
+      triggerAutoLocationOnFirstImage();
     } catch (error) {
       console.error("Error reading files:", error);
       showErrorToast("Không thể đọc ảnh tải lên.");
@@ -223,6 +242,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     try {
       const base64Images = await convertFilesToBase64(validFiles);
       setUploadedImages((prev) => [...prev, ...base64Images]);
+      triggerAutoLocationOnFirstImage();
     } catch (error) {
       console.error("Error reading dropped files:", error);
       showErrorToast("Không thể đọc ảnh kéo thả.");
@@ -256,52 +276,6 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const isCoordinateString = (value) => {
-    if (!value || typeof value !== "string") return false;
-    return /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(value.trim());
-  };
-
-  const resolveAddress = async (latitude, longitude) => {
-    try {
-      const response = await fetch(
-        `/api/geocode/reverse?lat=${latitude}&lon=${longitude}`,
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        const candidates = [
-          result?.data?.address,
-          result?.data?.fullAddress,
-          result?.data?.details?.display_name,
-        ].filter((item) => typeof item === "string" && item.trim().length > 0);
-
-        const address = candidates.find((item) => !isCoordinateString(item));
-        if (address) {
-          return address;
-        }
-      }
-    } catch (error) {
-      console.error("Backend reverse geocode failed:", error);
-    }
-
-    try {
-      const nominatimResponse = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&accept-language=vi`,
-      );
-
-      if (nominatimResponse.ok) {
-        const nominatimData = await nominatimResponse.json();
-        if (nominatimData?.display_name) {
-          return nominatimData.display_name;
-        }
-      }
-    } catch (error) {
-      console.error("Direct Nominatim reverse geocode failed:", error);
-    }
-
-    return "";
-  };
-
   const getLocation = async () => {
     if (!navigator.geolocation) {
       alert("Trình duyệt không hỗ trợ GPS");
@@ -312,21 +286,38 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy } = position.coords;
+        setLocationCoordinates({ lat: latitude, lng: longitude });
         setGpsCoordinates({ latitude, longitude });
+        setGpsAccuracy(accuracy);
+
+        console.log(`📍 GPS accuracy: ${Math.round(accuracy)}m`);
+        if (accuracy > 100) {
+          console.warn("⚠️ GPS accuracy thấp (>100m). Vị trí có thể không chính xác.");
+        }
 
         try {
-          const address = await resolveAddress(latitude, longitude);
-          if (address) {
-            setLocation(address);
+          const response = await fetch(
+            `${API_BASE_URL}/geocode/reverse?lat=${latitude}&lon=${longitude}`,
+          );
+
+          if (!response.ok) {
+            throw new Error(`Backend API error: ${response.status}`);
+          }
+
+          const result = await response.json();
+          const resolvedAddress =
+            result?.data?.address || result?.data?.fullAddress || "";
+
+          if (result.success && resolvedAddress) {
+            setLocation(resolvedAddress);
           } else {
-            showErrorToast(
-              "Không thể tự động lấy địa chỉ cụ thể. Vui lòng nhập vị trí thủ công.",
-            );
+            setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
           }
         } catch (err) {
           console.error("Error getting address:", err);
-          showErrorToast("Không thể lấy địa chỉ. Vui lòng nhập thủ công.");
+          setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          alert("Không thể lấy địa chỉ. Vui lòng nhập thủ công.");
         }
 
         setLocationLoading(false);
@@ -353,7 +344,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000,
         maximumAge: 0,
       },
     );
@@ -402,8 +393,7 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
     const imageData = canvas.toDataURL("image/jpeg");
 
-    const shouldGetLocation =
-      !hasFetchedLocation && uploadedImages.length === 0;
+    const shouldGetLocation = !hasFetchedLocation && uploadedImages.length === 0;
 
     setUploadedImages((prev) => [...prev, imageData]);
 
@@ -429,7 +419,9 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     setDescription("");
     setUploadedImages([]);
     setLocation("");
+    setLocationCoordinates({ lat: null, lng: null });
     setGpsCoordinates(null);
+    setGpsAccuracy(null);
     setHasFetchedLocation(false);
     setDragActive(false);
   };
@@ -440,8 +432,35 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     onClose && onClose();
   };
 
+  const geocodeAddress = async (address) => {
+    if (!address) return { lat: null, lng: null };
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&addressdetails=1&accept-language=vi`,
+        {
+          headers: {
+            "User-Agent": "ReportApp/1.0 (Contact: admin@example.com)",
+          },
+        },
+      );
+      if (!response.ok) return { lat: null, lng: null };
+      const result = await response.json();
+      if (!Array.isArray(result) || result.length === 0) return { lat: null, lng: null };
+      const lat = parseFloat(result[0]?.lat);
+      const lng = parseFloat(result[0]?.lon);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+      return { lat: null, lng: null };
+    } catch {
+      return { lat: null, lng: null };
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
 
     const trimmedTitle = title.trim();
     const trimmedDescription = description.trim();
@@ -451,8 +470,8 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
       return;
     }
 
-    if (trimmedDescription.length < 10 || trimmedDescription.length > 100) {
-      showErrorToast("Mô tả phải từ 10 đến 100 ký tự.");
+    if (trimmedDescription.length < 5 || trimmedDescription.length > 500) {
+      showErrorToast("Mô tả phải từ 5 đến 500 ký tự.");
       return;
     }
 
@@ -479,16 +498,34 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
       return;
     }
 
+    setIsSubmitting(true);
+    let keepSubmitting = false;
+
     try {
+      let submitLat = null;
+      let submitLng = null;
+
+      if (Number.isFinite(locationCoordinates.lat) && Number.isFinite(locationCoordinates.lng)) {
+        submitLat = Number(locationCoordinates.lat);
+        submitLng = Number(locationCoordinates.lng);
+      } else if (gpsCoordinates) {
+        submitLat = gpsCoordinates.latitude;
+        submitLng = gpsCoordinates.longitude;
+      } else if (location) {
+        const geocoded = await geocodeAddress(location);
+        submitLat = geocoded.lat;
+        submitLng = geocoded.lng;
+      }
+
       const reportData = {
         userId,
         title: trimmedTitle,
         type: incidentType,
-        location: gpsCoordinates
-          ? `${gpsCoordinates.latitude}, ${gpsCoordinates.longitude}${location ? ` (${location})` : ""}`
-          : location,
-        latitude: gpsCoordinates?.latitude,
-        longitude: gpsCoordinates?.longitude,
+        location: location || (gpsCoordinates ? `${gpsCoordinates.latitude}, ${gpsCoordinates.longitude}` : "Chưa xác định"),
+        latitude: submitLat,
+        longitude: submitLng,
+        lat: submitLat,
+        lng: submitLng,
         description: trimmedDescription,
         images: uploadedImages,
       };
@@ -496,9 +533,11 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
       const response = await reportApi.createReport(reportData);
 
       if (response.success) {
+        keepSubmitting = true;
         showSuccessToast("Đã gửi báo cáo thành công!");
         setTimeout(() => {
           resetForm();
+          setIsSubmitting(false);
           onClose && onClose();
           navigate("/myreport", { replace: true });
         }, 1500);
@@ -508,6 +547,10 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
     } catch (error) {
       console.error("Error creating report:", error);
       showErrorToast(error.response?.data?.message || "Lỗi khi gửi báo cáo!");
+    } finally {
+      if (!keepSubmitting) {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -529,24 +572,18 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
           }
         }}
       >
-        <div className="relative max-h-[94vh] w-full max-w-5xl overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
-          <Button
+        <div className="relative w-full max-w-5xl overflow-hidden rounded-[24px] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+          <button
             type="button"
-            variant="ghost"
-            size="icon"
             onClick={handleCancel}
-            className="absolute right-4 top-4 z-20 h-10 w-10 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="absolute right-4 top-4 z-20 rounded-full p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
           >
             <X className="h-6 w-6" />
-          </Button>
+          </button>
 
-          <form
-            onSubmit={handleSubmit}
-            className="max-h-[94vh] overflow-y-auto"
-          >
+          <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-2">
-              {/* LEFT */}
-              <div className="bg-[#f8f8f8] px-4 py-5 sm:px-6 sm:py-6 lg:min-h-[560px] lg:px-8 lg:py-7">
+              <div className="bg-white px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
                 <div className="max-w-[520px]">
                   <h2 className="text-[24px] font-bold leading-tight text-[#111111] sm:text-[28px]">
                     Tạo báo cáo sự cố
@@ -559,30 +596,31 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
 
                   <div className="mt-6 space-y-5">
                     <div>
-                      <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                      <Label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide leading-normal text-[#2b2b2b]">
                         Tiêu đề sự cố
-                      </label>
+                      </Label>
                       <Input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Mô tả ngắn gọn sự cố"
-                        className="h-11 rounded-xl border-transparent bg-[#ececec] px-4 text-sm text-[#222] placeholder:text-[#9b9b9b] focus-visible:border-[#5d5fef] focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-[#5d5fef]/10"
+                        className="h-11 py-0 w-full rounded-xl border border-transparent !bg-[#f4f5f6] px-4 text-sm text-[#222] outline-none transition placeholder:text-[#9b9b9b] focus:border-[#5d5fef] focus:!bg-white focus:ring-4 focus:ring-[#5d5fef]/10 shadow-none"
                       />
                     </div>
 
                     <div>
-                      <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                      <Label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide leading-normal text-[#2b2b2b]">
                         Loại sự cố
-                      </label>
+                      </Label>
 
-                      <Select
-                        value={incidentType}
-                        onValueChange={setIncidentType}
-                      >
+                      <Select value={incidentType} onValueChange={setIncidentType}>
                         <SelectTrigger
-                          size="default"
-                          className="h-11 w-full rounded-xl border-transparent bg-[#ececec] px-4 text-sm text-[#222] data-[placeholder]:text-[#9b9b9b] focus-visible:border-[#5d5fef] focus-visible:ring-4 focus-visible:ring-[#5d5fef]/10 [&>svg]:text-[#9b9b9b]"
+                          style={{ width: "100%", height: "44px" }}
+                          className={`flex !h-11 py-0 items-center justify-between rounded-xl border px-4 text-left text-sm transition focus:outline-none focus:ring-4 focus:ring-[#5d5fef]/10 hover:!bg-[#e8e9eb] [&_svg]:!size-5 [&_svg]:!text-[#9b9b9b] [&_svg]:opacity-100 shadow-none ${
+                            incidentType
+                              ? "border-transparent !bg-[#f4f5f6] text-[#222]"
+                              : "border-transparent !bg-[#f4f5f6] text-[#9b9b9b] data-[placeholder]:!text-[#9b9b9b]"
+                          }`}
                         >
                           <SelectValue
                             placeholder={
@@ -619,24 +657,23 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                       </Select>
                     </div>
 
-                    <div>
-                      <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                    <div className="pt-2">
+                      <Label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide leading-normal text-[#2b2b2b]">
                         Mô tả chi tiết
-                      </label>
+                      </Label>
                       <Textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         rows={6}
-                        placeholder="Mô tả chi tiết về sự cố: Tình trạng hiện tại, mức độ nghiêm trọng, các yếu tố liên quan...."
-                        className="w-full resize-none rounded-2xl border-transparent bg-[#ececec] px-4 py-3.5 text-sm leading-5 text-[#222] placeholder:text-[#9b9b9b] focus-visible:border-[#5d5fef] focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-[#5d5fef]/10"
+                        placeholder="Mô tả chi tiết về sự cố: Tình trạng hiện tại, mức độ nghiêm trọng, các yếu tố liên quan..."
+                        className="w-full min-h-[140px] resize-none rounded-2xl border border-transparent !bg-[#f4f5f6] px-4 py-3.5 text-sm leading-5 text-[#222] outline-none transition placeholder:text-[#9b9b9b] focus:border-[#5d5fef] focus:!bg-white focus:ring-4 focus:ring-[#5d5fef]/10 shadow-none"
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* RIGHT */}
-              <div className="flex flex-col bg-white px-4 py-5 sm:px-6 sm:py-6 lg:min-h-[560px] lg:px-8 lg:py-7">
+              <div className="flex flex-col bg-[#f8f9fa] px-5 py-6 sm:px-8 sm:py-7 lg:min-h-[560px]">
                 <div className="mx-auto flex h-full w-full max-w-[520px] flex-col">
                   <div>
                     <h3 className="text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
@@ -670,39 +707,35 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                                 alt={`uploaded-${index}`}
                                 className="h-24 w-full object-cover sm:h-28"
                               />
-                              <Button
+                              <button
                                 type="button"
-                                variant="ghost"
-                                size="icon-sm"
                                 onClick={() => removeImage(index)}
-                                className="absolute right-1.5 top-1.5 rounded-full bg-black/65 text-white opacity-100 hover:bg-red-500 sm:opacity-0 sm:group-hover:opacity-100"
+                                className="absolute right-1.5 top-1.5 rounded-full bg-black/65 p-1 text-white opacity-100 transition hover:bg-red-500 sm:opacity-0 sm:group-hover:opacity-100"
                               >
                                 <X className="h-3.5 w-3.5" />
-                              </Button>
+                              </button>
                             </div>
                           ))}
                         </div>
 
                         <div className="flex flex-col gap-2 sm:flex-row">
-                          <Button
+                          <button
                             type="button"
-                            variant="outline"
                             onClick={openCamera}
-                            className="h-11 flex-1 rounded-xl border-[#dddddd] bg-white text-sm font-medium text-[#333] hover:border-[#5d5fef] hover:text-[#5d5fef]"
+                            className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[#dddddd] bg-white text-sm font-medium text-[#333] transition hover:border-[#5d5fef] hover:text-[#5d5fef]"
                           >
                             <Camera className="h-4 w-4" />
                             Camera
-                          </Button>
+                          </button>
 
-                          <Button
+                          <button
                             type="button"
-                            variant="outline"
                             onClick={() => fileInputRef.current?.click()}
-                            className="h-11 flex-1 rounded-xl border-[#dddddd] bg-white text-sm font-medium text-[#333] hover:border-[#5d5fef] hover:text-[#5d5fef]"
+                            className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[#dddddd] bg-white text-sm font-medium text-[#333] transition hover:border-[#5d5fef] hover:text-[#5d5fef]"
                           >
                             <Upload className="h-4 w-4" />
                             Upload
-                          </Button>
+                          </button>
                         </div>
 
                         <p className="text-center text-[11px] text-[#8b8b8b]">
@@ -710,12 +743,12 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                         </p>
                       </div>
                     ) : (
-                      <div className="flex min-h-[180px] flex-col items-center justify-center text-center sm:min-h-[200px]">
+                      <div className="flex min-h-[200px] flex-col items-center justify-center text-center">
                         <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#dcebff]">
                           <CloudUpload className="h-7 w-7 text-[#2d7ef7]" />
                         </div>
 
-                        <h4 className="text-lg font-bold text-[#151515] sm:text-[20px]">
+                        <h4 className="text-[20px] font-bold text-[#151515]">
                           Tải ảnh lên hoặc Chụp ảnh
                         </h4>
 
@@ -724,25 +757,23 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                         </p>
 
                         <div className="mt-5 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
-                          <Button
+                          <button
                             type="button"
-                            variant="outline"
                             onClick={openCamera}
-                            className="h-11 min-w-[130px] rounded-xl border-[#e2e2e2] bg-white px-4 text-sm font-medium text-[#333] shadow-sm hover:border-[#5d5fef] hover:text-[#5d5fef]"
+                            className="inline-flex h-11 min-w-[130px] items-center justify-center gap-2 rounded-xl border border-[#e2e2e2] bg-white px-4 text-sm font-medium text-[#333] shadow-sm transition hover:border-[#5d5fef] hover:text-[#5d5fef]"
                           >
                             <Camera className="h-4 w-4" />
                             Camera
-                          </Button>
+                          </button>
 
-                          <Button
+                          <button
                             type="button"
-                            variant="outline"
                             onClick={() => fileInputRef.current?.click()}
-                            className="h-11 min-w-[130px] rounded-xl border-[#e2e2e2] bg-white px-4 text-sm font-medium text-[#333] shadow-sm hover:border-[#5d5fef] hover:text-[#5d5fef]"
+                            className="inline-flex h-11 min-w-[130px] items-center justify-center gap-2 rounded-xl border border-[#e2e2e2] bg-white px-4 text-sm font-medium text-[#333] shadow-sm transition hover:border-[#5d5fef] hover:text-[#5d5fef]"
                           >
                             <Upload className="h-4 w-4" />
                             Upload
-                          </Button>
+                          </button>
                         </div>
                       </div>
                     )}
@@ -758,9 +789,9 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                   </div>
 
                   <div className="mt-5">
-                    <label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide text-[#2b2b2b]">
+                    <Label className="mb-1.5 block text-xs font-extrabold uppercase tracking-wide leading-normal text-[#2b2b2b]">
                       Vị trí sự cố
-                    </label>
+                    </Label>
 
                     <div className="relative">
                       <div className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center">
@@ -769,37 +800,65 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                       <Input
                         type="text"
                         value={location}
-                        onChange={(e) => setLocation(e.target.value)}
+                        onChange={(e) => {
+                          setLocation(e.target.value);
+                          setLocationCoordinates({ lat: null, lng: null });
+                          setGpsAccuracy(null);
+                        }}
                         disabled={locationLoading}
-                        placeholder="Nhập vị trí sự cố (Ví dụ: 03 Quang Trung...)"
-                        className="h-11 rounded-xl border-transparent bg-[#f2f2f2] pl-10 pr-4 text-sm text-[#222] placeholder:text-[#9b9b9b] focus-visible:border-[#5d5fef] focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-[#5d5fef]/10 disabled:cursor-not-allowed disabled:opacity-70"
+                        placeholder="Nhập vị trí sự cố (Ví dụ: 03 Quang Trung, Hải Châu, ĐN)"
+                        className="h-11 py-0 w-full rounded-xl border border-transparent !bg-white !pl-10 pr-4 text-sm text-[#222] outline-none transition placeholder:text-[#9b9b9b] focus:border-[#5d5fef] focus:ring-4 focus:ring-[#5d5fef]/10 disabled:cursor-not-allowed disabled:opacity-70 shadow-none"
                       />
                     </div>
 
-                    <div className="mt-2.5 flex items-start gap-1.5 text-[11px] leading-4 text-[#8d8d8d]">
+                    <div className="mt-2.5 flex items-start gap-1.5 leading-4 text-[#8d8d8d]">
                       <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[#9b9b9b]" />
-                      <p>
+                      <p className="whitespace-nowrap text-[10.5px] tracking-tight">
                         Vui lòng nhập chính xác vị trí của sự cố để thuận tiện
-                        cho đội xử lý.
+                        cho đội xử lý tiến hành khắc phục.
                       </p>
                     </div>
+                    {gpsAccuracy !== null && gpsAccuracy > 100 && (
+                      <div className="mt-2 flex items-start gap-1.5 leading-4 text-amber-600">
+                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+                        <p className="text-[10.5px] tracking-tight">
+                          ⚠️ Độ chính xác GPS thấp (~{Math.round(gpsAccuracy)}m). Nên nhập địa chỉ thủ công để chính xác hơn.
+                        </p>
+                      </div>
+                    )}
+                    {gpsAccuracy !== null && gpsAccuracy <= 100 && (
+                      <div className="mt-2 flex items-start gap-1.5 leading-4 text-green-600">
+                        <p className="text-[10.5px] tracking-tight">
+                          ✓ GPS chính xác ~{Math.round(gpsAccuracy)}m
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="mt-auto flex flex-col-reverse gap-2 pt-5 sm:flex-row sm:justify-end sm:pt-6">
+                  <div className="mt-auto flex flex-col-reverse gap-2 pt-6 sm:flex-row sm:justify-end">
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={handleCancel}
-                      className="h-11 rounded-xl px-5 text-sm font-semibold text-[#555] hover:bg-gray-100"
+                      disabled={isSubmitting}
+                      className="inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold text-[#555] transition hover:bg-gray-100 hover:text-gray-600 bg-transparent disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Huỷ bỏ
                     </Button>
 
                     <Button
                       type="submit"
-                      className="h-11 rounded-xl bg-[#3f39f5] px-7 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(63,57,245,0.28)] hover:bg-[#322cf0]"
+                      disabled={isSubmitting}
+                      className="inline-flex h-11 items-center justify-center rounded-xl bg-[#3f39f5] px-7 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(63,57,245,0.28)] transition hover:bg-[#322cf0] hover:text-white disabled:cursor-not-allowed disabled:opacity-80"
                     >
-                      Gửi báo cáo
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Đang gửi...
+                        </>
+                      ) : (
+                        "Gửi báo cáo"
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -809,8 +868,8 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
         </div>
 
         {showCamera && (
-          <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/90 p-3 sm:p-4">
-            <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl sm:rounded-3xl">
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/90 p-4">
+            <div className="w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
               <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-6">
                 <div>
                   <h2 className="text-lg font-semibold text-[#111]">
@@ -821,15 +880,13 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                   </p>
                 </div>
 
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="icon"
                   onClick={closeCamera}
-                  className="h-10 w-10 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                  className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
                 >
                   <X className="h-6 w-6" />
-                </Button>
+                </button>
               </div>
 
               <div className="bg-black">
@@ -837,28 +894,27 @@ function ReportForm({ onClose, autoOpenCamera = false, initialImage = null }) {
                   ref={videoRef}
                   autoPlay
                   playsInline
-                  className="h-auto max-h-[64vh] w-full object-cover sm:max-h-[68vh]"
+                  className="h-auto max-h-[68vh] w-full object-cover"
                 />
                 <canvas ref={canvasRef} className="hidden" />
               </div>
 
               <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
-                <Button
+                <button
                   type="button"
-                  variant="outline"
                   onClick={closeCamera}
-                  className="h-12 rounded-xl border-gray-300 px-5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="inline-flex h-12 items-center justify-center rounded-xl border border-gray-300 px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
                   Huỷ
-                </Button>
-                <Button
+                </button>
+                <button
                   type="button"
                   onClick={capturePhoto}
-                  className="h-12 rounded-xl bg-[#3f39f5] px-6 text-sm font-semibold text-white hover:bg-[#322cf0]"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#3f39f5] px-6 text-sm font-semibold text-white transition hover:bg-[#322cf0]"
                 >
                   <Camera className="h-5 w-5" />
                   Chụp ảnh
-                </Button>
+                </button>
               </div>
             </div>
           </div>

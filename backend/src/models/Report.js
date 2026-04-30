@@ -12,21 +12,35 @@ const ReportSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    report_id: {
+      type: Number,
+      required: true,
+      unique: true,
+      index: true,
+    },
     userId: {
       type: String,
       required: true,
       index: true,
     },
+    user_id: {
+      type: Number,
+      index: true,
+      default: null,
+    },
+
     title: {
       type: String,
       required: true,
     },
+
     type: {
       type: String,
       required: true,
       trim: true,
       index: true,
     },
+
     location: {
       type: String,
       required: true,
@@ -39,32 +53,63 @@ const ReportSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+
+    lat: {
+      type: Number,
+      min: -90,
+      max: 90,
+      default: null,
+    },
+
+    lng: {
+      type: Number,
+      min: -180,
+      max: 180,
+      default: null,
+    },
+
     status: {
       type: String,
       required: true,
       enum: ["Đang Chờ", "Đang Xử Lý", "Đã Giải Quyết"],
       default: "Đang Chờ",
     },
+
     time: {
       type: String,
       required: true,
     },
+
     description: {
       type: String,
+      default: "",
     },
+
     image: {
       type: String,
+      default: "",
     },
+
     images: {
       type: [String],
       default: [],
     },
+
     beforeImg: {
       type: String,
+      default: "",
     },
+
     afterImg: {
       type: String,
+      default: "",
     },
+
+    progressNote: {
+      type: String,
+      default: "",
+    },
+
     aiPercent: {
       type: Number,
       default: null,
@@ -86,6 +131,16 @@ const ReportSchema = new mongoose.Schema(
       default: "",
     },
     exifMetadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    confidenceScore: {
+      type: Number,
+      default: null,
+      min: 0,
+      max: 100,
+    },
+    scoringDetails: {
       type: mongoose.Schema.Types.Mixed,
       default: null,
     },

@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from ultralytics import YOLO
-from PIL import Image
-import numpy as np
+from PIL import Image, UnidentifiedImageError
 import io
 import base64
 from pathlib import Path
@@ -36,6 +35,29 @@ CLASS_NAMES = [
     'Fallen trees', 'Littering', 'Graffitti', 'Dead Animal',
     'Damaged concrete', 'Damaged Electric wires'
 ]
+
+
+def _get_class_name(class_id: int) -> str:
+    if 0 <= class_id < len(CLASS_NAMES):
+        return CLASS_NAMES[class_id]
+    model_names = getattr(model, 'names', None)
+    if isinstance(model_names, dict):
+        return model_names.get(class_id, f'class_{class_id}')
+    if isinstance(model_names, list) and 0 <= class_id < len(model_names):
+        return model_names[class_id]
+    return f'class_{class_id}'
+
+
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({
+        'service': 'Urban Issues AI API',
+        'endpoints': {
+            'health': '/health',
+            'predict': '/predict (POST multipart/form-data, field: image)',
+            'classes': '/classes'
+        }
+    }), 200
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -81,7 +103,7 @@ def predict():
 
                     detections.append({
                         'class_id': class_id,
-                        'class_name': CLASS_NAMES[class_id],
+                        'class_name': _get_class_name(class_id),
                         'confidence': round(confidence, 4),
                         'bbox': {
                             'x_min': float(xyxy[0]),
@@ -128,10 +150,5 @@ def predict():
 def get_classes():
     return jsonify({'classes': CLASS_NAMES}), 200
 
-
-@app.route('/', methods=['GET'])
-def index():
-    return jsonify({'status': 'ok', 'routes': ['/health','/predict (POST)','/classes']}), 200
-
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)

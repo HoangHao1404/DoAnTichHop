@@ -1,7 +1,7 @@
 const ALLOWED_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const MIN_DESCRIPTION_LENGTH = 10;
-const MAX_DESCRIPTION_LENGTH = 100;
+const MIN_DESCRIPTION_LENGTH = 5;
+const MAX_DESCRIPTION_LENGTH = 500;
 const MIN_IMAGES = 1;
 const MAX_IMAGES = 3;
 
