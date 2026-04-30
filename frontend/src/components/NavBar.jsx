@@ -478,10 +478,10 @@ export function NavbarAdmin() {
       <header className="relative z-40">
         <div
           className="bg-white border border-gray-200 rounded-[30px] shadow-sm
-                   px-3 py-2.5 sm:px-5 flex items-center justify-between gap-2 sm:gap-4"
+                   px-3 py-2.5 sm:px-5 flex items-center justify-start gap-2 sm:gap-4"
           style={{ minHeight: "60px" }}
         >
-          <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-4 sm:justify-end">
+          <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-4">
             <Button
               type="button"
               variant="outline"

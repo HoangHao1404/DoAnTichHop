@@ -1,6 +1,6 @@
-﻿import React from "react";
+import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import AdminSidebar from "./AdminSidebar"; 
+import AdminSidebar from "./AdminSidebar";
 import { NavbarAdmin } from "./NavBar";
 import { SidebarProvider, SidebarTrigger } from "./ui/sidebar";
 
@@ -37,7 +37,7 @@ const LayoutAdmin = () => {
           <SidebarTrigger className="h-9 w-9 rounded-lg border border-gray-200 bg-white shadow-sm hover:bg-gray-50" />
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden pl-0 md:pl-[calc(var(--sidebar-width)+1.5rem)]">
           <div className="shrink-0 px-3 pt-14 sm:px-4 sm:pt-4">
             <NavbarAdmin />
           </div>

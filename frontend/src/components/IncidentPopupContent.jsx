@@ -7,6 +7,7 @@ import {
   FileText,
   MapPin,
 } from "lucide-react";
+import ImageViewer from "./ImageViewer";
 
 const STATUS_CLASS_NAME = Object.freeze({
   "Đang Chờ": "incident-popup__status incident-popup__status--pending",
@@ -33,6 +34,7 @@ export default function IncidentPopupContent({ incident }) {
   }, [incident.image, incident.images]);
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
 
   useEffect(() => {
     setActiveImageIndex(0);
@@ -54,14 +56,16 @@ export default function IncidentPopupContent({ incident }) {
   };
 
   return (
-    <div className="incident-popup-card">
+    <>
+      <div className="incident-popup-card">
       <div className="incident-popup-card__image-wrap">
         {currentImage ? (
           <img
             src={currentImage}
             alt={incident.title}
-            className="incident-popup-card__image"
+            className="incident-popup-card__image cursor-pointer hover:opacity-90 transition-opacity"
             loading="lazy"
+            onClick={() => setImageViewerOpen(true)}
           />
         ) : (
           <div className="incident-popup-card__image incident-popup-card__image--fallback">
@@ -123,5 +127,13 @@ export default function IncidentPopupContent({ incident }) {
         </div>
       </div>
     </div>
+
+    <ImageViewer
+      images={images}
+      initialIndex={activeImageIndex}
+      isOpen={imageViewerOpen}
+      onClose={() => setImageViewerOpen(false)}
+    />
+    </>
   );
 }
