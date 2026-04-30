@@ -11,8 +11,9 @@ import {
   ChevronDown,
   Eye,
   EyeOff,
-  RefreshCw,
   Map,
+  UserCheck,
+  AlertTriangle,
 } from "lucide-react";
 import userApi from "../services/api/userApi";
 
@@ -110,19 +111,27 @@ export default function UserTable() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [successInfo, setSuccessInfo] = useState(null);
+  const [errorInfo, setErrorInfo] = useState(null);
 
   // Form states
   const [formData, setFormData] = useState(emptyForm);
   const [showPassword, setShowPassword] = useState(false);
 
-  const generateRandomPassword = () => {
+  const generateRandomPasswordStr = () => {
     const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$";
     let pass = "";
     for (let i = 0; i < 12; i++) {
       pass += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    setFormData((prev) => ({ ...prev, password: pass }));
+    return pass;
+  };
+
+  const handleAddClick = () => {
+    setFormData({ ...emptyForm, password: generateRandomPasswordStr() });
+    setShowPassword(false);
+    setShowAddModal(true);
   };
 
   const fetchUsers = useCallback(async () => {
@@ -161,6 +170,13 @@ export default function UserTable() {
     return () => clearTimeout(timer);
   }, [fetchUsers]);
 
+  useEffect(() => {
+    if (errorInfo) {
+      const timer = setTimeout(() => setErrorInfo(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorInfo]);
+
   const totalPagesSafe = Math.max(totalPages, 1);
   const safePage = Math.min(currentPage, totalPagesSafe);
   const pageUsers = users;
@@ -173,12 +189,18 @@ export default function UserTable() {
   const handleAddUser = async () => {
     try {
       await userApi.createManagementUser(formData);
+      const submittedInfo = {
+        phone: formData.phone,
+        password: formData.password,
+        role: formData.role,
+      };
       setShowAddModal(false);
       setFormData(emptyForm);
       setShowPassword(false);
+      setSuccessInfo(submittedInfo);
       await fetchUsers();
     } catch (error) {
-      alert(error?.response?.data?.message || "Không thể thêm người dùng");
+      setErrorInfo(error?.response?.data?.message || "Không thể thêm người dùng");
     }
   };
 
@@ -199,7 +221,7 @@ export default function UserTable() {
     try {
       const userId = resolveUserId(editingUser);
       if (!userId) {
-        alert("Không xác định được ID người dùng");
+        setErrorInfo("Không xác định được ID người dùng");
         return;
       }
 
@@ -209,7 +231,7 @@ export default function UserTable() {
       setFormData(emptyForm);
       await fetchUsers();
     } catch (error) {
-      alert(error?.response?.data?.message || "Không thể cập nhật người dùng");
+      setErrorInfo(error?.response?.data?.message || "Không thể cập nhật người dùng");
     }
   };
 
@@ -222,14 +244,14 @@ export default function UserTable() {
 
       const userId = resolveUserId(user);
       if (!userId) {
-        alert("Không xác định được ID người dùng");
+        setErrorInfo("Không xác định được ID người dùng");
         return;
       }
 
       await userApi.deleteManagementUser(userId);
       await fetchUsers();
     } catch (error) {
-      alert(error?.response?.data?.message || "Không thể xóa người dùng");
+      setErrorInfo(error?.response?.data?.message || "Không thể xóa người dùng");
     }
   };
 
@@ -238,7 +260,7 @@ export default function UserTable() {
     try {
       const userId = resolveUserId(user);
       if (!userId) {
-        alert("Không xác định được ID người dùng");
+        setErrorInfo("Không xác định được ID người dùng");
         return;
       }
 
@@ -246,7 +268,7 @@ export default function UserTable() {
       await userApi.updateManagementUserStatus(userId, nextStatus);
       await fetchUsers();
     } catch (error) {
-      alert(
+      setErrorInfo(
         error?.response?.data?.message || "Không thể đổi trạng thái người dùng",
       );
     }
@@ -335,7 +357,7 @@ export default function UserTable() {
           {/* Nút Thêm User */}
           <button
             type="button"
-            onClick={() => setShowAddModal(true)}
+            onClick={handleAddClick}
             className="ml-auto flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-blue-500 hover:bg-blue-600 text-white shadow-sm transition whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
@@ -382,11 +404,13 @@ export default function UserTable() {
                     <input
                       type="text"
                       value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        setFormData({ ...formData, phone: val });
+                      }}
+                      maxLength={10}
                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 font-medium"
-                      placeholder="xxx-xxxx"
+                      placeholder="0912 345 678"
                     />
                   </div>
                   <div className="flex-1">
@@ -453,13 +477,6 @@ export default function UserTable() {
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={generateRandomPassword}
-                    className="flex items-center gap-2 mt-2.5 text-sm font-semibold text-[#0b5cd6] hover:text-blue-800 focus:outline-none"
-                  >
-                    <RefreshCw size={16} /> Tạo mật khẩu ngẫu nhiên
-                  </button>
                 </div>
 
                 <div className="flex gap-3 sm:gap-4 pt-1">
@@ -524,11 +541,13 @@ export default function UserTable() {
                     <input
                       type="text"
                       value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        setFormData({ ...formData, phone: val });
+                      }}
+                      maxLength={10}
                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 font-medium"
-                      placeholder="(xxx) xxx-xxxx"
+                      placeholder="Ví dụ: 0912345678"
                     />
                   </div>
                   <div className="flex-1">
@@ -766,6 +785,74 @@ export default function UserTable() {
           </button>
         </div>
       </div>
+
+      {/* Success Info Modal */}
+      {successInfo &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4 py-6">
+            <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-[400px] flex flex-col overflow-hidden">
+              <div className="bg-emerald-500 p-5 text-white flex items-center gap-4 shrink-0">
+                <div className="bg-white/20 p-3 rounded-full">
+                  <UserCheck className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Thêm Thành Công</h3>
+                  <p className="text-emerald-50 text-sm">Hãy lưu lại thông tin đăng nhập.</p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-5 overflow-y-auto max-h-[80vh]">
+                <div className="bg-gray-50 rounded-xl p-5 border border-gray-100 space-y-4">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-500 uppercase mb-1">Tài khoản (SĐT)</span>
+                    <span className="font-semibold text-gray-800 text-lg">{successInfo.phone}</span>
+                  </div>
+                  <div className="w-full h-[1px] bg-gray-200"></div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-500 uppercase mb-1">Mật khẩu</span>
+                    <span className="font-bold text-emerald-600 text-xl tracking-wider">{successInfo.password}</span>
+                  </div>
+                  <div className="w-full h-[1px] bg-gray-200"></div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-gray-500 uppercase mb-1">Vai trò</span>
+                    <span className="font-semibold text-[#0b5cd6]">
+                      {successInfo.role === "QTV" ? "Quản lý khu vực (QLKV)" : "Đội xử lý (ĐXL)"}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setSuccessInfo(null)}
+                  className="w-full py-3 px-4 bg-emerald-500 text-white rounded-full font-bold hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/30"
+                >
+                  Xác nhận & Đóng
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* Error Info Toast */}
+      {errorInfo &&
+        createPortal(
+          <div className="fixed top-6 right-6 z-[9999] w-[320px] bg-white border border-red-100 border-l-4 border-l-red-500 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-start p-4">
+            <div className="flex-shrink-0 bg-red-50 rounded-full p-2 mr-3 mt-0.5">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+            </div>
+            <div className="flex-1 min-w-0 pr-2">
+              <h3 className="text-sm font-bold text-gray-900 mb-0.5">Lỗi Xảy Ra</h3>
+              <p className="text-sm text-gray-600 leading-snug break-words">{errorInfo}</p>
+            </div>
+            <button
+              onClick={() => setErrorInfo(null)}
+              className="flex-shrink-0 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
