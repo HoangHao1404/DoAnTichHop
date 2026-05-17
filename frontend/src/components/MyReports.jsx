@@ -49,8 +49,12 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import {
+  CITIZEN_STATUS_FILTER_OPTIONS,
+  getCitizenDisplayStatus,
+  getCitizenStatusMeta,
+} from "../utils/citizenReportStatus";
 
-const STATUS_OPTIONS = ["all", "Đang Chờ", "Đang Xử Lý", "Đã Giải Quyết", "Đã Hoàn Tất"];
 const TYPE_LABELS = {
   all: "Tất cả",
   "Giao Thông": "Giao Thông",
@@ -88,20 +92,6 @@ const getBadgeStyle = (type, activeTypes) => {
     backgroundColor: fallback.bg,
     color: fallback.text,
   };
-};
-
-const STATUS_BADGE = {
-  "Đang Chờ": "bg-gray-100 text-gray-700",
-  "Đang Xử Lý": "bg-amber-100 text-amber-700",
-  "Đã Giải Quyết": "bg-lime-100 text-lime-700",
-  "Đã Hoàn Tất": "bg-teal-100 text-teal-700",
-};
-
-const STATUS_LABEL = {
-  "Đang Chờ": "Đang Chờ",
-  "Đang Xử Lý": "Đang Xử Lý",
-  "Đã Giải Quyết": "Đã Giải Quyết",
-  "Đã Hoàn Tất": "Đã Hoàn Tất",
 };
 
 const CARD_STYLES = [
@@ -142,7 +132,6 @@ const useTestWorkflow =
   (import.meta.env.VITE_USE_TEST_REPORT_WORKFLOW ?? "false") === "true";
 
 function normalizeReport(report) {
-  const hasKnownStatus = STATUS_OPTIONS.includes(report?.status);
   const reportDate = report?.time || report?.createdAt;
 
   const normalizeAiPercent = (rawValue) => {
@@ -165,7 +154,7 @@ function normalizeReport(report) {
     title: report?.title || "Không có tiêu đề",
     type: report?.type || "Khác",
     location: report?.location || "Chưa có vị trí",
-    status: hasKnownStatus ? report.status : "Đang Chờ",
+    status: report?.status || "Đang Chờ",
     time: formatReportDateTime(reportDate),
     description: report?.description || "",
     images: report?.images || [],
@@ -256,12 +245,12 @@ export default function MyReports() {
     const searchTerm = search.trim().toLowerCase();
 
     return reports.filter((item) => {
+      const displayStatus = getCitizenDisplayStatus(item.status);
       const haystack =
         `${item.id} ${item.title} ${item.location}`.toLowerCase();
       const matchSearch = !searchTerm || haystack.includes(searchTerm);
       const matchType = typeFilter === "all" || item.type === typeFilter;
-      const matchStatus =
-        statusFilter === "all" || item.status === statusFilter;
+      const matchStatus = statusFilter === "all" || displayStatus === statusFilter;
       return matchSearch && matchType && matchStatus;
     });
   }, [reports, search, typeFilter, statusFilter]);
@@ -298,16 +287,13 @@ export default function MyReports() {
 
   const totalReports = reports.length;
   const pendingReports = reports.filter(
-    (item) => item.status === "Đang Chờ",
+    (item) => getCitizenDisplayStatus(item.status) === "Đang Chờ",
   ).length;
   const processingReports = reports.filter(
-    (item) => item.status === "Đang Xử Lý",
-  ).length;
-  const resolvedReports = reports.filter(
-    (item) => item.status === "Đã Giải Quyết",
+    (item) => getCitizenDisplayStatus(item.status) === "Đang Xử Lý",
   ).length;
   const completedReports = reports.filter(
-    (item) => item.status === "Đã Hoàn Tất",
+    (item) => getCitizenDisplayStatus(item.status) === "Đã Hoàn Tất",
   ).length;
 
   const statCards = [
@@ -325,11 +311,6 @@ export default function MyReports() {
       label: "Đang Xử Lý",
       value: processingReports,
       icon: <Zap className="h-4 w-4" />,
-    },
-    {
-      label: "Đã Giải Quyết",
-      value: resolvedReports,
-      icon: <ShieldCheck className="h-4 w-4" />,
     },
     {
       label: "Đã Hoàn Tất",
@@ -458,35 +439,20 @@ export default function MyReports() {
                 sideOffset={6}
                 className="z-[80] w-[190px] rounded-xl border border-gray-200 bg-white p-1 shadow-lg"
               >
+                  {CITIZEN_STATUS_FILTER_OPTIONS.map((option) => (
+                    <SelectItem
+                      key={option}
+                    value={option}
+                  className="rounded-lg py-2 text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"
+                >
+                      {option}
+                    </SelectItem>
+                  ))}
                 <SelectItem
                   value="all"
                   className="rounded-lg py-2 text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"
                 >
                   Tất cả trạng thái
-                </SelectItem>
-                <SelectItem
-                  value="Đang Chờ"
-                  className="rounded-lg py-2 text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"
-                >
-                  Đang Chờ
-                </SelectItem>
-                <SelectItem
-                  value="Đang Xử Lý"
-                  className="rounded-lg py-2 text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"
-                >
-                  Đang Xử Lý
-                </SelectItem>
-                <SelectItem
-                  value="Đã Giải Quyết"
-                  className="rounded-lg py-2 text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"
-                >
-                  Đã Giải Quyết
-                </SelectItem>
-                <SelectItem
-                  value="Đã Hoàn Tất"
-                  className="rounded-lg py-2 text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[highlighted]:bg-gray-100 data-[highlighted]:text-gray-900"
-                >
-                  Đã Hoàn Tất
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -553,6 +519,9 @@ export default function MyReports() {
                         )}
 
                         {visibleReports.map((item) => (
+                          (() => {
+                            const statusMeta = getCitizenStatusMeta(item.status);
+                            return (
                           <TableRow
                             key={item.id}
                             className="cursor-pointer border-b border-gray-100 transition hover:bg-gray-50"
@@ -585,16 +554,13 @@ export default function MyReports() {
                             <TableCell className="px-4 py-3">
                               <Badge
                                 variant={
-                                  (item.status || "Đang Chờ") === "Đang Chờ"
+                                  statusMeta.label === "Đang Chờ"
                                     ? "secondary"
                                     : "outline"
                                 }
-                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${
-                                  STATUS_BADGE[item.status] ||
-                                  STATUS_BADGE["Đang Chờ"]
-                                }`}
+                                className={`h-auto border-0 rounded-full px-3 py-1 text-xs font-medium ${statusMeta.className}`}
                               >
-                                {STATUS_LABEL[item.status] || "Đang Chờ"}
+                                <span>{statusMeta.label || "Đang Chờ"}</span>
                               </Badge>
                             </TableCell>
                             <TableCell className="px-4 py-3">
@@ -619,6 +585,8 @@ export default function MyReports() {
                               {item.time}
                             </TableCell>
                           </TableRow>
+                            );
+                          })()
                         ))}
                       </TableBody>
                     </Table>

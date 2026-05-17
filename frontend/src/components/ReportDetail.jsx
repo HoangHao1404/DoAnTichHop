@@ -16,17 +16,16 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
 import ImageViewer from "./ImageViewer";
 import { reportApi } from "../services/api/reportApi";
+import {
+  getCitizenDisplayStatus,
+  getCitizenStatusMeta,
+} from "../utils/citizenReportStatus";
 
 import incidentApi from "../services/api/incidentApi";
 
 function getTypeLabel(type) {
   if (!type) return "khac";
   return String(type);
-}
-
-function getStatusLabel(status) {
-  if (!status) return "dang cho";
-  return String(status);
 }
 
 function getTypeBadgeClass(type) {
@@ -140,6 +139,7 @@ export default function ReportDetail({ data, close }) {
 
   const showCompletionResult = displayData.status === "Đã Hoàn Tất";
   const allImages = [beforeImage, showCompletionResult ? afterImage : null].filter(Boolean);
+  const citizenStatusMeta = getCitizenStatusMeta(displayData.status);
 
   const openImageViewer = (index) => {
     setImageViewer({ open: true, index });
@@ -177,7 +177,7 @@ export default function ReportDetail({ data, close }) {
               {getTypeLabel(displayData.type)}
             </Badge>
             <Badge className="h-7 rounded-full bg-[#d5d5d5] px-3 text-xs font-semibold text-zinc-800 hover:bg-[#d5d5d5]">
-              {getStatusLabel(displayData.status)}
+              <span>{getCitizenDisplayStatus(displayData.status)}</span>
             </Badge>
           </div>
 

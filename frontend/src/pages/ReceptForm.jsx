@@ -374,11 +374,16 @@ const ReceptForm = () => {
     }
 
     try {
-      // Luôn lấy dữ liệu mới nhất để tránh bấm nghiệm thu từ dữ liệu cũ trong list
+      // Luôn lấy dữ liệu mới nhất để tránh mở modal từ dữ liệu cũ trong list
       const response = await reportApi.getReportById(reportId);
       const latestReport = response?.data?.data || response?.data || report;
 
       if (!latestReport) {
+        return;
+      }
+
+      if (latestReport?.status === "Đã Hoàn Tất") {
+        toast.error("Báo cáo này đã hoàn tất, không thể cập nhật trạng thái nữa.");
         return;
       }
 
@@ -394,20 +399,24 @@ const ReceptForm = () => {
 
   const handleConfirmUpdateStatus = async (reportId, newStatus) => {
     try {
-      let reportSnapshot = updateReportData;
+      const latestResponse = await reportApi.getReportById(reportId);
+      const reportSnapshot =
+        latestResponse?.data?.data || latestResponse?.data || updateReportData;
+
+      if (!reportSnapshot) {
+        toast.error("Không thể xác thực trạng thái báo cáo trước khi cập nhật.");
+        return;
+      }
+
+      const latestStatus = reportSnapshot?.status;
+      const hasAfterImage = Boolean(reportSnapshot?.afterImg);
+
+      if (latestStatus === "Đã Hoàn Tất") {
+        toast.error("Báo cáo này đã hoàn tất, không thể cập nhật trạng thái nữa.");
+        return;
+      }
 
       if (newStatus === "Đã Hoàn Tất") {
-        const latestResponse = await reportApi.getReportById(reportId);
-        reportSnapshot = latestResponse?.data?.data || latestResponse?.data || updateReportData;
-
-        if (!reportSnapshot) {
-          toast.error("Không thể xác thực trạng thái báo cáo trước khi nghiệm thu.");
-          return;
-        }
-
-        const latestStatus = reportSnapshot?.status;
-        const hasAfterImage = Boolean(reportSnapshot?.afterImg);
-
         if (latestStatus !== "Đã Giải Quyết") {
           toast.error(
             "Chỉ có thể nghiệm thu khi báo cáo đã ở trạng thái Đã Giải Quyết.",
@@ -464,6 +473,11 @@ const ReceptForm = () => {
         error?.response?.data?.message ||
         error?.message ||
         "Không thể cập nhật trạng thái báo cáo";
+
+      if (error?.status === 409 || error?.code === "REPORT_ALREADY_COMPLETED") {
+        setShowUpdateStatusModal(false);
+        setUpdateReportData(null);
+      }
 
       setErrorMessage(errorMsg);
 
@@ -1009,20 +1023,6 @@ const ReceptForm = () => {
         onAssign={handleAssignTeam}
         isSubmitting={assigningLoading}
         errorMessage={assigningError}
-      />
-
-      <Update_Status
-        isOpen={showUpdateStatusModal}
-        reportId={updateReportData?.id || updateReportData?.report_id}
-        reportCode={updateReportData?.id}
-        currentStatus={updateReportData?.status}
-        hasAfterImage={Boolean(updateReportData?.afterImg)}
-        onClose={() => {
-          setShowUpdateStatusModal(false);
-          setUpdateReportData(null);
-        }}
-        onUpdate={handleConfirmUpdateStatus}
-        loading={updatingStatus}
       />
     </div>
   );
