@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
   
   email: String,
 
-  phone: { type: String, unique: true, sparse: true, default: null },
+  phone: { type: String, unique: true, sparse: true },
   
   password: String, // hash (nullable cho Google login)
   
@@ -18,6 +18,10 @@ const UserSchema = new mongoose.Schema({
   email_verified: { type: Boolean, default: false },
 
   verification_token: String,
+
+  reset_otp_expires_at: Date,
+
+  reset_otp_via_email: Boolean,
 
   role: {
     type: String,

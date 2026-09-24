@@ -55,6 +55,8 @@ Urban_Issues/*.pth
 Urban_Issues/*.onnx
 Urban_Issues/*.engine
 Urban_Issues/*.ckpt
+# The deployed Flask AI service loads this production model at runtime.
+!Urban_Issues/best.pt
 Urban_Issues/*.ipynb
 Urban_Issues/runs/
 Urban_Issues/uploads/
@@ -65,7 +67,7 @@ Urban_Issues/output/
 test-data/reports/uploads/
 
 #model
-best.pt
+/best.pt
 .venv/
 
 # Backend uploads

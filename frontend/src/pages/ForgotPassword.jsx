@@ -6,32 +6,39 @@ import authApi from "../services/api/authApi";
 import banner from "../image/banner-public.jpeg";
 
 const ForgotPassword = () => {
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [devOtp, setDevOtp] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!phone.trim()) {
-      setToast({ message: "Vui lòng nhập số điện thoại", type: "error" });
+    if (!email.trim()) {
+      setToast({ message: "Vui lòng nhập email", type: "error" });
       return;
     }
 
     try {
       setLoading(true);
       // Gửi OTP đến số điện thoại
-      const res = await authApi.sendOTP(phone);
+      const res = await authApi.sendOTP(email.trim().toLowerCase());
       
       if (res.data.success) {
+        setDevOtp(res.data.devOtp || "");
         setToast({ 
-          message: "OTP đã được gửi đến số điện thoại của bạn", 
+          message: "OTP đã được gửi đến email của bạn",
           type: "success" 
         });
         
-        // Chuyển sang trang reset password với phone number
+        // Chuyển sang trang reset password với email
         setTimeout(() => {
-          navigate("/reset-password", { state: { phone } });
+          navigate("/reset-password", {
+            state: {
+              email: email.trim().toLowerCase(),
+              devOtp: res.data.devOtp || "",
+            },
+          });
         }, 1500);
       } else {
         setToast({ 
@@ -94,17 +101,22 @@ const ForgotPassword = () => {
               Reset Your Password
             </h2>
             <p className="text-gray-600 mb-6">
-              Enter your phone number and we'll send you an OTP to reset your password.
+              Enter your email and we'll send you an OTP to reset your password.
             </p>
+            {devOtp && (
+              <p className="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                OTP test: <strong>{devOtp}</strong>
+              </p>
+            )}
 
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
-                <label className="text-sm font-medium">Phone Number</label>
+                <label className="text-sm font-medium">Email</label>
                 <input
-                  type="text"
-                  placeholder="Enter your phone number"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-xl 
                              text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   required

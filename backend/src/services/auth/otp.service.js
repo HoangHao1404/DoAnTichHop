@@ -1,26 +1,30 @@
 const otpStore = new Map();
 
 class OtpService {
-  generateOtp(phone) {
+  generateOtp(identifier) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 5 * 60 * 1000; // 5 phút
-    otpStore.set(phone, { code, expiresAt });
+    otpStore.set(identifier, { code, expiresAt });
     return code;
   }
 
-  verifyOtp(phone, code) {
-    const record = otpStore.get(phone);
+  verifyOtp(identifier, code) {
+    const record = otpStore.get(identifier);
     if (!record) return false;
 
     if (record.expiresAt < Date.now()) {
-      otpStore.delete(phone);
+      otpStore.delete(identifier);
       return false;
     }
 
     if (record.code !== code) return false;
 
-    otpStore.delete(phone);
+    otpStore.delete(identifier);
     return true;
+  }
+
+  invalidateOtp(identifier) {
+    otpStore.delete(identifier);
   }
 }
 

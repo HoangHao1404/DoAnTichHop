@@ -8,13 +8,18 @@ const TEST_PASSWORD = "password123";
 
 (async () => {
   try {
-    const mongoUrl = process.env.MONGO_URL || "mongodb+srv://trannhatthai04:BcaHfqKc6UqcXhSa@cluster0.plbl2n9.mongodb.net/demo-app-qlkv?retryWrites=true&w=majority";
+    // Lấy hoàn toàn từ biến môi trường
+    const mongoUrl = process.env.MONGO_URI || process.env.MONGODB_URL;
+    if (!mongoUrl) {
+      throw new Error("Thiếu biến môi trường MONGO_URI hoặc MONGODB_URL trong file .env");
+    }
+
     await mongoose.connect(mongoUrl);
-    console.log("✅ Connected to MongoDB");
+    console.log("Connected to MongoDB");
 
     // Delete if exists
     await User.deleteOne({ phone: TEST_PHONE });
-    console.log(`🗑️  Deleted old user with phone ${TEST_PHONE}`);
+    console.log(`Deleted old user with phone ${TEST_PHONE}`);
 
     // Hash password
     const hashedPassword = await bcrypt.hash(TEST_PASSWORD, 10);
@@ -36,7 +41,7 @@ const TEST_PASSWORD = "password123";
       failed_login_attempts: 0,
     });
 
-    console.log(`\n✅ TEST USER CREATED!`);
+    console.log(`\nTEST USER CREATED!`);
     console.log(`   Phone: ${TEST_PHONE}`);
     console.log(`   Password: ${TEST_PASSWORD}`);
     console.log(`   User ID: ${newUser.user_id}`);
@@ -45,7 +50,7 @@ const TEST_PASSWORD = "password123";
 
     process.exit(0);
   } catch (err) {
-    console.error("❌ Error:", err.message);
+    console.error("Error:", err.message);
     process.exit(1);
   }
 })();

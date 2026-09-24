@@ -187,7 +187,7 @@ export default function LocationMapInline({
                   scrollWheelZoom={false}
                 >
                   <MapResizer />
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <TileLayer url="https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png" />
                   <Marker position={[lat, lng]}>
                     <LeafletPopup autoClose={false} closeButton={false}>
                       <div style={{ fontSize: "11px", minWidth: "100px" }}>

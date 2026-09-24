@@ -29,7 +29,6 @@ import IncidentManagement from "./pages/Incident_management.jsx";
 import Statistics from "./pages/Statistics.jsx";
 import Maintenanceteam_Management from "./pages/MaintenanceTeam_Management.jsx";
 
-import RegisterConfirm from "./components/RegisterConfirm.jsx";
 import LayoutAdmin from "./components/LayoutAdmin.jsx";
 import ProtectedRoute from "./router/ProtectedRoute.jsx";
 import AssignedReport from "./pages/Assigned_report.jsx";
@@ -99,7 +98,6 @@ function AppContent() {
             <Route path="/signin" element={<Navigate to="/login" replace />} />
 
             <Route path="/register" element={<Register />} />
-            <Route path="/register/confirm" element={<RegisterConfirm />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 

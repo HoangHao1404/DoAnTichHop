@@ -8,6 +8,7 @@ const User = require("../user/user.model");
 const LoginHistory = require("./loginHistory.model");
 
 const VN_PHONE_PATTERN = /^0(?:3|5|7|8|9)\d{8}$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const STRONG_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 function normalizePhone(phone) {
@@ -18,44 +19,13 @@ function isStrongPassword(password) {
   return STRONG_PASSWORD_PATTERN.test(String(password || ""));
 }
 
-// 1) Gửi OTP đăng ký
-async function sendRegisterOtp(req, res) {
+// 1) Đăng ký trực tiếp, không cần email hoặc OTP
+async function register(req, res) {
   try {
-    const phone = normalizePhone(req.body?.phone);
-    if (!phone) {
-      return res.status(400).json({ message: "Thiếu số điện thoại" });
-    }
-
-    if (!VN_PHONE_PATTERN.test(phone)) {
-      return res.status(400).json({ message: "Số điện thoại không đúng định dạng" });
-    }
-
-    const exists = await userRepo.findByPhone(phone);
-    if (exists) {
-      return res.status(400).json({ message: "Số điện thoại đã được đăng ký" });
-    }
-
-    const code = otpService.generateOtp(phone);
-    console.log(`🔐 OTP cho ${phone}: ${code}`);
-
-    return res.json({
-      success: true,
-      message: "Đã tạo OTP (demo). Kiểm tra console server.",
-      otp_demo: code,
-    });
-  } catch (err) {
-    console.error("sendRegisterOtp error:", err);
-    return res.status(500).json({ message: "Lỗi server" });
-  }
-}
-
-// 2) Confirm OTP + tạo user
-async function confirmRegister(req, res) {
-  try {
-    const { otp, password, full_name, email } = req.body;
+    const { password, full_name } = req.body;
     const phone = normalizePhone(req.body?.phone);
 
-    if (!phone || !otp || !password) {
+    if (!phone || !password || !full_name) {
       return res.status(400).json({ message: "Thiếu dữ liệu bắt buộc" });
     }
 
@@ -67,13 +37,6 @@ async function confirmRegister(req, res) {
       return res.status(400).json({ message: "mật khẩu không đủ mạnh" });
     }
 
-    const valid = otpService.verifyOtp(phone, otp);
-    if (!valid) {
-      return res
-        .status(400)
-        .json({ message: "OTP không hợp lệ hoặc đã hết hạn" });
-    }
-
     const exists = await userRepo.findByPhone(phone);
     if (exists) {
       return res.status(400).json({ message: "Số điện thoại đã được đăng ký" });
@@ -82,15 +45,9 @@ async function confirmRegister(req, res) {
     const hashed = await bcrypt.hash(password, 10);
     const user_id = await userRepo.getNextUserId();
 
-    const normalizedEmail =
-      typeof email === "string" && email.trim() !== ""
-        ? email.trim().toLowerCase()
-        : undefined;
-
     const user = await userRepo.create({
       user_id,
       full_name: typeof full_name === "string" ? full_name.trim() : full_name,
-      ...(normalizedEmail ? { email: normalizedEmail } : {}),
       phone,
       password: hashed,
       phone_verified: true,
@@ -99,6 +56,7 @@ async function confirmRegister(req, res) {
 
     return res.status(201).json({
       success: true,
+      message: "Đăng ký thành công",
       user: {
         user_id: user.user_id,
         full_name: user.full_name,
@@ -107,7 +65,7 @@ async function confirmRegister(req, res) {
       },
     });
   } catch (err) {
-    console.error("confirmRegister error:", err);
+    console.error("register error:", err);
     return res.status(500).json({ message: "Lỗi server" });
   }
 }
@@ -252,13 +210,11 @@ async function googleLogin(req, res) {
     if (!user) {
       // Tạo user mới
       const user_id = await userRepo.getNextUserId();
-      const phone = null; // Để trống thay vì tạo số ngẫu nhiên
 
       user = await userRepo.create({
         user_id,
         full_name,
         email,
-        phone,
         password: null,
         phone_verified: false,
         email_verified: true,
@@ -275,7 +231,7 @@ async function googleLogin(req, res) {
         console.log(`🔄 Resetting invalid phone: ${user.phone}`);
         await User.findOneAndUpdate(
           { email },
-          { $set: { phone: null, phone_verified: false } }
+          { $unset: { phone: 1 }, $set: { phone_verified: false } }
         );
       }
     }
@@ -362,38 +318,60 @@ async function googleLogin(req, res) {
 // 5) Gửi OTP để reset password
 async function sendForgotPasswordOtp(req, res) {
   try {
-    const { phone } = req.body;
-    if (!phone) {
-      return res.status(400).json({ message: "Thiếu số điện thoại" });
+    const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+    if (!email) {
+      return res.status(400).json({ message: "Thiếu email" });
     }
 
-    const user = await userRepo.findByPhone(phone);
-    if (!user) {
-      return res
-        .status(400)
-        .json({ message: "Số điện thoại không tồn tại trong hệ thống" });
+    if (!EMAIL_PATTERN.test(email)) {
+      return res.status(400).json({ message: "Email không đúng định dạng" });
     }
 
-    const code = otpService.generateOtp(phone);
-    console.log(`🔐 OTP reset password cho ${phone}: ${code}`);
+    const code = otpService.generateOtp(email);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const existingUser = await userRepo.findByEmail(email);
+
+    if (existingUser) {
+      await User.findOneAndUpdate(
+        { user_id: existingUser.user_id },
+        {
+          verification_token: code,
+          reset_otp_expires_at: expiresAt,
+          reset_otp_via_email: false,
+        },
+      );
+    } else {
+      await userRepo.create({
+        user_id: await userRepo.getNextUserId(),
+        full_name: email.split("@")[0],
+        email,
+        verification_token: code,
+        reset_otp_expires_at: expiresAt,
+        reset_otp_via_email: false,
+        email_verified: false,
+        role: "user",
+        account_status: "active",
+      });
+    }
 
     return res.json({
       success: true,
-      message: "OTP đã được gửi (demo). Kiểm tra console server.",
-      otp_demo: code,
+      message: "Mã OTP đã được tạo. Nhập mã hiển thị trên màn hình.",
+      devOtp: code,
     });
   } catch (err) {
     console.error("sendForgotPasswordOtp error:", err);
-    return res.status(500).json({ message: "Lỗi server" });
+    return res.status(503).json({ message: "Dịch vụ OTP tạm thời không khả dụng" });
   }
 }
 
 // 6) Reset password với OTP
 async function resetPassword(req, res) {
   try {
-    const { phone, otp, newPassword } = req.body;
+    const { email: rawEmail, otp, newPassword } = req.body;
+    const email = typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
 
-    if (!phone || !otp || !newPassword) {
+    if (!email || !otp || !newPassword) {
       return res.status(400).json({ message: "Thiếu dữ liệu bắt buộc" });
     }
 
@@ -403,23 +381,33 @@ async function resetPassword(req, res) {
         .json({ message: "Mật khẩu phải có ít nhất 6 ký tự" });
     }
 
-    const valid = otpService.verifyOtp(phone, otp);
+    const user = await userRepo.findByEmail(email);
+    const otpExpiresAt = user?.reset_otp_expires_at;
+    const otpSentByEmail = user?.reset_otp_via_email === true;
+    const valid =
+      user?.verification_token === otp &&
+      otpExpiresAt &&
+      new Date(otpExpiresAt).getTime() > Date.now();
+
     if (!valid) {
       return res
         .status(400)
         .json({ message: "OTP không hợp lệ hoặc đã hết hạn" });
     }
 
-    const user = await userRepo.findByPhone(phone);
-    if (!user) {
-      return res
-        .status(400)
-        .json({ message: "Số điện thoại không tồn tại" });
-    }
-
     const hashed = await bcrypt.hash(newPassword, 10);
-
-    await userRepo.updatePassword(user.user_id, hashed);
+    await User.findOneAndUpdate(
+      { user_id: user.user_id },
+      {
+        password: hashed,
+        email_verified: otpSentByEmail,
+        $unset: {
+          verification_token: 1,
+          reset_otp_expires_at: 1,
+          reset_otp_via_email: 1,
+        },
+      },
+    );
 
     return res.json({
       success: true,
@@ -513,8 +501,7 @@ async function verify(req, res) {
 }
 
 module.exports = {
-  sendRegisterOtp,
-  confirmRegister,
+  register,
   login,
   googleLogin,
   sendForgotPasswordOtp,

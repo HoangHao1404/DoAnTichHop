@@ -2,42 +2,42 @@
 
 const userApi = {
   updateProfile(userData) {
-    return axiosClient.put("/user/profile", userData);
+    return axiosClient.put("/users/profile", userData);
   },
 
   changePassword(oldPassword, newPassword) {
-    return axiosClient.post("/user/change-password", {
+    return axiosClient.post("/users/change-password", {
       oldPassword,
       newPassword,
     });
   },
 
   getUserInfo() {
-    return axiosClient.get("/user/profile");
+    return axiosClient.get("/users/profile");
   },
 
   deleteAccount() {
-    return axiosClient.delete("/user/account");
+    return axiosClient.delete("/users/account");
   },
 
   getManagementUsers(params = {}) {
-    return axiosClient.get("/user/management", { params });
+    return axiosClient.get("/users/management", { params });
   },
 
   createManagementUser(payload) {
-    return axiosClient.post("/user/management", payload);
+    return axiosClient.post("/users/management", payload);
   },
 
   updateManagementUser(userId, payload) {
-    return axiosClient.put(`/user/management/${userId}`, payload);
+    return axiosClient.put(`/users/management/${userId}`, payload);
   },
 
   updateManagementUserStatus(userId, status) {
-    return axiosClient.patch(`/user/management/${userId}/status`, { status });
+    return axiosClient.patch(`/users/management/${userId}/status`, { status });
   },
 
   deleteManagementUser(userId) {
-    return axiosClient.delete(`/user/management/${userId}`);
+    return axiosClient.delete(`/users/management/${userId}`);
   },
 };
 

@@ -1,5 +1,5 @@
 /**
- * 🔒 JWT Authentication Middleware (Thay thế Firebase)
+ * JWT Authentication Middleware
  * Verify JWT token từ Authorization header
  */
 
@@ -12,6 +12,10 @@ const User = require("../services/user/user.model");
  */
 const verifyJwt = async (req, res, next) => {
   try {
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not configured");
+    }
+
     const token = req.headers.authorization?.split("Bearer ")[1];
 
     if (!token) {
@@ -24,7 +28,7 @@ const verifyJwt = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || "your-secret-key-dev"
+      process.env.JWT_SECRET
     );
 
     console.log(`🔍 [JWT] Verifying token for user ${decoded.id}, token_version in JWT: ${decoded.token_version}`);

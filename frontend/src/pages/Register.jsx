@@ -133,22 +133,17 @@ const Register = () => {
     }
 
     try {
-      const res = await authApi.sendRegisterOtp(normalizedPhone);
+      await authApi.register({
+        phone: normalizedPhone,
+        password,
+        full_name: fullName,
+      });
 
       // Clear saved form data on successful registration
       localStorage.removeItem("registerFormData");
-
-      // Điều hướng sang trang nhập OTP
-      navigate("/register/confirm", {
-        state: {
-          phone: normalizedPhone,
-          password,
-          full_name: fullName,
-          otp_demo: res.data.otp_demo, // demo nếu cần hiển thị
-        },
-      });
+      navigate("/signin");
     } catch (err) {
-      setMessage(err.response?.data?.message || "Lỗi khi gửi OTP");
+      setMessage(err.response?.data?.message || "Lỗi khi đăng ký");
     }
   };
 
