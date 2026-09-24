@@ -16,10 +16,10 @@ const ResetPassword = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email || "";
+  const phone = location.state?.phone || "";
   const devOtp = location.state?.devOtp || "";
 
-  if (!email) {
+  if (!phone) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
@@ -61,7 +61,7 @@ const ResetPassword = () => {
 
     try {
       setLoading(true);
-      const res = await authApi.resetPassword(email, otp, newPassword);
+      const res = await authApi.resetPassword(phone, otp, newPassword);
 
       if (res.data.success) {
         setToast({ 
@@ -133,7 +133,7 @@ const ResetPassword = () => {
               Reset Password
             </h2>
             <p className="text-gray-600 mb-6">
-              Enter the OTP sent to <strong>{email}</strong> and your new password.
+              Enter the OTP for <strong>{phone}</strong> and your new password.
             </p>
             {devOtp && (
               <p className="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -155,7 +155,7 @@ const ResetPassword = () => {
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Check your email for the OTP code
+                  Check the OTP shown for your phone number
                 </p>
               </div>
 

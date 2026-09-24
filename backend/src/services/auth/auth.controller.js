@@ -8,7 +8,6 @@ const User = require("../user/user.model");
 const LoginHistory = require("./loginHistory.model");
 
 const VN_PHONE_PATTERN = /^0(?:3|5|7|8|9)\d{8}$/;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const STRONG_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 function normalizePhone(phone) {
@@ -19,7 +18,7 @@ function isStrongPassword(password) {
   return STRONG_PASSWORD_PATTERN.test(String(password || ""));
 }
 
-// 1) Đăng ký trực tiếp, không cần email hoặc OTP
+// 1) Đăng ký trực tiếp bằng số điện thoại
 async function register(req, res) {
   try {
     const { password, full_name } = req.body;
@@ -318,41 +317,33 @@ async function googleLogin(req, res) {
 // 5) Gửi OTP để reset password
 async function sendForgotPasswordOtp(req, res) {
   try {
-    const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
-    if (!email) {
-      return res.status(400).json({ message: "Thiếu email" });
+    const phone = normalizePhone(req.body?.phone);
+    if (!phone) {
+      return res.status(400).json({ message: "Thiếu số điện thoại" });
     }
 
-    if (!EMAIL_PATTERN.test(email)) {
-      return res.status(400).json({ message: "Email không đúng định dạng" });
+    if (!VN_PHONE_PATTERN.test(phone)) {
+      return res.status(400).json({ message: "Số điện thoại không đúng định dạng" });
     }
 
-    const code = otpService.generateOtp(email);
+    const code = otpService.generateOtp(phone);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-    const existingUser = await userRepo.findByEmail(email);
+    const existingUser = await userRepo.findByPhone(phone);
 
-    if (existingUser) {
-      await User.findOneAndUpdate(
-        { user_id: existingUser.user_id },
-        {
-          verification_token: code,
-          reset_otp_expires_at: expiresAt,
-          reset_otp_via_email: false,
-        },
-      );
-    } else {
-      await userRepo.create({
-        user_id: await userRepo.getNextUserId(),
-        full_name: email.split("@")[0],
-        email,
+    if (!existingUser) {
+      return res.status(404).json({
+        message: "Số điện thoại chưa được đăng ký",
+      });
+    }
+
+    await User.findOneAndUpdate(
+      { user_id: existingUser.user_id },
+      {
         verification_token: code,
         reset_otp_expires_at: expiresAt,
         reset_otp_via_email: false,
-        email_verified: false,
-        role: "user",
-        account_status: "active",
-      });
-    }
+      },
+    );
 
     return res.json({
       success: true,
@@ -368,11 +359,15 @@ async function sendForgotPasswordOtp(req, res) {
 // 6) Reset password với OTP
 async function resetPassword(req, res) {
   try {
-    const { email: rawEmail, otp, newPassword } = req.body;
-    const email = typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
+    const { phone: rawPhone, otp, newPassword } = req.body;
+    const phone = normalizePhone(rawPhone);
 
-    if (!email || !otp || !newPassword) {
+    if (!phone || !otp || !newPassword) {
       return res.status(400).json({ message: "Thiếu dữ liệu bắt buộc" });
+    }
+
+    if (!VN_PHONE_PATTERN.test(phone)) {
+      return res.status(400).json({ message: "Số điện thoại không đúng định dạng" });
     }
 
     if (newPassword.length < 6) {
@@ -381,9 +376,8 @@ async function resetPassword(req, res) {
         .json({ message: "Mật khẩu phải có ít nhất 6 ký tự" });
     }
 
-    const user = await userRepo.findByEmail(email);
+    const user = await userRepo.findByPhone(phone);
     const otpExpiresAt = user?.reset_otp_expires_at;
-    const otpSentByEmail = user?.reset_otp_via_email === true;
     const valid =
       user?.verification_token === otp &&
       otpExpiresAt &&
@@ -400,7 +394,6 @@ async function resetPassword(req, res) {
       { user_id: user.user_id },
       {
         password: hashed,
-        email_verified: otpSentByEmail,
         $unset: {
           verification_token: 1,
           reset_otp_expires_at: 1,

@@ -9,6 +9,13 @@ class UserRepository {
     return User.findOne({ email }).lean();
   }
 
+  async findByEmailAndPhone(email) {
+    return User.findOne({
+      email,
+      phone: { $exists: true, $nin: [null, ""] },
+    }).lean();
+  }
+
   async findById(user_id) {
     return User.findOne({ user_id }).lean();
   }

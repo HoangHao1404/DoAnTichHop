@@ -14,15 +14,15 @@ const authApi = {
     return axiosClient.post("/auth/google-login", { token: googleToken });
   },
 
-  sendOTP(email) {
+  sendOTP(phone) {
     // Gửi OTP để reset password
-    return axiosClient.post("/auth/forgot-password/send-otp", { email });
+    return axiosClient.post("/auth/forgot-password/send-otp", { phone });
   },
 
-  resetPassword(email, otp, newPassword) {
+  resetPassword(phone, otp, newPassword) {
     // Reset password với OTP
     return axiosClient.post("/auth/forgot-password/reset", { 
-      email,
+      phone,
       otp, 
       newPassword 
     });
