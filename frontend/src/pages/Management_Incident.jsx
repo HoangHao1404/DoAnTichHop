@@ -43,7 +43,7 @@ const getCardShadow = (hexColor) => {
   return `0 14px 32px rgba(${r}, ${g}, ${b}, 0.16), 0 2px 10px rgba(15, 23, 42, 0.06)`;
 };
 
-const IncidentManagement = () => {
+const Management_Incident = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -467,4 +467,4 @@ const IncidentManagement = () => {
   );
 };
 
-export default IncidentManagement;
+export default Management_Incident;

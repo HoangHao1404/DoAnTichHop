@@ -25,7 +25,7 @@ import AdminDashboard from "./pages/AdminDashboard.jsx";
 import AdminUserManagement from "./pages/UserManagement.jsx";
 import ReceptForm from "./pages/ReceptForm.jsx";
 import ReportManagement from "./pages/Report_Management.jsx";
-import IncidentManagement from "./pages/Management_Incident.jsx";
+import Management_Incident from "./pages/Management_Incident.jsx";
 import Statistics from "./pages/Statistics.jsx";
 import Maintenanceteam_Management from "./pages/MaintenanceTeam_Management.jsx";
 
@@ -150,7 +150,7 @@ function AppContent() {
                 path="maintenanceteam"
                 element={<Maintenanceteam_Management />}
               />
-              <Route path="incident-types" element={<IncidentManagement />} />
+              <Route path="incident-types" element={<Management_Incident />} />
               <Route path="statistics" element={<Statistics />} />
               <Route path="users" element={<AdminUserManagement />} />
             </Route>
