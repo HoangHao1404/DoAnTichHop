@@ -187,7 +187,7 @@ backend/
 │ └── server.js
 🔐 Authentication Flow
 
-User đăng ký → tạo ID custom (TK1, TK2,...)
+Người dùng đăng ký/đăng nhập bằng Gmail → tạo ID custom (TK1, TK2,...)
 
 Login → cấp JWT
 
@@ -196,6 +196,8 @@ Middleware kiểm tra quyền:
 User
 
 Admin
+
+Tài khoản cũ chưa có Gmail cần được quản trị viên cập nhật Gmail trước khi đăng nhập.
 
 🧪 Testing & QA
 
@@ -234,3 +236,11 @@ Tối ưu UX/UI dashboard
 Thêm notification system
 
 Tích hợp bản đồ nâng cao (heatmap)
+
+## Password Reset Email
+
+Forgot-password links are sent through the Gmail API and expire after one hour.
+Configure `GMAIL_USER` and a `GMAIL_REFRESH_TOKEN` authorized for
+`https://www.googleapis.com/auth/gmail.send` in the backend environment.
+The existing `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` can be reused, or
+set `GMAIL_CLIENT_ID` and `GMAIL_CLIENT_SECRET` for a separate OAuth client.

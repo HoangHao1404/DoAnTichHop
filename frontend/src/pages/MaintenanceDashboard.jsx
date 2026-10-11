@@ -311,14 +311,14 @@ const MaintenanceDashboard = () => {
         });
         const teams = Array.isArray(response?.data) ? response.data : [];
         const leaderName = user?.full_name || user?.name || "";
-        const leaderPhone = user?.phone || "";
+        const leaderEmail = user?.email || "";
         const normalizedLeader = normalizeText(leaderName);
-        const normalizedPhone = normalizeText(leaderPhone);
+        const normalizedEmail = normalizeText(leaderEmail);
         const matched = teams.find((team) => {
           const leader = normalizeText(team?.leader || "");
           if (!leader) return false;
           if (normalizedLeader && leader === normalizedLeader) return true;
-          return normalizedPhone && leader.includes(normalizedPhone);
+          return normalizedEmail && leader.includes(normalizedEmail);
         });
 
         if (isMounted) {

@@ -8,7 +8,7 @@ import cone from "../image/trafficCone.png";
 
 import authApi from "../services/api/authApi";
 
-const VN_PHONE_PATTERN = /^0(?:3|5|7|8|9)\d{8}$/;
+const GMAIL_EMAIL_PATTERN = /^[^\s@]+@gmail\.com$/i;
 const STRONG_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 const Register = () => {
@@ -16,13 +16,13 @@ const Register = () => {
   const [showConfirmPass, setShowConfirmPass] = useState(false);
 
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({
-    phone: "",
+    email: "",
     password: "",
     confirmPassword: "",
   });
@@ -36,7 +36,7 @@ const Register = () => {
       try {
         const data = JSON.parse(savedFormData);
         setFullName(data.fullName || "");
-        setPhone(data.phone || "");
+        setEmail(data.email || "");
         setPassword(data.password || "");
         setConfirmPassword(data.confirmPassword || "");
       } catch (e) {
@@ -49,17 +49,17 @@ const Register = () => {
   useEffect(() => {
     const formData = {
       fullName,
-      phone,
+      email,
       password,
       confirmPassword,
     };
     localStorage.setItem("registerFormData", JSON.stringify(formData));
-  }, [fullName, phone, password, confirmPassword]);
+  }, [fullName, email, password, confirmPassword]);
 
-  const validatePhone = (phoneValue) => {
-    if (!phoneValue.trim()) return "";
-    if (!VN_PHONE_PATTERN.test(phoneValue.trim())) {
-      return "Số điện thoại không đúng định dạng";
+  const validateEmail = (emailValue) => {
+    if (!emailValue.trim()) return "";
+    if (!GMAIL_EMAIL_PATTERN.test(emailValue.trim())) {
+      return "Vui lòng nhập địa chỉ Gmail hợp lệ";
     }
     return "";
   };
@@ -72,12 +72,12 @@ const Register = () => {
     return "";
   };
 
-  const handlePhoneChange = (e) => {
+  const handleEmailChange = (e) => {
     const value = e.target.value;
-    setPhone(value);
+    setEmail(value);
     setErrors((prev) => ({
       ...prev,
-      phone: validatePhone(value),
+      email: validateEmail(value),
     }));
   };
 
@@ -110,12 +110,12 @@ const Register = () => {
     e.preventDefault();
     setMessage("");
 
-    const normalizedPhone = phone.trim();
-    const phoneError = validatePhone(normalizedPhone);
+    const normalizedEmail = email.trim().toLowerCase();
+    const emailError = validateEmail(normalizedEmail);
     const passwordError = validatePassword(password);
 
-    if (phoneError) {
-      setErrors((prev) => ({ ...prev, phone: phoneError }));
+    if (emailError) {
+      setErrors((prev) => ({ ...prev, email: emailError }));
       return;
     }
 
@@ -134,7 +134,7 @@ const Register = () => {
 
     try {
       await authApi.register({
-        phone: normalizedPhone,
+        email: normalizedEmail,
         password,
         full_name: fullName,
       });
@@ -207,21 +207,21 @@ const Register = () => {
               </div>
 
               <div className="mb-4 sm:mb-5">
-                <label className="text-sm font-medium">Phone</label>
+                <label className="text-sm font-medium">Gmail</label>
                 <input
-                  type="text"
-                  placeholder="Enter your phone"
-                  value={phone}
-                  onChange={handlePhoneChange}
+                  type="email"
+                  placeholder="Enter your Gmail address"
+                  value={email}
+                  onChange={handleEmailChange}
                   required
                   className={`mt-1 w-full rounded-xl border px-4 py-3 ${
-                    errors.phone ? "border-red-500" : ""
+                    errors.email ? "border-red-500" : ""
                   }`}
                 />
                 <div className="h-5">
-                  {errors.phone && (
+                  {errors.email && (
                     <p className="mt-1 text-xs text-red-600 break-words whitespace-normal">
-                      {errors.phone}
+                      {errors.email}
                     </p>
                   )}
                 </div>

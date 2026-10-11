@@ -78,7 +78,7 @@ const statusLabel = {
 
 const emptyForm = {
   name: "",
-  phone: "",
+  email: "",
   role: "QTV",
   area: "Sơn Trà",
   status: "active",
@@ -89,7 +89,7 @@ const normalizeUser = (user) => ({
   id: user.id || `user${String(user.user_id || "").padStart(3, "0")}`,
   user_id: user.user_id,
   name: user.name || user.full_name || "",
-  phone: user.phone || "",
+  email: user.email || "",
   role: normalizeRole(user.role),
   area: user.area || "",
   status: user.status || user.account_status || "active",
@@ -226,7 +226,7 @@ export default function UserTable() {
     try {
       await userApi.createManagementUser(formData);
       const submittedInfo = {
-        phone: formData.phone,
+        email: formData.email,
         password: formData.password,
         role: formData.role,
       };
@@ -245,7 +245,7 @@ export default function UserTable() {
     setEditingUser(user);
     setFormData({
       name: user.name,
-      phone: user.phone,
+      email: user.email,
       role: user.role,
       area: user.area,
       status: user.status,
@@ -349,7 +349,7 @@ export default function UserTable() {
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Tìm kiếm bằng tên hoặc SĐT"
+              placeholder="Tìm kiếm bằng tên hoặc Gmail"
               className="flex-1 bg-transparent outline-none text-sm placeholder-gray-400"
             />
           </div>
@@ -511,18 +511,17 @@ export default function UserTable() {
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <div className="flex-1">
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">
-                      Số điện thoại
+                      Gmail
                     </label>
                     <input
-                      type="text"
-                      value={formData.phone}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "").slice(0, 10);
-                        setFormData({ ...formData, phone: val });
-                      }}
-                      maxLength={10}
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      required
                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 font-medium"
-                      placeholder="0912 345 678"
+                      placeholder="ten@gmail.com"
                     />
                   </div>
                   <div className="flex-1">
@@ -691,18 +690,17 @@ export default function UserTable() {
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <div className="flex-1">
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">
-                      Số điện thoại
+                      Gmail
                     </label>
                     <input
-                      type="text"
-                      value={formData.phone}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "").slice(0, 10);
-                        setFormData({ ...formData, phone: val });
-                      }}
-                      maxLength={10}
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      required
                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 font-medium"
-                      placeholder="Ví dụ: 0912345678"
+                      placeholder="ten@gmail.com"
                     />
                   </div>
                   <div className="flex-1">
@@ -849,7 +847,7 @@ export default function UserTable() {
                 Tên
               </th>
               <th className="px-4 py-3 font-medium text-left whitespace-nowrap">
-                SĐT
+                Gmail
               </th>
               <th className="px-4 py-3 font-medium text-left whitespace-nowrap">
                 Vai trò
@@ -901,7 +899,7 @@ export default function UserTable() {
                   <td className="px-4 py-3 font-medium whitespace-nowrap">
                     {u.name}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">{u.phone}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{u.email}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {roleLabels[u.role] || u.role}
                   </td>
@@ -1002,12 +1000,12 @@ export default function UserTable() {
               <div className="p-6 space-y-5 overflow-y-auto max-h-[80vh]">
                 <div className="bg-gray-50 rounded-xl p-5 border border-gray-100 space-y-4">
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-gray-500 uppercase mb-1">Tài khoản (SĐT)</span>
+                    <span className="text-xs font-bold text-gray-500 uppercase mb-1">Tài khoản (Gmail)</span>
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-gray-800 text-lg">{successInfo.phone}</span>
+                      <span className="font-semibold text-gray-800 text-lg">{successInfo.email}</span>
                       <button
                         onClick={() => {
-                          navigator.clipboard.writeText(successInfo.phone);
+                          navigator.clipboard.writeText(successInfo.email);
                           setCopyToast("Đã sao chép tài khoản");
                         }}
                         className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"

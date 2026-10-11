@@ -7,21 +7,15 @@ const UserSchema = new mongoose.Schema({
   
   email: String,
 
-  phone: { type: String, unique: true, sparse: true },
-  
   password: String, // hash (nullable cho Google login)
   
   gender: { type: String, enum: ["Nam", "Nữ", "Khác"], default: "Nam" },
 
-  phone_verified: { type: Boolean, default: false },
-
   email_verified: { type: Boolean, default: false },
 
-  verification_token: String,
+  reset_password_token: String,
 
-  reset_otp_expires_at: Date,
-
-  reset_otp_via_email: Boolean,
+  reset_password_expires_at: Date,
 
   role: {
     type: String,

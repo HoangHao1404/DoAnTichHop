@@ -7,7 +7,6 @@ import {
   User,
   Lock,
   Mail,
-  Phone,
   Edit2,
   X,
   ChevronDown,
@@ -21,7 +20,6 @@ const Info_Management = ({ onClose }) => {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const gmailEmailPattern = /^[^\s@]+@gmail\.com$/i;
-  const vnPhonePattern = /^0(?:3|5|7|8|9)\d{8}$/;
   const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
   const handleCloseModal = () => {
@@ -46,7 +44,6 @@ const Info_Management = ({ onClose }) => {
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
-    phone: "",
     gender: "Nam",
   });
 
@@ -61,7 +58,6 @@ const Info_Management = ({ onClose }) => {
       setFormData({
         full_name: user.full_name || "",
         email: user.email || "",
-        phone: user.phone || "",
         gender: user.gender || "Nam",
       });
     }
@@ -75,12 +71,6 @@ const Info_Management = ({ onClose }) => {
       maintenance: "KTV",
     };
     return roleMap[role] || "Công Dân";
-  };
-
-  // Helper: kiểm tra phone hợp lệ
-  const isValidPhone = (phone) => {
-    if (!phone) return false;
-    return vnPhonePattern.test(phone);
   };
 
   const showToast = (message, type = "success") => {
@@ -137,18 +127,11 @@ const Info_Management = ({ onClose }) => {
       return;
     }
 
-    const phone = formData.phone.trim();
-    if (phone && !vnPhonePattern.test(phone)) {
-      showToast("Số điện thoại không đúng định dạng", "error");
-      return;
-    }
-
     setLoading(true);
     try {
       // Only send fields that have values
       const dataToSend = {
         full_name: formData.full_name,
-        phone: formData.phone,
         gender: formData.gender,
       };
       // Only include email if it's not empty
@@ -162,7 +145,6 @@ const Info_Management = ({ onClose }) => {
         full_name: dataToSend.full_name,
         gender: dataToSend.gender,
         email: dataToSend.email || user.email,
-        phone: dataToSend.phone,
       };
       login(localStorage.getItem("token"), updatedUser);
       showToast("Cập nhật thông tin thành công!");
@@ -203,12 +185,9 @@ const Info_Management = ({ onClose }) => {
   const handleCancel = () => {
     setIsEditing(false);
     if (user) {
-      // Không hiển thị phone không hợp lệ
-      const phone = isValidPhone(user.phone) ? user.phone : "";
       setFormData({
         full_name: user.full_name || "",
         email: user.email || "",
-        phone: phone,
         gender: user.gender || "Nam",
       });
     }
@@ -278,47 +257,6 @@ const Info_Management = ({ onClose }) => {
                   )}
                 </div>
 
-                {/* Phone Card */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1.5">
-                    Số Điện Thoại
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      onKeyDown={handleKeyDown}
-                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    />
-                  ) : (
-                    <p className="text-gray-800 font-semibold text-sm">{formData.phone || "-"}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-4">
-                {/* Email Card */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1.5">
-                    Email
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      onKeyDown={handleKeyDown}
-                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    />
-                  ) : (
-                    <p className="text-gray-800 font-semibold text-sm">{formData.email}</p>
-                  )}
-                </div>
-
                 {/* Gender Card */}
                 <div>
                   <label className="block text-xs font-medium text-gray-400 mb-1.5">
@@ -368,6 +306,30 @@ const Info_Management = ({ onClose }) => {
                     </div>
                   )}
                 </div>
+
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-4">
+                {/* Email Card */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                    Email
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      onKeyDown={handleKeyDown}
+                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                  ) : (
+                    <p className="text-gray-800 font-semibold text-sm">{formData.email}</p>
+                  )}
+                </div>
+
               </div>
             </div>
           </div>

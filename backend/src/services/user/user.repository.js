@@ -1,19 +1,8 @@
 const User = require("./user.model");  
 
 class UserRepository {
-  async findByPhone(phone) {
-    return User.findOne({ phone }).lean();
-  }
-
   async findByEmail(email) {
     return User.findOne({ email }).lean();
-  }
-
-  async findByEmailAndPhone(email) {
-    return User.findOne({
-      email,
-      phone: { $exists: true, $nin: [null, ""] },
-    }).lean();
   }
 
   async findById(user_id) {
@@ -34,12 +23,12 @@ class UserRepository {
     const updateFields = {};
     
     if (data.full_name) updateFields.full_name = data.full_name;
-    if (data.phone) updateFields.phone = data.phone;
     if (data.gender) updateFields.gender = data.gender;
     if (data.area) updateFields.area = data.area;
     // Only update email if provided and not empty
     if (data.email && data.email.trim()) {
       updateFields.email = data.email.trim();
+      updateFields.email_verified = true;
     }
     
     return User.findOneAndUpdate(
@@ -57,7 +46,7 @@ class UserRepository {
     ).lean();
   }
 
-  async updateLoginAttempts(phone, failedAttempts, lockUntil = null) {
+  async updateLoginAttemptsByEmail(email, failedAttempts, lockUntil = null) {
     const updateData = { failed_login_attempts: failedAttempts };
     if (lockUntil) {
       updateData.lock_until = lockUntil;
@@ -65,7 +54,7 @@ class UserRepository {
       updateData.lock_until = null;
     }
     return User.findOneAndUpdate(
-      { phone },
+      { email },
       updateData,
       { new: true }
     ).lean();
@@ -84,7 +73,7 @@ class UserRepository {
   }
 
   async getAllUsers() {
-    return User.find({}, { password: 0 }).lean();
+    return User.find({}, { password: 0, phone: 0, phone_verified: 0 }).lean();
   }
 
   async getManagementList({ search, role, area, status, page = 1, limit = 10 }) {
@@ -106,7 +95,6 @@ class UserRepository {
       const keyword = search.trim();
       query.$or = [
         { full_name: { $regex: keyword, $options: "i" } },
-        { phone: { $regex: keyword, $options: "i" } },
         { email: { $regex: keyword, $options: "i" } },
       ];
     }
@@ -143,23 +131,16 @@ class UserRepository {
   async updateUserByAdmin(user_id, data) {
     const updateFields = {
       full_name: data.full_name,
-      phone: data.phone,
+      email: data.email,
+      email_verified: data.email_verified,
       role: data.role,
       area: data.area,
       account_status: data.account_status,
     };
-    
-    const updateQuery = { $set: updateFields };
-    
-    if (data.email && data.email.trim() !== "") {
-      updateFields.email = data.email.trim();
-    } else if (data.email === "") {
-      updateQuery.$unset = { email: 1 };
-    }
 
     return User.findOneAndUpdate(
       { user_id },
-      updateQuery,
+      { $set: updateFields },
       { new: true, projection: { password: 0 } }
     ).lean();
   }

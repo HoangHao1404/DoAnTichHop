@@ -14,7 +14,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const SignIn = () => {
   const [showPass, setShowPass] = useState(false);
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,7 +62,7 @@ const SignIn = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const res = await authApi.login(phone, password);
+      const res = await authApi.login(email.trim(), password);
       if (res.data.success) {
         login(res.data.token, res.data.user);
         setToast({ message: `Chào mừng ${res.data.user.full_name || 'bạn'}!`, type: "success" });
@@ -146,14 +146,14 @@ const SignIn = () => {
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* PHONE */}
+            {/* GMAIL */}
             <div className="mb-5">
-              <label className="text-sm font-medium">Phone</label>
+              <label className="text-sm font-medium">Gmail</label>
               <input
-                type="text"
-                placeholder="Enter your phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                type="email"
+                placeholder="Enter your Gmail address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-xl 
                            text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 required

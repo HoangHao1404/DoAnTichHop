@@ -6,48 +6,34 @@ import authApi from "../services/api/authApi";
 import banner from "../image/banner-public.jpeg";
 
 const ForgotPassword = () => {
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
-  const [devOtp, setDevOtp] = useState("");
+  const [sent, setSent] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!phone.trim()) {
-      setToast({ message: "Vui lòng nhập số điện thoại", type: "error" });
+    if (!email.trim()) {
+      setToast({ message: "Vui lòng nhập email", type: "error" });
       return;
     }
 
     try {
       setLoading(true);
-      const normalizedPhone = phone.trim();
-      const res = await authApi.sendOTP(normalizedPhone);
+      const res = await authApi.sendPasswordResetLink(email.trim());
       
       if (res.data.success) {
-        setDevOtp(res.data.devOtp || "");
-        setToast({ 
-          message: "OTP đã được tạo cho số điện thoại của bạn",
-          type: "success" 
-        });
-        
-        setTimeout(() => {
-          navigate("/reset-password", {
-            state: {
-              phone: normalizedPhone,
-              devOtp: res.data.devOtp || "",
-            },
-          });
-        }, 1500);
+        setSent(true);
       } else {
         setToast({ 
-          message: res.data.message || "Không thể gửi OTP", 
+          message: res.data.message || "Không thể gửi email",
           type: "error" 
         });
       }
     } catch (err) {
       setToast({ 
-        message: err.response?.data?.message || "Lỗi khi gửi OTP", 
+        message: err.response?.data?.message || "Lỗi khi gửi email",
         type: "error" 
       });
     } finally {
@@ -100,36 +86,38 @@ const ForgotPassword = () => {
               Reset Your Password
             </h2>
             <p className="text-gray-600 mb-6">
-              Enter your registered phone number to get an OTP to reset your password.
+              Enter your registered email and we will send you a password reset link.
             </p>
-            {devOtp && (
-              <p className="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                OTP test: <strong>{devOtp}</strong>
+            {sent && (
+              <p className="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800">
+                If that email is registered, a reset link will be sent to your inbox.
               </p>
             )}
 
-            <form onSubmit={handleSubmit}>
-              <div className="mb-6">
-                <label className="text-sm font-medium">Phone</label>
-                <input
-                  type="tel"
-                  placeholder="Enter your registered phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-xl 
-                             text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  required
-                />
-              </div>
+            {!sent && (
+              <form onSubmit={handleSubmit}>
+                <div className="mb-6">
+                  <label className="text-sm font-medium">Email</label>
+                  <input
+                    type="email"
+                    placeholder="Enter your registered email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-xl
+                               text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg text-base font-medium hover:bg-blue-700 transition disabled:opacity-50"
-              >
-                {loading ? "Sending OTP..." : "Send OTP"}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg text-base font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {loading ? "Sending..." : "Send Reset Link"}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>

@@ -2,30 +2,24 @@ import axiosClient from "./axiosClient";
 
 const authApi = {
   register(payload) {
-    // payload: { phone, password, full_name }
+    // payload: { email, password, full_name }
     return axiosClient.post("/auth/register", payload);
   },
 
-  login(phone, password) {
-    return axiosClient.post("/auth/login", { phone, password });
+  login(email, password) {
+    return axiosClient.post("/auth/login", { email, password });
   },
 
   googleLogin(googleToken) {
     return axiosClient.post("/auth/google-login", { token: googleToken });
   },
 
-  sendOTP(phone) {
-    // Gửi OTP để reset password
-    return axiosClient.post("/auth/forgot-password/send-otp", { phone });
+  sendPasswordResetLink(email) {
+    return axiosClient.post("/auth/forgot-password/send-link", { email });
   },
 
-  resetPassword(phone, otp, newPassword) {
-    // Reset password với OTP
-    return axiosClient.post("/auth/forgot-password/reset", { 
-      phone,
-      otp, 
-      newPassword 
-    });
+  resetPassword(token, newPassword) {
+    return axiosClient.post("/auth/forgot-password/reset", { token, newPassword });
   },
 
   logout() {

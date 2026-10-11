@@ -243,11 +243,11 @@ const MaintenanceTeam_Table = () => {
     if (!keyword) return selectableLeaders;
     return selectableLeaders.filter((user) => {
       const name = String(user.name || "").toLowerCase();
-      const phone = String(user.phone || "").toLowerCase();
+      const email = String(user.email || "").toLowerCase();
       const id = String(user.id || user.user_id || "").toLowerCase();
       return (
         name.includes(keyword) ||
-        phone.includes(keyword) ||
+        email.includes(keyword) ||
         id.includes(keyword)
       );
     });
@@ -778,7 +778,7 @@ const MaintenanceTeam_Table = () => {
                         <Input
                           value={leaderSearch}
                           onChange={(e) => setLeaderSearch(e.target.value)}
-                          placeholder="Tìm trưởng đội theo tên, SĐT..."
+                          placeholder="Tìm trưởng đội theo tên hoặc Gmail..."
                           className="h-10 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                         />
                       </div>
@@ -806,7 +806,7 @@ const MaintenanceTeam_Table = () => {
                                   className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm hover:bg-blue-50"
                                 >
                                   <span className="truncate text-gray-700">
-                                    {u.name} ({u.phone})
+                                    {u.name} ({u.email})
                                   </span>
                                   {selected ? (
                                     <Check className="h-4 w-4 text-blue-600" />
@@ -1055,7 +1055,7 @@ const MaintenanceTeam_Table = () => {
                         <Input
                           value={leaderSearch}
                           onChange={(e) => setLeaderSearch(e.target.value)}
-                          placeholder="Tìm trưởng đội theo tên, SĐT..."
+                          placeholder="Tìm trưởng đội theo tên hoặc Gmail..."
                           className="h-10 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                         />
                       </div>
@@ -1083,7 +1083,7 @@ const MaintenanceTeam_Table = () => {
                                   className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm hover:bg-blue-50"
                                 >
                                   <span className="truncate text-gray-700">
-                                    {u.name} ({u.phone})
+                                    {u.name} ({u.email})
                                   </span>
                                   {selected ? (
                                     <Check className="h-4 w-4 text-blue-600" />

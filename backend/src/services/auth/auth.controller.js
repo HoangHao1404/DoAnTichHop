@@ -2,43 +2,43 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
-const otpService = require("./otp.service");
+const passwordResetEmailService = require("./passwordResetEmail.service");
 const userRepo = require("../user/user.repository");
 const User = require("../user/user.model");
 const LoginHistory = require("./loginHistory.model");
 
-const VN_PHONE_PATTERN = /^0(?:3|5|7|8|9)\d{8}$/;
+const GMAIL_EMAIL_PATTERN = /^[^\s@]+@gmail\.com$/i;
 const STRONG_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
-function normalizePhone(phone) {
-  return typeof phone === "string" ? phone.trim() : "";
+function normalizeEmail(email) {
+  return typeof email === "string" ? email.trim().toLowerCase() : "";
 }
 
 function isStrongPassword(password) {
   return STRONG_PASSWORD_PATTERN.test(String(password || ""));
 }
 
-// 1) Đăng ký trực tiếp bằng số điện thoại
+// 1) Đăng ký bằng Gmail
 async function register(req, res) {
   try {
     const { password, full_name } = req.body;
-    const phone = normalizePhone(req.body?.phone);
+    const email = normalizeEmail(req.body?.email);
 
-    if (!phone || !password || !full_name) {
+    if (!email || !password || !full_name) {
       return res.status(400).json({ message: "Thiếu dữ liệu bắt buộc" });
     }
 
-    if (!VN_PHONE_PATTERN.test(phone)) {
-      return res.status(400).json({ message: "Số điện thoại không đúng định dạng" });
+    if (!GMAIL_EMAIL_PATTERN.test(email)) {
+      return res.status(400).json({ message: "Vui lòng nhập địa chỉ Gmail hợp lệ" });
     }
 
     if (!isStrongPassword(password)) {
       return res.status(400).json({ message: "mật khẩu không đủ mạnh" });
     }
 
-    const exists = await userRepo.findByPhone(phone);
+    const exists = await userRepo.findByEmail(email);
     if (exists) {
-      return res.status(400).json({ message: "Số điện thoại đã được đăng ký" });
+      return res.status(400).json({ message: "Gmail đã được đăng ký" });
     }
 
     const hashed = await bcrypt.hash(password, 10);
@@ -47,9 +47,9 @@ async function register(req, res) {
     const user = await userRepo.create({
       user_id,
       full_name: typeof full_name === "string" ? full_name.trim() : full_name,
-      phone,
+      email,
       password: hashed,
-      phone_verified: true,
+      email_verified: true,
       role: "user",
     });
 
@@ -59,7 +59,7 @@ async function register(req, res) {
       user: {
         user_id: user.user_id,
         full_name: user.full_name,
-        phone: user.phone,
+        email: user.email,
         role: user.role,
       },
     });
@@ -69,21 +69,26 @@ async function register(req, res) {
   }
 }
 
-// 3) Login: phone + password (chỉ user đã verify)
+// 3) Login: Gmail + password
 async function login(req, res) {
   try {
-    const { phone, password } = req.body;
-    if (!phone || !password) {
+    const email = normalizeEmail(req.body?.email);
+    const { password } = req.body;
+    if (!email || !password) {
       return res
         .status(400)
-        .json({ message: "Thiếu số điện thoại hoặc mật khẩu" });
+        .json({ message: "Thiếu Gmail hoặc mật khẩu" });
     }
 
-    const user = await userRepo.findByPhone(phone);
+    if (!GMAIL_EMAIL_PATTERN.test(email)) {
+      return res.status(400).json({ message: "Vui lòng nhập địa chỉ Gmail hợp lệ" });
+    }
+
+    const user = await userRepo.findByEmail(email);
     if (!user) {
       return res
         .status(400)
-        .json({ message: "Sai số điện thoại hoặc mật khẩu" });
+        .json({ message: "Sai Gmail hoặc mật khẩu" });
     }
 
     // Kiểm tra tài khoản có bị khóa tạm thời không
@@ -92,13 +97,6 @@ async function login(req, res) {
       return res.status(403).json({
         message: `Tài khoản đã bị khóa tạm thời. Vui lòng thử lại sau ${remainingMinutes} phút.`,
       });
-    }
-
-    const isPhoneVerified = user.phone_verified !== false;
-    if (!isPhoneVerified) {
-      return res
-        .status(403)
-        .json({ message: "Số điện thoại chưa được xác thực" });
     }
 
     if (user.account_status && user.account_status !== "active") {
@@ -115,27 +113,27 @@ async function login(req, res) {
       if (newFailedAttempts >= 3) {
         // Khóa tài khoản 15 phút
         const lockTime = new Date(Date.now() + 15 * 60 * 1000);
-        await userRepo.updateLoginAttempts(phone, newFailedAttempts, lockTime);
+        await userRepo.updateLoginAttemptsByEmail(email, newFailedAttempts, lockTime);
         return res.status(403).json({
           message: "Đã nhập sai mật khẩu 3 lần. Tài khoản bị khóa 15 phút.",
         });
       }
       
-      await userRepo.updateLoginAttempts(phone, newFailedAttempts);
+      await userRepo.updateLoginAttemptsByEmail(email, newFailedAttempts);
       const attemptsLeft = 3 - newFailedAttempts;
       return res.status(400).json({
-        message: `Sai số điện thoại hoặc mật khẩu. Còn ${attemptsLeft} lần thử.`,
+        message: `Sai Gmail hoặc mật khẩu. Còn ${attemptsLeft} lần thử.`,
       });
     }
 
     // Đăng nhập thành công - reset counter
-    await userRepo.updateLoginAttempts(phone, 0, null);
+    await userRepo.updateLoginAttemptsByEmail(email, 0, null);
 
     // LẤY USER MỚI NHẤT TỪ DB ĐỂ ĐẢM BẢO token_version
-    const freshUser = await User.findOne({ phone }).lean();
+    const freshUser = await User.findOne({ email }).lean();
     
     if (!freshUser) {
-      console.error(`❌ [LOGIN] Failed to fetch freshUser for phone: ${phone}`);
+      console.error(`❌ [LOGIN] Failed to fetch freshUser for email: ${email}`);
       return res.status(500).json({ message: "Lỗi lấy dữ liệu người dùng" });
     }
     
@@ -143,7 +141,7 @@ async function login(req, res) {
     if (freshUser.token_version === undefined || freshUser.token_version === null) {
       console.log(`⚠️  [LOGIN] token_version was undefined, updating to 0...`);
       await User.findOneAndUpdate(
-        { phone },
+        { email },
         { $set: { token_version: 0 } },
         { new: false }
       );
@@ -171,7 +169,7 @@ async function login(req, res) {
       user: {
         user_id: freshUser.user_id,
         full_name: freshUser.full_name,
-        phone: freshUser.phone,
+        email: freshUser.email,
         role: freshUser.role,
         is_first_login: freshUser.is_first_login || false,
       },
@@ -200,8 +198,6 @@ async function googleLogin(req, res) {
     const payload = ticket.getPayload();
     const email = payload.email;
     const full_name = payload.name;
-    const VN_PHONE_PATTERN = /^0(?:3|5|7|8|9)\d{8}$/;
-
     // Tìm user theo email
     let user = await userRepo.findByEmail(email);
     let isNewUser = false;
@@ -215,7 +211,6 @@ async function googleLogin(req, res) {
         full_name,
         email,
         password: null,
-        phone_verified: false,
         email_verified: true,
         role: "user",
       });
@@ -224,15 +219,6 @@ async function googleLogin(req, res) {
       console.log(`✅ Tạo user mới từ Google: ${email}`);
     } else {
       console.log(`✅ Login Google cho user hiện tại: ${email}`);
-      
-      // Nếu user cũ có phone không hợp lệ (không phải số Việt Nam), reset thành null
-      if (user.phone && !VN_PHONE_PATTERN.test(user.phone)) {
-        console.log(`🔄 Resetting invalid phone: ${user.phone}`);
-        await User.findOneAndUpdate(
-          { email },
-          { $unset: { phone: 1 }, $set: { phone_verified: false } }
-        );
-      }
     }
 
     if (user.account_status && user.account_status !== "active") {
@@ -297,7 +283,6 @@ async function googleLogin(req, res) {
         user_id: freshUser.user_id,
         full_name: freshUser.full_name,
         email: freshUser.email,
-        phone: freshUser.phone,
         role: freshUser.role,
         email_verified: freshUser.email_verified,
         is_first_login: freshUser.is_first_login || false,
@@ -314,60 +299,74 @@ async function googleLogin(req, res) {
   }
 }
 
-// 5) Gửi OTP để reset password
-async function sendForgotPasswordOtp(req, res) {
+// 5) Gửi link đặt lại mật khẩu qua email
+async function sendPasswordResetLink(req, res) {
   try {
-    const phone = normalizePhone(req.body?.phone);
-    if (!phone) {
-      return res.status(400).json({ message: "Thiếu số điện thoại" });
+    const email =
+      typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+    if (!email) {
+      return res.status(400).json({ message: "Vui lòng nhập email" });
     }
 
-    if (!VN_PHONE_PATTERN.test(phone)) {
-      return res.status(400).json({ message: "Số điện thoại không đúng định dạng" });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: "Email không đúng định dạng" });
     }
 
-    const code = otpService.generateOtp(phone);
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-    const existingUser = await userRepo.findByPhone(phone);
+    const existingUser = await userRepo.findByEmail(email);
+    if (existingUser) {
+      const token = crypto.randomBytes(32).toString("hex");
+      const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+      const frontendUrl = process.env.FRONTEND_URL;
 
-    if (!existingUser) {
-      return res.status(404).json({
-        message: "Số điện thoại chưa được đăng ký",
-      });
+      if (!frontendUrl) {
+        throw new Error("FRONTEND_URL is required to send password reset links");
+      }
+
+      await User.findOneAndUpdate(
+        { user_id: existingUser.user_id },
+        {
+          reset_password_token: tokenHash,
+          reset_password_expires_at: expiresAt,
+        },
+      );
+
+      const resetUrl = new URL("/reset-password", frontendUrl);
+      resetUrl.searchParams.set("token", token);
+
+      try {
+        await passwordResetEmailService.sendResetLink(email, resetUrl.toString());
+      } catch (err) {
+        await User.findOneAndUpdate(
+          { user_id: existingUser.user_id, reset_password_token: tokenHash },
+          { $unset: { reset_password_token: 1, reset_password_expires_at: 1 } },
+        );
+        throw err;
+      }
     }
-
-    await User.findOneAndUpdate(
-      { user_id: existingUser.user_id },
-      {
-        verification_token: code,
-        reset_otp_expires_at: expiresAt,
-        reset_otp_via_email: false,
-      },
-    );
 
     return res.json({
       success: true,
-      message: "Mã OTP đã được tạo. Nhập mã hiển thị trên màn hình.",
-      devOtp: code,
+      message: "Nếu email đã đăng ký, bạn sẽ nhận được link đặt lại mật khẩu.",
     });
   } catch (err) {
-    console.error("sendForgotPasswordOtp error:", err);
-    return res.status(503).json({ message: "Dịch vụ OTP tạm thời không khả dụng" });
+    console.error("sendPasswordResetLink error:", err);
+    return res.status(503).json({ message: "Không thể gửi email đặt lại mật khẩu" });
   }
 }
 
-// 6) Reset password với OTP
+// 6) Đặt lại mật khẩu bằng token dùng một lần
 async function resetPassword(req, res) {
   try {
-    const { phone: rawPhone, otp, newPassword } = req.body;
-    const phone = normalizePhone(rawPhone);
+    const { token, newPassword } = req.body;
 
-    if (!phone || !otp || !newPassword) {
+    if (
+      typeof token !== "string" ||
+      !token ||
+      typeof newPassword !== "string" ||
+      !newPassword
+    ) {
       return res.status(400).json({ message: "Thiếu dữ liệu bắt buộc" });
-    }
-
-    if (!VN_PHONE_PATTERN.test(phone)) {
-      return res.status(400).json({ message: "Số điện thoại không đúng định dạng" });
     }
 
     if (newPassword.length < 6) {
@@ -376,31 +375,28 @@ async function resetPassword(req, res) {
         .json({ message: "Mật khẩu phải có ít nhất 6 ký tự" });
     }
 
-    const user = await userRepo.findByPhone(phone);
-    const otpExpiresAt = user?.reset_otp_expires_at;
-    const valid =
-      user?.verification_token === otp &&
-      otpExpiresAt &&
-      new Date(otpExpiresAt).getTime() > Date.now();
-
-    if (!valid) {
-      return res
-        .status(400)
-        .json({ message: "OTP không hợp lệ hoặc đã hết hạn" });
-    }
-
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const hashed = await bcrypt.hash(newPassword, 10);
-    await User.findOneAndUpdate(
-      { user_id: user.user_id },
+    const user = await User.findOneAndUpdate(
+      {
+        reset_password_token: tokenHash,
+        reset_password_expires_at: { $gt: new Date() },
+      },
       {
         password: hashed,
         $unset: {
-          verification_token: 1,
-          reset_otp_expires_at: 1,
-          reset_otp_via_email: 1,
+          reset_password_token: 1,
+          reset_password_expires_at: 1,
         },
       },
+      { new: true },
     );
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "Link không hợp lệ hoặc đã hết hạn" });
+    }
 
     return res.json({
       success: true,
@@ -479,7 +475,7 @@ async function verify(req, res) {
       message: "Token hợp lệ",
       user: {
         user_id: user.user_id,
-        phone: user.phone,
+        email: user.email,
         full_name: user.full_name,
         role: user.role,
       },
@@ -497,7 +493,7 @@ module.exports = {
   register,
   login,
   googleLogin,
-  sendForgotPasswordOtp,
+  sendPasswordResetLink,
   resetPassword,
   logout,
   verify,

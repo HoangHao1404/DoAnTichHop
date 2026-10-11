@@ -4,7 +4,6 @@ import {
   User,
   Lock,
   Mail,
-  Phone,
   Edit2,
   X,
   ChevronDown,
@@ -18,7 +17,6 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
   const [formData, setFormData] = useState({
     fullName: user?.fullName || "Bạc Xỉu",
     email: user?.email || "bacxiu12@gmail.com",
-    phone: user?.phone || "(+84) 8362946293",
     gender: user?.gender || "Nam",
   });
 
@@ -122,29 +120,6 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
                       />
                     ) : (
                       <p className="text-gray-800 font-medium">{formData.email}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Phone Card */}
-              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-                <div className="flex items-start gap-3">
-                  <Phone size={16} className="text-blue-400 mt-0.5" />
-                  <div className="flex-1">
-                    <label className="block text-xs font-semibold text-gray-500 mb-2">
-                      Số Điện Thoại
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className="w-full bg-white border border-blue-200 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      />
-                    ) : (
-                      <p className="text-gray-800 font-medium">{formData.phone}</p>
                     )}
                   </div>
                 </div>

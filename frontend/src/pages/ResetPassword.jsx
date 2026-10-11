@@ -6,7 +6,6 @@ import authApi from "../services/api/authApi";
 import banner from "../image/banner-public.jpeg";
 
 const ResetPassword = () => {
-  const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -16,15 +15,14 @@ const ResetPassword = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const phone = location.state?.phone || "";
-  const devOtp = location.state?.devOtp || "";
+  const token = new URLSearchParams(location.search).get("token") || "";
 
-  if (!phone) {
+  if (!token) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <h2 className="text-2xl font-semibold mb-4">Invalid Access</h2>
-          <p className="text-gray-600 mb-6">Please start from the Forgot Password page</p>
+          <p className="text-gray-600 mb-6">Please use the reset link sent to your email.</p>
           <button
             onClick={() => navigate("/forgot-password")}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
@@ -38,11 +36,6 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!otp.trim()) {
-      setToast({ message: "Vui lòng nhập OTP", type: "error" });
-      return;
-    }
 
     if (!newPassword.trim()) {
       setToast({ message: "Vui lòng nhập mật khẩu mới", type: "error" });
@@ -61,7 +54,7 @@ const ResetPassword = () => {
 
     try {
       setLoading(true);
-      const res = await authApi.resetPassword(phone, otp, newPassword);
+      const res = await authApi.resetPassword(token, newPassword);
 
       if (res.data.success) {
         setToast({ 
@@ -133,32 +126,10 @@ const ResetPassword = () => {
               Reset Password
             </h2>
             <p className="text-gray-600 mb-6">
-              Enter the OTP for <strong>{phone}</strong> and your new password.
+              Enter your new password.
             </p>
-            {devOtp && (
-              <p className="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                OTP test: <strong>{devOtp}</strong>
-              </p>
-            )}
 
             <form onSubmit={handleSubmit}>
-              {/* OTP */}
-              <div className="mb-5">
-                <label className="text-sm font-medium">OTP</label>
-                <input
-                  type="text"
-                  placeholder="Enter OTP"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-xl 
-                             text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Check the OTP shown for your phone number
-                </p>
-              </div>
-
               {/* NEW PASSWORD */}
               <div className="mb-5 relative">
                 <label className="text-sm font-medium">New Password</label>

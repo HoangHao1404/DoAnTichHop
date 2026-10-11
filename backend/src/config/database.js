@@ -34,33 +34,13 @@ async function ensureEmailIndex() {
   console.log("✅ Ensured sparse unique email_1 index");
 }
 
-async function ensurePhoneIndex() {
+async function removeLegacyPhoneIndex() {
   const collection = User.collection;
   const indexes = await collection.indexes();
-  const phoneIndex = indexes.find((idx) => idx.name === "phone_1");
-
-  const isExpectedSparseUnique =
-    phoneIndex && phoneIndex.unique === true && phoneIndex.sparse === true;
-
-  if (phoneIndex && !isExpectedSparseUnique) {
+  if (indexes.some((idx) => idx.name === "phone_1")) {
     await collection.dropIndex("phone_1");
-    console.log("ℹ️ Dropped legacy phone_1 index");
+    console.log("ℹ️ Dropped obsolete phone_1 index");
   }
-
-  await collection.updateMany(
-    { $or: [{ phone: null }, { phone: "" }] },
-    { $unset: { phone: "" } },
-  );
-
-  await collection.createIndex(
-    { phone: 1 },
-    {
-      name: "phone_1",
-      unique: true,
-      sparse: true,
-    },
-  );
-  console.log("✅ Ensured sparse unique phone_1 index");
 }
 
 const connectDB = async () => {
@@ -78,7 +58,7 @@ const connectDB = async () => {
     const conn = await mongoose.connect(mongoUri);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     await ensureEmailIndex();
-    await ensurePhoneIndex();
+    await removeLegacyPhoneIndex();
     return true;
   } catch (err) {
     console.error("MongoDB Connection Error:", err.message);
