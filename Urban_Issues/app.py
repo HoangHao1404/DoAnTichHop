@@ -93,7 +93,13 @@ def predict():
         logging.info("[predict] Starting YOLO inference")
         start_time = time.time()
 
-        results = model(image, conf=0.25)
+        results = model.predict(
+            source=image,
+            imgsz=320,
+            conf=0.25,
+            device="cpu",
+            verbose=False,
+        )
 
         inference_time = time.time() - start_time
         logging.info(
