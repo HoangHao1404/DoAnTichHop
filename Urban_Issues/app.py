@@ -6,6 +6,7 @@ import io
 import base64
 from pathlib import Path
 import logging
+import time
 
 app = Flask(__name__)
 CORS(app)
@@ -87,8 +88,18 @@ def predict():
         image = Image.open(io.BytesIO(file.read()))
         logging.info(f"[predict] Image size: {image.size}, mode: {image.mode}")
 
+        # Add
         # Run inference
+        logging.info("[predict] Starting YOLO inference")
+        start_time = time.time()
+
         results = model(image, conf=0.25)
+
+        inference_time = time.time() - start_time
+        logging.info(
+            "[predict] YOLO inference completed in %.2f seconds",
+            inference_time
+        )
 
         # Parse results
         detections = []
