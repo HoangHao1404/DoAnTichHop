@@ -95,9 +95,11 @@ def predict():
 
         results = model.predict(
             source=image,
-            imgsz=320,
+            imgsz=224,
             conf=0.25,
             device="cpu",
+            workers=0,
+            max_det=1,
             verbose=False,
         )
 
