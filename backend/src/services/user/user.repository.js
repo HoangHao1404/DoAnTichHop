@@ -5,6 +5,10 @@ class UserRepository {
     return User.findOne({ email }).lean();
   }
 
+  async findByPhone(phone) {
+    return User.findOne({ phone }).lean();
+  }
+
   async findById(user_id) {
     return User.findOne({ user_id }).lean();
   }
@@ -47,6 +51,14 @@ class UserRepository {
   }
 
   async updateLoginAttemptsByEmail(email, failedAttempts, lockUntil = null) {
+    return this.updateLoginAttempts({ email }, failedAttempts, lockUntil);
+  }
+
+  async updateLoginAttemptsByPhone(phone, failedAttempts, lockUntil = null) {
+    return this.updateLoginAttempts({ phone }, failedAttempts, lockUntil);
+  }
+
+  async updateLoginAttempts(filter, failedAttempts, lockUntil = null) {
     const updateData = { failed_login_attempts: failedAttempts };
     if (lockUntil) {
       updateData.lock_until = lockUntil;
@@ -54,7 +66,7 @@ class UserRepository {
       updateData.lock_until = null;
     }
     return User.findOneAndUpdate(
-      { email },
+      filter,
       updateData,
       { new: true }
     ).lean();
@@ -96,6 +108,7 @@ class UserRepository {
       query.$or = [
         { full_name: { $regex: keyword, $options: "i" } },
         { email: { $regex: keyword, $options: "i" } },
+        { phone: { $regex: keyword, $options: "i" } },
       ];
     }
 
@@ -137,6 +150,9 @@ class UserRepository {
       area: data.area,
       account_status: data.account_status,
     };
+    if (data.phone) {
+      updateFields.phone = data.phone;
+    }
 
     return User.findOneAndUpdate(
       { user_id },

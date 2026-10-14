@@ -162,10 +162,11 @@ class UserController {
 
   async createManagementUser(req, res) {
     try {
-      const { name, email, role, area, status, password } = req.body;
+      const { name, email, phone, role, area, status, password } = req.body;
       const created = await userService.createUserByAdmin({
         name,
         email,
+        phone,
         role,
         area,
         status,
@@ -186,7 +187,7 @@ class UserController {
   async updateManagementUser(req, res) {
     try {
       const user_id = Number(req.params.userId);
-      const { name, email, role, area, status } = req.body;
+      const { name, email, phone, role, area, status } = req.body;
 
       if (!Number.isFinite(user_id)) {
         return res.status(400).json({ success: false, message: "userId không hợp lệ" });
@@ -195,6 +196,7 @@ class UserController {
       const updated = await userService.updateUserByAdmin(user_id, {
         name,
         email,
+        phone,
         role,
         area,
         status,

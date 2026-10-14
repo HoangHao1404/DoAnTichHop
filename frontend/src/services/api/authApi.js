@@ -2,12 +2,12 @@ import axiosClient from "./axiosClient";
 
 const authApi = {
   register(payload) {
-    // payload: { email, password, full_name }
+    // payload: { email, phone, password, full_name }
     return axiosClient.post("/auth/register", payload);
   },
 
-  login(email, password) {
-    return axiosClient.post("/auth/login", { email, password });
+  login(identifier, password) {
+    return axiosClient.post("/auth/login", { identifier, password });
   },
 
   googleLogin(googleToken) {

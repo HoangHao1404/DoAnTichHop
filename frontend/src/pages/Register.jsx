@@ -9,6 +9,7 @@ import cone from "../image/trafficCone.png";
 import authApi from "../services/api/authApi";
 
 const GMAIL_EMAIL_PATTERN = /^[^\s@]+@gmail\.com$/i;
+const PHONE_PATTERN = /^\+?[0-9\s().-]{8,20}$/;
 const STRONG_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 const Register = () => {
@@ -17,12 +18,14 @@ const Register = () => {
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -37,6 +40,7 @@ const Register = () => {
         const data = JSON.parse(savedFormData);
         setFullName(data.fullName || "");
         setEmail(data.email || "");
+        setPhone(data.phone || "");
         setPassword(data.password || "");
         setConfirmPassword(data.confirmPassword || "");
       } catch (e) {
@@ -50,16 +54,26 @@ const Register = () => {
     const formData = {
       fullName,
       email,
+      phone,
       password,
       confirmPassword,
     };
     localStorage.setItem("registerFormData", JSON.stringify(formData));
-  }, [fullName, email, password, confirmPassword]);
+  }, [fullName, email, phone, password, confirmPassword]);
 
   const validateEmail = (emailValue) => {
     if (!emailValue.trim()) return "";
     if (!GMAIL_EMAIL_PATTERN.test(emailValue.trim())) {
       return "Vui lòng nhập địa chỉ Gmail hợp lệ";
+    }
+    return "";
+  };
+
+  const validatePhone = (phoneValue) => {
+    if (!phoneValue.trim()) return "Vui lòng nhập số điện thoại";
+    const digitCount = phoneValue.replace(/\D/g, "").length;
+    if (!PHONE_PATTERN.test(phoneValue.trim()) || digitCount < 8 || digitCount > 15) {
+      return "Vui lòng nhập số điện thoại hợp lệ";
     }
     return "";
   };
@@ -78,6 +92,15 @@ const Register = () => {
     setErrors((prev) => ({
       ...prev,
       email: validateEmail(value),
+    }));
+  };
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    setPhone(value);
+    setErrors((prev) => ({
+      ...prev,
+      phone: validatePhone(value),
     }));
   };
 
@@ -112,10 +135,16 @@ const Register = () => {
 
     const normalizedEmail = email.trim().toLowerCase();
     const emailError = validateEmail(normalizedEmail);
+    const phoneError = validatePhone(phone);
     const passwordError = validatePassword(password);
 
     if (emailError) {
       setErrors((prev) => ({ ...prev, email: emailError }));
+      return;
+    }
+
+    if (phoneError) {
+      setErrors((prev) => ({ ...prev, phone: phoneError }));
       return;
     }
 
@@ -135,6 +164,7 @@ const Register = () => {
     try {
       await authApi.register({
         email: normalizedEmail,
+        phone: phone.trim(),
         password,
         full_name: fullName,
       });
@@ -222,6 +252,27 @@ const Register = () => {
                   {errors.email && (
                     <p className="mt-1 text-xs text-red-600 break-words whitespace-normal">
                       {errors.email}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="mb-4 sm:mb-5">
+                <label className="text-sm font-medium">Số điện thoại</label>
+                <input
+                  type="tel"
+                  placeholder="Nhập số điện thoại"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  required
+                  className={`mt-1 w-full rounded-xl border px-4 py-3 ${
+                    errors.phone ? "border-red-500" : ""
+                  }`}
+                />
+                <div className="h-5">
+                  {errors.phone && (
+                    <p className="mt-1 text-xs text-red-600 break-words whitespace-normal">
+                      {errors.phone}
                     </p>
                   )}
                 </div>

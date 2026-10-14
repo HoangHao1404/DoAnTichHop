@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const passwordResetEmailService = require("./passwordResetEmail.service");
 const userRepo = require("../user/user.repository");
+const normalizePhone = require("../user/phone.utils");
 const User = require("../user/user.model");
 const LoginHistory = require("./loginHistory.model");
 
@@ -23,13 +24,18 @@ async function register(req, res) {
   try {
     const { password, full_name } = req.body;
     const email = normalizeEmail(req.body?.email);
+    const phone = normalizePhone(req.body?.phone);
 
-    if (!email || !password || !full_name) {
+    if (!email || !req.body?.phone || !password || !full_name) {
       return res.status(400).json({ message: "Thiếu dữ liệu bắt buộc" });
     }
 
     if (!GMAIL_EMAIL_PATTERN.test(email)) {
       return res.status(400).json({ message: "Vui lòng nhập địa chỉ Gmail hợp lệ" });
+    }
+
+    if (!phone) {
+      return res.status(400).json({ message: "Vui lòng nhập số điện thoại hợp lệ" });
     }
 
     if (!isStrongPassword(password)) {
@@ -41,6 +47,10 @@ async function register(req, res) {
       return res.status(400).json({ message: "Gmail đã được đăng ký" });
     }
 
+    if (await userRepo.findByPhone(phone)) {
+      return res.status(400).json({ message: "Số điện thoại đã được đăng ký" });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
     const user_id = await userRepo.getNextUserId();
 
@@ -48,6 +58,7 @@ async function register(req, res) {
       user_id,
       full_name: typeof full_name === "string" ? full_name.trim() : full_name,
       email,
+      phone,
       password: hashed,
       email_verified: true,
       role: "user",
@@ -64,31 +75,49 @@ async function register(req, res) {
       },
     });
   } catch (err) {
+    if (err.code === 11000 && err.keyPattern?.phone) {
+      return res.status(400).json({ message: "Số điện thoại đã được đăng ký" });
+    }
     console.error("register error:", err);
     return res.status(500).json({ message: "Lỗi server" });
   }
 }
 
-// 3) Login: Gmail + password
+// 3) Login: Gmail for users, phone for managers and maintenance teams
 async function login(req, res) {
   try {
-    const email = normalizeEmail(req.body?.email);
+    const rawIdentifier =
+      req.body?.identifier ?? req.body?.email ?? req.body?.phone;
+    const email = normalizeEmail(rawIdentifier);
+    const isEmailLogin = GMAIL_EMAIL_PATTERN.test(email);
+    const phone = isEmailLogin ? "" : normalizePhone(rawIdentifier);
     const { password } = req.body;
-    if (!email || !password) {
+    if ((!isEmailLogin && !phone) || !password) {
       return res
         .status(400)
-        .json({ message: "Thiếu Gmail hoặc mật khẩu" });
+        .json({ message: "Vui lòng nhập Gmail/số điện thoại hợp lệ và mật khẩu" });
     }
 
-    if (!GMAIL_EMAIL_PATTERN.test(email)) {
-      return res.status(400).json({ message: "Vui lòng nhập địa chỉ Gmail hợp lệ" });
-    }
-
-    const user = await userRepo.findByEmail(email);
+    const identity = isEmailLogin ? email : phone;
+    const identityFilter = isEmailLogin ? { email } : { phone };
+    const findUser = isEmailLogin
+      ? userRepo.findByEmail(identity)
+      : userRepo.findByPhone(identity);
+    const user = await findUser;
     if (!user) {
       return res
         .status(400)
-        .json({ message: "Sai Gmail hoặc mật khẩu" });
+        .json({ message: "Sai Gmail/số điện thoại hoặc mật khẩu" });
+    }
+
+    const staffRoles = ["admin", "manager", "maintenance"];
+    const isStaff = staffRoles.includes(user.role);
+    if ((isEmailLogin && isStaff) || (!isEmailLogin && !isStaff)) {
+      return res.status(400).json({
+        message: isEmailLogin
+          ? "Tài khoản quản lý/đội xử lý phải đăng nhập bằng số điện thoại"
+          : "Người dùng vui lòng đăng nhập bằng Gmail",
+      });
     }
 
     // Kiểm tra tài khoản có bị khóa tạm thời không
@@ -113,27 +142,39 @@ async function login(req, res) {
       if (newFailedAttempts >= 3) {
         // Khóa tài khoản 15 phút
         const lockTime = new Date(Date.now() + 15 * 60 * 1000);
-        await userRepo.updateLoginAttemptsByEmail(email, newFailedAttempts, lockTime);
+        if (isEmailLogin) {
+          await userRepo.updateLoginAttemptsByEmail(identity, newFailedAttempts, lockTime);
+        } else {
+          await userRepo.updateLoginAttemptsByPhone(identity, newFailedAttempts, lockTime);
+        }
         return res.status(403).json({
           message: "Đã nhập sai mật khẩu 3 lần. Tài khoản bị khóa 15 phút.",
         });
       }
       
-      await userRepo.updateLoginAttemptsByEmail(email, newFailedAttempts);
+      if (isEmailLogin) {
+        await userRepo.updateLoginAttemptsByEmail(identity, newFailedAttempts);
+      } else {
+        await userRepo.updateLoginAttemptsByPhone(identity, newFailedAttempts);
+      }
       const attemptsLeft = 3 - newFailedAttempts;
       return res.status(400).json({
-        message: `Sai Gmail hoặc mật khẩu. Còn ${attemptsLeft} lần thử.`,
+        message: `Sai Gmail/số điện thoại hoặc mật khẩu. Còn ${attemptsLeft} lần thử.`,
       });
     }
 
     // Đăng nhập thành công - reset counter
-    await userRepo.updateLoginAttemptsByEmail(email, 0, null);
+    if (isEmailLogin) {
+      await userRepo.updateLoginAttemptsByEmail(identity, 0, null);
+    } else {
+      await userRepo.updateLoginAttemptsByPhone(identity, 0, null);
+    }
 
     // LẤY USER MỚI NHẤT TỪ DB ĐỂ ĐẢM BẢO token_version
-    const freshUser = await User.findOne({ email }).lean();
+    const freshUser = await User.findOne(identityFilter).lean();
     
     if (!freshUser) {
-      console.error(`❌ [LOGIN] Failed to fetch freshUser for email: ${email}`);
+      console.error(`❌ [LOGIN] Failed to fetch freshUser for ${isEmailLogin ? "email" : "phone"}: ${identity}`);
       return res.status(500).json({ message: "Lỗi lấy dữ liệu người dùng" });
     }
     
@@ -141,7 +182,7 @@ async function login(req, res) {
     if (freshUser.token_version === undefined || freshUser.token_version === null) {
       console.log(`⚠️  [LOGIN] token_version was undefined, updating to 0...`);
       await User.findOneAndUpdate(
-        { email },
+        identityFilter,
         { $set: { token_version: 0 } },
         { new: false }
       );

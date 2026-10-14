@@ -79,6 +79,7 @@ const statusLabel = {
 const emptyForm = {
   name: "",
   email: "",
+  phone: "",
   role: "QTV",
   area: "Sơn Trà",
   status: "active",
@@ -90,6 +91,7 @@ const normalizeUser = (user) => ({
   user_id: user.user_id,
   name: user.name || user.full_name || "",
   email: user.email || "",
+  phone: user.phone || "",
   role: normalizeRole(user.role),
   area: user.area || "",
   status: user.status || user.account_status || "active",
@@ -224,6 +226,10 @@ export default function UserTable() {
   // Handle Add User
   const handleAddUser = async () => {
     try {
+      if (formData.role !== "User" && !formData.phone.trim()) {
+        setErrorInfo("Vui lòng nhập số điện thoại cho tài khoản nhân sự");
+        return;
+      }
       await userApi.createManagementUser(formData);
       const submittedInfo = {
         email: formData.email,
@@ -246,6 +252,7 @@ export default function UserTable() {
     setFormData({
       name: user.name,
       email: user.email,
+      phone: user.phone,
       role: user.role,
       area: user.area,
       status: user.status,
@@ -255,6 +262,10 @@ export default function UserTable() {
 
   const handleSaveEdit = async () => {
     try {
+      if (formData.role !== "User" && !formData.phone.trim()) {
+        setErrorInfo("Vui lòng nhập số điện thoại cho tài khoản nhân sự");
+        return;
+      }
       const userId = resolveUserId(editingUser);
       if (!userId) {
         setErrorInfo("Không xác định được ID người dùng");
@@ -546,6 +557,22 @@ export default function UserTable() {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">
+                    Số điện thoại đăng nhập
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    required={formData.role !== "User"}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 font-medium"
+                    placeholder="Nhập số điện thoại"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">
                     Khu vực
                   </label>
                   <Popover
@@ -722,6 +749,22 @@ export default function UserTable() {
                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
                     </div>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">
+                    Số điện thoại đăng nhập
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    required={formData.role !== "User"}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-gray-700 font-medium"
+                    placeholder="Nhập số điện thoại"
+                  />
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">

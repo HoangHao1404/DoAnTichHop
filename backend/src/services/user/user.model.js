@@ -7,6 +7,8 @@ const UserSchema = new mongoose.Schema({
   
   email: String,
 
+  phone: String,
+
   password: String, // hash (nullable cho Google login)
   
   gender: { type: String, enum: ["Nam", "Nữ", "Khác"], default: "Nam" },
@@ -19,7 +21,7 @@ const UserSchema = new mongoose.Schema({
 
   role: {
     type: String,
-    enum: ["user", "admin", "maintenance"],
+    enum: ["user", "admin", "manager", "maintenance"],
     default: "user",
   },
 
@@ -61,6 +63,15 @@ UserSchema.index(
   { email: 1 },
   {
     name: "email_1",
+    unique: true,
+    sparse: true,
+  },
+);
+
+UserSchema.index(
+  { phone: 1 },
+  {
+    name: "phone_1",
     unique: true,
     sparse: true,
   },

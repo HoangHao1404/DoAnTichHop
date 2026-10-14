@@ -14,7 +14,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const SignIn = () => {
   const [showPass, setShowPass] = useState(false);
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,7 +62,7 @@ const SignIn = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const res = await authApi.login(email.trim(), password);
+      const res = await authApi.login(identifier.trim(), password);
       if (res.data.success) {
         login(res.data.token, res.data.user);
         setToast({ message: `Chào mừng ${res.data.user.full_name || 'bạn'}!`, type: "success" });
@@ -146,14 +146,17 @@ const SignIn = () => {
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* GMAIL */}
+            {/* Users sign in with Gmail; managers and maintenance teams use phone. */}
             <div className="mb-5">
-              <label className="text-sm font-medium">Gmail</label>
+              <label className="text-sm font-medium">
+                Gmail / Số điện thoại
+              </label>
               <input
-                type="email"
-                placeholder="Enter your Gmail address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                autoComplete="username"
+                placeholder="Gmail người dùng hoặc SĐT nhân sự"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-xl 
                            text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 required

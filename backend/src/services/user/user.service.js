@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const userRepository = require("./user.repository");
+const normalizePhone = require("./phone.utils");
 const User = require("./user.model");
 
 const ROLE_DB_TO_UI = {
@@ -16,12 +17,17 @@ const ROLE_UI_TO_DB = {
   KTV: "maintenance",
 };
 
+function requiresPhoneLogin(role) {
+  return ["QTV", "KTV", "admin", "manager", "maintenance"].includes(role);
+}
+
 function toManagementUser(user) {
   return {
     user_id: user.user_id,
     id: `user${String(user.user_id).padStart(3, "0")}`,
     name: user.full_name || "",
     email: user.email || "",
+    phone: user.phone || "",
     role: ROLE_DB_TO_UI[user.role] || "User",
     area: user.area || "",
     status: user.account_status || "active",
@@ -135,8 +141,9 @@ class UserService {
     };
   }
 
-  async createUserByAdmin({ name, email, role, area, status, password }) {
+  async createUserByAdmin({ name, email, phone, role, area, status, password }) {
     const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    const normalizedPhone = normalizePhone(phone);
     if (!name || !normalizedEmail) {
       throw new Error("Tên và Gmail là bắt buộc");
     }
@@ -145,9 +152,17 @@ class UserService {
       throw new Error("Email phải có dạng ten@gmail.com");
     }
 
+    if (requiresPhoneLogin(role) && !normalizedPhone) {
+      throw new Error("Vui lòng nhập số điện thoại hợp lệ cho tài khoản nhân sự");
+    }
+
     const existingEmail = await userRepository.findByEmail(normalizedEmail);
     if (existingEmail) {
       throw new Error("Email đã được sử dụng");
+    }
+
+    if (normalizedPhone && (await userRepository.findByPhone(normalizedPhone))) {
+      throw new Error("Số điện thoại đã được sử dụng");
     }
 
     const user_id = await userRepository.getNextUserId();
@@ -158,6 +173,7 @@ class UserService {
       user_id,
       full_name: name,
       email: normalizedEmail,
+      ...(normalizedPhone ? { phone: normalizedPhone } : {}),
       password: hashedPassword,
       gender: "Nam",
       email_verified: true,
@@ -175,7 +191,7 @@ class UserService {
     };
   }
 
-  async updateUserByAdmin(user_id, { name, email, role, area, status }) {
+  async updateUserByAdmin(user_id, { name, email, phone, role, area, status }) {
     const target = await userRepository.findById(user_id);
     if (!target) {
       throw new Error("Người dùng không tồn tại");
@@ -186,6 +202,17 @@ class UserService {
       throw new Error("Email phải có dạng ten@gmail.com");
     }
 
+    const normalizedPhone = typeof phone === "string" && phone.trim()
+      ? normalizePhone(phone)
+      : target.phone || "";
+    if (typeof phone === "string" && phone.trim() && !normalizedPhone) {
+      throw new Error("Số điện thoại không hợp lệ");
+    }
+    const finalRole = role ? this.mapRoleForDb(role) : target.role;
+    if (requiresPhoneLogin(finalRole) && !normalizedPhone) {
+      throw new Error("Vui lòng nhập số điện thoại hợp lệ cho tài khoản nhân sự");
+    }
+
     if (normalizedEmail !== target.email) {
       const existingEmail = await userRepository.findByEmail(normalizedEmail);
       if (existingEmail && existingEmail.user_id !== user_id) {
@@ -193,11 +220,19 @@ class UserService {
       }
     }
 
+    if (normalizedPhone && normalizedPhone !== target.phone) {
+      const existingPhone = await userRepository.findByPhone(normalizedPhone);
+      if (existingPhone && existingPhone.user_id !== user_id) {
+        throw new Error("Số điện thoại đã được sử dụng");
+      }
+    }
+
     const updated = await userRepository.updateUserByAdmin(user_id, {
       full_name: name || target.full_name,
       email: normalizedEmail,
+      phone: normalizedPhone,
       email_verified: true,
-      role: role ? this.mapRoleForDb(role) : target.role,
+      role: finalRole,
       area: area !== undefined ? area : target.area,
       account_status: status || target.account_status || "active",
     });

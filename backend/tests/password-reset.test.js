@@ -3,9 +3,11 @@ const crypto = require("crypto");
 jest.mock("bcrypt", () => ({ hash: jest.fn(), compare: jest.fn() }));
 jest.mock("../src/services/user/user.repository", () => ({
   findByEmail: jest.fn(),
+  findByPhone: jest.fn(),
   getNextUserId: jest.fn(),
   create: jest.fn(),
   updateLoginAttemptsByEmail: jest.fn(),
+  updateLoginAttemptsByPhone: jest.fn(),
 }));
 jest.mock("../src/services/user/user.model", () => ({
   findOne: jest.fn(),
@@ -58,8 +60,9 @@ describe("password reset by email", () => {
     }
   });
 
-  it("registers using a normalized Gmail address instead of a phone number", async () => {
+  it("registers using a normalized Gmail address and a phone number", async () => {
     userRepo.findByEmail.mockResolvedValue(null);
+    userRepo.findByPhone.mockResolvedValue(null);
     bcrypt.hash.mockResolvedValue("hashed-password");
     userRepo.getNextUserId.mockResolvedValue(13);
     userRepo.create.mockImplementation(async (user) => user);
@@ -69,6 +72,7 @@ describe("password reset by email", () => {
       {
         body: {
           email: " Person@gmail.com ",
+          phone: "0912 345 678",
           password: "Password1!",
           full_name: "Person",
         },
@@ -80,11 +84,11 @@ describe("password reset by email", () => {
     expect(userRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({
         email: "person@gmail.com",
+        phone: "0912345678",
         email_verified: true,
         password: "hashed-password",
       }),
     );
-    expect(userRepo.create.mock.calls[0][0]).not.toHaveProperty("phone");
     expect(res.statusCode).toBe(201);
   });
 
@@ -116,6 +120,56 @@ describe("password reset by email", () => {
     expect(User.findOne).toHaveBeenCalledWith({ email: "person@gmail.com" });
     expect(res.body.user.email).toBe("person@gmail.com");
     expect(res.body.user).not.toHaveProperty("phone");
+  });
+
+  it.each(["admin", "manager", "maintenance"])(
+    "logs %s in using a normalized phone number",
+    async (role) => {
+      const staffUser = {
+        user_id: 14,
+        email: "staff@gmail.com",
+        phone: "0912345678",
+        password: "hashed-password",
+        role,
+        token_version: 0,
+        account_status: "active",
+      };
+      userRepo.findByPhone.mockResolvedValue(staffUser);
+      bcrypt.compare.mockResolvedValue(true);
+      User.findOne.mockReturnValue({ lean: jest.fn().mockResolvedValue(staffUser) });
+      const res = createResponse();
+
+      await login(
+        { body: { identifier: "+84 912 345 678", password: "Password1!" } },
+        res,
+      );
+
+      expect(userRepo.findByPhone).toHaveBeenCalledWith("0912345678");
+      expect(userRepo.updateLoginAttemptsByPhone).toHaveBeenCalledWith(
+        "0912345678",
+        0,
+        null,
+      );
+      expect(User.findOne).toHaveBeenCalledWith({ phone: "0912345678" });
+      expect(res.body.user.role).toBe(role);
+    },
+  );
+
+  it("rejects phone login for a regular user", async () => {
+    userRepo.findByPhone.mockResolvedValue({
+      user_id: 15,
+      phone: "0912345678",
+      role: "user",
+    });
+    const res = createResponse();
+
+    await login(
+      { body: { identifier: "0912345678", password: "Password1!" } },
+      res,
+    );
+
+    expect(res.statusCode).toBe(400);
+    expect(bcrypt.compare).not.toHaveBeenCalled();
   });
 
   it("sends a one-hour reset link and stores only the token hash", async () => {
