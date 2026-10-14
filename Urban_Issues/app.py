@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Resolve trained model path relative to this file and load safely
-MODEL_PATH = Path(__file__).parent / 'best.pt'
+MODEL_PATH = Path(__file__).parent / 'best.onnx'  # thay best.pt thành best.onnx
 
 # Configure logging
 logging.basicConfig(
@@ -24,7 +24,7 @@ model = None
 try:
     if MODEL_PATH.exists():
         logging.info(f"Loading model from {MODEL_PATH}")
-        model = YOLO(str(MODEL_PATH))
+        model = YOLO(str(MODEL_PATH),task="detect")
         logging.info("Model loaded successfully")
     else:
         logging.error(f"Model file not found at {MODEL_PATH}")

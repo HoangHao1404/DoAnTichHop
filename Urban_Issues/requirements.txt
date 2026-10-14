@@ -4,5 +4,6 @@ flask-cors
 streamlit>=1.37.0
 ultralytics>=8.3.0
 pillow>=10.0.0
+onnxruntime
 pandas>=2.0.0
 numpy>=1.24.0
